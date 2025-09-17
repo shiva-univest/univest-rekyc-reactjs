@@ -111,7 +111,7 @@ const BrokerDetails = () => {
             client_code: d.clientcode || "",
             boid: d.demat_id || "",
             dp_id: d.dpid || "",
-            participant: "Univest Stock Broker Private Limited", 
+            participant: "Univest Stock Broker Private Limited",
             depository: d.dp_type || "",
             exchanges: d.exchanges || "",
             kra_status: d.kra === "Y" ? "Yes" : "No",
@@ -190,37 +190,34 @@ const BrokerDetails = () => {
             ))} */}
 
             {infoList.map((item, index) => (
-  <div key={index} className="info-item">
-    <label>{item.label}</label>
-    <div className="value-row">
-      <strong>
-        {getValue(item.key)}
-        {item.key === "kra_status" && getValue(item.key) === "Yes" && (
-          <img
-            src="./App Icon.svg"   // ✅ replace with your actual icon path
-            alt="Verified"
-            className="verified-icon"
-          />
-        )}
-      </strong>
-      <button
-        className="copy-btn"
-        onClick={() => handleCopy(getValue(item.key), index)}
-      >
-        <img
-          src="./content_copy_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24 1.svg"
-          alt=""
-        />
-        <span className="tooltip">
-          {copiedIndex === index ? "Copied!" : "Copy"}
-        </span>
-      </button>
-    </div>
-  </div>
-))}
-
-
-
+              <div key={index} className="info-item">
+                <label>{item.label}</label>
+                <div className="value-row">
+                  <strong>
+                    {getValue(item.key)}
+                    {item.key === "kra_status" && getValue(item.key) === "Yes" && (
+                      <img
+                        src="./App Icon.svg"   // ✅ replace with your actual icon path
+                        alt="Verified"
+                        className="verified-icon"
+                      />
+                    )}
+                  </strong>
+                  <button
+                    className="copy-btn"
+                    onClick={() => handleCopy(getValue(item.key), index)}
+                  >
+                    <img
+                      src="./content_copy_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24 1.svg"
+                      alt=""
+                    />
+                    <span className="tooltip">
+                      {copiedIndex === index ? "Copied!" : "Copy"}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

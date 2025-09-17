@@ -178,6 +178,7 @@ import { useNavigate } from "react-router-dom";
 import "./style.css";
 import Overlay from "../../Overlay/Overlay";
 import { CgLaptop } from "react-icons/cg";
+import Header from '../../../Components/Header.jsx';
 
 const Pennycompo = () => {
   const [ifscCode, setIfscCode] = useState("");
@@ -480,6 +481,7 @@ const Pennycompo = () => {
 
   return (
     <div className="Peny-container">
+      <Header />
       {showDepositOverlay && <Overlay />}
 
       {/* ❌ Failure popup */}
@@ -518,13 +520,19 @@ const Pennycompo = () => {
         </div>
 
         <div className="penny-content2">
-          <input
-            placeholder="Enter IFSC or Branch name"
-            value={ifscCode}
-            onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
-            onBlur={searchIFSC}
-            style={{ textTransform: "uppercase" }}
-          />
+          <div className="input-group">
+            <input
+              placeholder="Enter IFSC or Branch name"
+              id="ifscInput"
+              value={ifscCode}
+              onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
+              onBlur={searchIFSC}
+              required
+            />
+            <label htmlFor="ifscInput" className="floating-label">
+              Enter IFSC or Branch name
+            </label>
+          </div>
 
           <input
             className="penny-bank-button"
@@ -573,7 +581,7 @@ const Pennycompo = () => {
         </div>
 
         <div className="penny-content3">
-          <button className="penny-button" onClick={handlePennyDrop}>
+          <button className="univest-actions-btn" onClick={handlePennyDrop}>
             Proceed
           </button>
           <p className="bottom_portfolios">

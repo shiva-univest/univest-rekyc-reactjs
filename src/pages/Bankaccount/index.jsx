@@ -4,16 +4,20 @@ import Cookies from "js-cookie";
 import { decryptData } from "../../decode";
 import { useLocation, useNavigate } from "react-router-dom";
 import withAuthCheck from "../../hoc/withAuthCheck";
+import { BANKLIST } from "../../lib/utils";
+
+
+
 
 const Bank = ({ encryptedData }) => {
   const [bankAccounts, setBankAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [formGenerationLoading, setFormGenerationLoading] = useState(false); 
+  const [formGenerationLoading, setFormGenerationLoading] = useState(false);
   const navigate = useNavigate();
   const accountDetailsPopupRef = useRef(null);
   const deletePopupRef = useRef(null);
- 
+
   const [makePrimaryLoading, setMakePrimaryLoading] = useState(false);
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -164,10 +168,10 @@ const Bank = ({ encryptedData }) => {
     setShowAccountDetailsPopup(true);
     setShowDropdown(false);
   };
- 
+
   const callUserFormGeneration = async () => {
     try {
-      setFormGenerationLoading(true); 
+      setFormGenerationLoading(true);
       const token = Cookies.get("access_token");
 
       if (!token) {
@@ -202,7 +206,7 @@ const Bank = ({ encryptedData }) => {
       console.error("User form generation error:", error);
       alert("Failed to generate user form. Please try again.");
     } finally {
-      setFormGenerationLoading(false); 
+      setFormGenerationLoading(false);
     }
   };
 
@@ -220,7 +224,6 @@ const Bank = ({ encryptedData }) => {
   const toggleAddAccountPopup = () => {
     setShowAddAccountPopup(!showAddAccountPopup);
   };
-
 
 
   useEffect(() => {
@@ -286,20 +289,18 @@ const Bank = ({ encryptedData }) => {
             Error: {error}
             <button onClick={fetchBankAccounts}>Retry</button>
           </div>
-        ) : bankAccounts.length > 0 ? (
+        ) : (
           bankAccounts.map((account) => (
             <div
               key={account.id}
               className="account-button-wrapper bank-details"
             >
               <button
-                className={`bank-button ${
-                  account.isPrimary ? "primary" : "secondary"
-                }`}
+                className={`bank-button ${account.isPrimary ? "primary" : "secondary"}`}
                 onClick={() => handleShowAccountDetails(account)}
               >
                 <div className="bank-icon">
-                  <img className="bank_icon_cls" src="./bank5.png"></img>
+                  <img alt={account.bankName} className="bank_icon_cls" src={BANKLIST?.filter(f => account.bankName?.toLowerCase()?.includes(f.name?.toLowerCase()))?.[0]?.url ?? "./bank5.png"}></img>
                 </div>
                 <div className="account-details">
                   <h4>{account.bankName}</h4>
@@ -337,319 +338,317 @@ const Bank = ({ encryptedData }) => {
               </button>
             </div>
           ))
-        ) : (
-          <div className="empty-state">
-            <p>No bank accounts found</p>
-            <button onClick={() => navigate("/bankaccount")}>
-              Add Bank Account
-            </button>
-          </div>
         )}
-      </div>
+      </div >
 
       <footer>
         <div className="bank-footer">
           <p>Note: You can add up to 3 bank accounts</p>
-          <button onClick={() => navigate("/bankaccount")}>
+          <button className="univest-actions-btn" onClick={() => navigate("/bankaccount")}>
             Add bank account
           </button>
         </div>
       </footer>
 
-      {showDropdown && selectedAccount && (
-        <div
-          className="bank-dropdown"
-          style={{
-            position: "absolute",
-            top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`,
-            zIndex: 1000,
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <span
-            onClick={() => {
-              setShowAccountDetailsPopup(true);
-              setShowDropdown(false);
+      {
+        showDropdown && selectedAccount && (
+          <div
+            className="bank-dropdown"
+            style={{
+              position: "absolute",
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              zIndex: 1000,
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <span className="info_icon_img">
-              {" "}
-              <img src="./info_ic.svg" alt="" />
-            </span>
-            Info
-          </span>
-          {/* only show the make primary button if account is not prim */}
-          {!selectedAccount.isPrimary && (
             <span
-              className="primary"
               onClick={() => {
-                handleMakePrimary(selectedAccount.id);
+                setShowAccountDetailsPopup(true);
                 setShowDropdown(false);
               }}
             >
-              <span className="info_icon_img">
-                {" "}
-                <img src="./make_prima.svg" alt="" />
-              </span>
-              Make primary
+              <img className="info_icon_img" src="./info_ic.svg" alt="" />
+              Info
             </span>
-          )}
-          <span
-            className="red"
-            onClick={() => {
-              setdeleteDetailsPopup(true);
-              setShowDropdown(false);
-            }}
-          >
-            <span className="info_icon_img">
-              {" "}
-              <img src="./delet.svg" alt="" />
-            </span>
-            Delete
-          </span>
-        </div>
-      )}
+            {/* only show the make primary button if account is not prim */}
+            {!selectedAccount.isPrimary && (
+              <>
+                <span
+                  className="primary"
+                  onClick={() => {
+                    handleMakePrimary(selectedAccount.id);
+                    setShowDropdown(false);
+                  }}
+                >
+                  <img className="info_icon_img" src="./make_prima.svg" alt="" />
+                  Make primary
+                </span>
+                <span
+                  className="red"
+                  onClick={() => {
+                    setdeleteDetailsPopup(true);
+                    setShowDropdown(false);
+                  }}
+                >
+                  <img className="info_icon_img" src="./delet.svg" alt="" />
+                  Delete
+                </span>
+              </>
+            )}
 
-      {showAccountDetailsPopup && selectedAccount && (
-        <div className="account-details-popup-overlay">
-          <div className="account-details-popup" ref={accountDetailsPopupRef}>
-            <div className="popup-content_bank">
-              <h3>Bank account details</h3>
-              <div className="account-details-grid">
-                <div className="account-detail-heading">
-                  <div>
-                    {" "}
-                    <h3>{selectedAccount.bankName || "-"}</h3>
-                    <p>{selectedAccount.accountType || "-"}</p>
-                    {selectedAccount.isPrimary && (
-                      <span
-                        className="b1-primary"
-                        style={{
-                          position: "absolute",
-                          top: "70px",
-                          right: "21px",
-                        }}
-                      >
-                        Primary
-                      </span>
+          </div>
+        )
+      }
+
+      {
+        showAccountDetailsPopup && selectedAccount && (
+          <div className="account-details-popup-overlay">
+            <div className="account-details-popup" ref={accountDetailsPopupRef}>
+              <div className="popup-content_bank">
+                <h3>Bank account details</h3>
+                <div className="account-details-grid">
+                  <div className="account-detail-heading">
+                    <div style={{ display: 'flex', textAlign: "center" }}>
+                      <div className="bank-icon">
+                        <img alt={selectedAccount.bankName} className="bank_icon_cls" src={BANKLIST?.filter(f => selectedAccount.bankName?.toLowerCase()?.includes(f.name?.toLowerCase()))?.[0]?.url ?? "./bank5.png"}></img>
+                      </div>
+                      <h3>{selectedAccount.bankName || "-"}
+                        <p>{selectedAccount.accountType || "-"}</p>
+                      </h3>
+
+                      {selectedAccount.isPrimary && (
+                        <span
+                          className="b1-primary"
+                          style={{
+                            position: "absolute",
+                            top: "60px",
+                            right: "21px",
+                          }}
+                        >
+                          Primary
+                        </span>
+                      )}
+                    </div>
+                    {/* in here if the account is primary then show the primary badge */}
+
+                    {/* show the make primary button only if account is not primary */}
+                    {!selectedAccount.isPrimary && (
+                      <div>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await handleMakePrimary(selectedAccount.id);
+                              setShowAccountDetailsPopup(false);
+                              await callUserFormGeneration();
+                            } catch (error) {
+                              console.error("Error in make primary flow:", error);
+                              alert("Something went wrong. Please try again.");
+                              setFormGenerationLoading(false); // Ensure loading stops on error
+                            }
+                          }}
+                          disabled={formGenerationLoading}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            opacity: formGenerationLoading ? 0.7 : 1,
+                            cursor: formGenerationLoading
+                              ? "not-allowed"
+                              : "pointer",
+                          }}
+                        >
+                          {formGenerationLoading && (
+                            <div
+                              className="form-generation-spinner"
+                              style={{
+                                width: "16px",
+                                height: "16px",
+                                border: "2px solid #f3f3f3",
+                                borderTop: "2px solid #0862BC",
+                                borderRadius: "50%",
+                                animation: "spin 1s linear infinite",
+                              }}
+                            />
+                          )}
+                          {formGenerationLoading
+                            ? "Generating form..."
+                            : "Make primary"}
+                        </button>
+                      </div>
                     )}
                   </div>
-                  {/* in here if the account is primary then show the primary badge */}
+
+                  <div className="detail-row">
+                    <span className="detail-label">Name as on bank account</span>
+                    <span
+                      className="detail-value"
+                      style={{
+                        fontWeight: "800",
+                        lineHeight: "30px",
+                        marginTop: "4px",
+                      }}
+                    >
+                      {selectedAccount.bankName}
+                    </span>
+                  </div>
+
+                  <div className="detail-row">
+                    <span className="detail-label">Bank account number</span>
+                    <span
+                      className="detail-value"
+                      style={{
+                        fontWeight: "800",
+                        lineHeight: "30px",
+                        marginTop: "4px",
+                      }}
+                    >
+                      XXXXXXXX{selectedAccount.accountNumber.slice(-4)}
+                    </span>
+                  </div>
+
+                  <div className="detail-row">
+                    <span className="detail-label">Branch name</span>
+                    <span
+                      className="detail-value"
+                      style={{
+                        fontWeight: "800",
+                        lineHeight: "30px",
+                        marginTop: "4px",
+                      }}
+                    >
+                      {selectedAccount.branchname || "-"}
+                    </span>
+                  </div>
+
+                  <div className="detail-row last">
+                    <span className="detail-label">IFSC</span>
+                    <span
+                      className="detail-value"
+                      style={{
+                        fontWeight: "800",
+                        lineHeight: "30px",
+                        marginTop: "4px",
+                      }}
+                    >
+                      {selectedAccount.ifscCode}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="popup-actions-btn">
+                  {/* show the alright button only if account is  primary and remove the delete button */}
+                  {/* look if the bank is primary then dont show the delelte option instead show go-back button */}
+                  {selectedAccount.isPrimary ? (
+                    <button
+                      className="go-back-btn"
+                      onClick={() => {
+                        setShowAccountDetailsPopup(false);
+                      }}
+                    >
+                      Go Back
+                    </button>
+                  ) : (
+                    <button
+                      className="delete-btn"
+                      onClick={() => {
+                        setShowAccountDetailsPopup(false);
+                        setdeleteDetailsPopup(true);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  )}
 
                   {/* show the make primary button only if account is not primary */}
                   {!selectedAccount.isPrimary && (
-                    <div>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await handleMakePrimary(selectedAccount.id);
-                            setShowAccountDetailsPopup(false);
-                            await callUserFormGeneration();
-                          } catch (error) {
-                            console.error("Error in make primary flow:", error);
-                            alert("Something went wrong. Please try again.");
-                            setFormGenerationLoading(false); // Ensure loading stops on error
-                          }
-                        }}
-                        disabled={formGenerationLoading}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "8px",
-                          opacity: formGenerationLoading ? 0.7 : 1,
-                          cursor: formGenerationLoading
-                            ? "not-allowed"
-                            : "pointer",
-                        }}
-                      >
-                        {formGenerationLoading && (
-                          <div
-                            className="form-generation-spinner"
-                            style={{
-                              width: "16px",
-                              height: "16px",
-                              border: "2px solid #f3f3f3",
-                              borderTop: "2px solid #0862BC",
-                              borderRadius: "50%",
-                              animation: "spin 1s linear infinite",
-                            }}
-                          />
-                        )}
-                        {formGenerationLoading
-                          ? "Generating form..."
-                          : "Make primary"}
-                      </button>
-                    </div>
+                    <button
+                      className="makeprimary-btn"
+                      onClick={async () => {
+                        handleMakePrimary(selectedAccount.id);
+                        await callUserFormGeneration();
+                      }}
+                    >
+                      Make Primary
+                    </button>
                   )}
                 </div>
-
-                <div className="detail-row">
-                  <span className="detail-label">Name as on bank account</span>
-                  <span
-                    className="detail-value"
-                    style={{
-                      fontWeight: "800",
-                      lineHeight: "30px",
-                      marginTop: "4px",
-                    }}
-                  >
-                    {selectedAccount.bankName}
-                  </span>
-                </div>
-
-                <div className="detail-row">
-                  <span className="detail-label">Bank account number</span>
-                  <span
-                    className="detail-value"
-                    style={{
-                      fontWeight: "800",
-                      lineHeight: "30px",
-                      marginTop: "4px",
-                    }}
-                  >
-                    XXXXXXXX{selectedAccount.accountNumber.slice(-4)}
-                  </span>
-                </div>
-
-                <div className="detail-row">
-                  <span className="detail-label">Branch name</span>
-                  <span
-                    className="detail-value"
-                    style={{
-                      fontWeight: "800",
-                      lineHeight: "30px",
-                      marginTop: "4px",
-                    }}
-                  >
-                    {selectedAccount.branchname || "-"}
-                  </span>
-                </div>
-
-                <div className="detail-row last">
-                  <span className="detail-label">IFSC</span>
-                  <span
-                    className="detail-value"
-                    style={{
-                      fontWeight: "800",
-                      lineHeight: "30px",
-                      marginTop: "4px",
-                    }}
-                  >
-                    {selectedAccount.ifscCode}
-                  </span>
-                </div>
-              </div>
-
-              <div className="popup-actions-btn">
-                {/* show the alright button only if account is  primary and remove the delete button */}
-                {/* look if the bank is primary then dont show the delelte option instead show go-back button */}
-                {selectedAccount.isPrimary ? (
-                  <button
-                    className="go-back-btn"
-                    onClick={() => {
-                      setShowAccountDetailsPopup(false);
-                    }}
-                  >
-                    Go Back
-                  </button>
-                ) : (
-                  <button
-                    className="delete-btn"
-                    onClick={() => {
-                      setShowAccountDetailsPopup(false);
-                      setdeleteDetailsPopup(true);
-                    }}
-                  >
-                    Delete
-                  </button>
-                )}
-
-                {/* show the make primary button only if account is not primary */}
-                {!selectedAccount.isPrimary && (
-                  <button
-                    className="makeprimary-btn"
-                    onClick={async () => {
-                      handleMakePrimary(selectedAccount.id);
-                      await callUserFormGeneration();
-                    }}
-                  >
-                    Make Primary
-                  </button>
-                )}
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {deleteDetailsPopup && selectedAccount && (
-        <div className="deleteaccount-details-popup-overlay">
-          <div className="account-details-popup" ref={deletePopupRef}>
-            <div className="delete-popup-content">
-              <h3>
-                <span className="info_icon_img">
-                  {" "}
-                  <img src="./delet_bott.svg" alt="" />
-                </span>
-                Delete details
-              </h3>
-              <p className="border_if_u_wish">
-                If you wish to delete the bank details, please write to us at{" "}
-                <a href="mailto:support@unibrokers.in">support@unibrokers.in</a>{" "}
-                and our support team will help you out.
-              </p>
-              <div className="popup-actions-btn">
-                <button
-                  className="alright-btn"
-                  onClick={() => {
-                    setdeleteDetailsPopup(false);
-                    handleDeleteAccount(selectedAccount.id);
-                  }}
-                >
-                  Alright
-                </button>
+      {
+        deleteDetailsPopup && selectedAccount && (
+          <div className="deleteaccount-details-popup-overlay">
+            <div className="account-details-popup" ref={deletePopupRef}>
+              <div className="delete-popup-content">
+                <h3>
+                  <span className="info_icon_img">
+                    <img src="./delet_bott.svg" alt="" />
+                  </span>
+                  Delete details
+                </h3>
+                <p className="border_if_u_wish">
+                  If you wish to delete the bank details, please write to us at{" "}
+                  <a href="mailto:support@unibrokers.in">support@unibrokers.in</a>{" "}
+                  and our support team will help you out.
+                </p>
+                <div className="popup-actions-btn">
+                  <button
+                    className="alright-btn"
+                    onClick={() => {
+                      setdeleteDetailsPopup(false);
+                      handleDeleteAccount(selectedAccount.id);
+                    }}
+                  >
+                    Alright
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Form Generation Loader Overlay */}
-      {formGenerationLoading && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-          }}
-        >
+      {
+        formGenerationLoading && (
           <div
             style={{
-              width: "50px",
-              height: "50px",
-              border: "4px solid #f3f3f3",
-              borderTop: "4px solid #0862BC",
-              borderRadius: "50%",
-              animation: "spin 1s linear infinite",
-              marginBottom: "16px",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
             }}
-          />
-          <p style={{ color: "white", fontSize: "16px", fontWeight: "500" }}>
-            Generating form...
-          </p>
-        </div>
-      )}
-    </div>
+          >
+            <div
+              style={{
+                width: "50px",
+                height: "50px",
+                border: "4px solid #f3f3f3",
+                borderTop: "4px solid #0862BC",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+                marginBottom: "16px",
+              }}
+            />
+            <p style={{ color: "white", fontSize: "16px", fontWeight: "500" }}>
+              Generating form...
+            </p>
+          </div>
+        )
+      }
+    </div >
   );
 };
 
