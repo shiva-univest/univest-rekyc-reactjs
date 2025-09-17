@@ -77,34 +77,11 @@ body {
 .penny-content2 {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   padding: 20px 0px;
   height: 80vh;
 }
 
-.penny-content2 select,
-input {
-  padding: 10px 10px;
-  border-radius: 8px;
-  border: 1px solid #414141;
-  background-color: white;
-  height: 44px;
-}
-
-.penny-select:focus-visible,
-.penny-content2 input:focus-visible {
-  outline: none;
-  border-color: #202020;
-}
-
-.penny-content2 select {
-  appearance: none;
-  /* Hides default arrow */
-  -webkit-appearance: none;
-  /* Safari/Chrome */
-  -moz-appearance: none;
-  position: relative;
-}
 
 .penny-bank-button svg {
   filter: opacity(0.9);
@@ -153,59 +130,4 @@ input {
   justify-content: center;
   align-items: center;
   gap: 5px;
-}
-
-.input-group {
-  position: relative;
-  margin-bottom: 10px;
-}
-
-.input-group input.error {
-  border: 2px solid #ff4444;
-  background-color: #fff5f5;
-}
-
-.error-message {
-  color: #ff4444;
-  font-size: 12px;
-  margin-top: 4px;
-  display: block;
-  font-weight: 500;
-}
-
-.input-group {
-  position: relative;
-  margin-top: 20px;
-}
-
-.input-group input {
-  width: 100%;
-  padding: 12px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-/* Label default position */
-.input-group label {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  color: #777;
-  font-size: 14px;
-  background: white;
-  padding: 0 4px;
-  pointer-events: none;
-  transition: 0.2s ease all;
-}
-
-/* Float label when input is focused OR has value */
-.input-group input:focus+label,
-.input-group input:not(:placeholder-shown)+label,
-.input-group input:valid+label {
-  top: -7px;
-  left: 12px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #555;
 }
