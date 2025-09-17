@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { nativeBACK } from "../lib/utils";
 
 const getToken = () => {
   return localStorage.getItem("token") || Cookies.get("token");
@@ -111,6 +112,22 @@ const withAuthCheck = (WrappedComponent) => {
       }
     };
 
+
+    const handleBack = () => {
+      if (window.history.length > 0) {
+        window.history.back();
+      } else {
+        nativeBACK()
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      try {
+        window.webviewBack = handleBack;
+        window.flutter_inappwebview.callHandler("isIOSBack", true);
+      } catch (error) {
+      }
+    }
     if (!tokenChecked) return null;
 
     if (!validToken && !Cookies.get("access_token")) {

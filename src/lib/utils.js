@@ -11,6 +11,14 @@ export const openLink = (url) => {
 };
 
 
+export const nativeBACK = () => {
+    try {
+        window.flutter_inappwebview.callHandler("BACK", "BACK");
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 
 
 export const BANKLIST = [{
