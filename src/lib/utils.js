@@ -19,6 +19,14 @@ export const nativeBACK = () => {
     }
 }
 
+export const alright = () => {
+    try {
+        window.flutter_inappwebview.callHandler("BACK", "BACK");
+    } catch (e) {
+        window.open("https://univest.page.link/APPHOME", "_self")
+    }
+}
+
 
 
 export const BANKLIST = [{

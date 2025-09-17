@@ -24,10 +24,9 @@ body {
   padding: 12px;
   font-size: 16px;
   border: none;
-  font-weight: 700;
+  font-weight: 600;
   font-family: "Inter", sans-serif;
   cursor: pointer;
-  line-height: 28px;
   width: 100%;
 }
 

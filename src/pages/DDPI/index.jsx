@@ -18,7 +18,7 @@ const ActivateDDPI = () => {
     tendering: true,
   });
 
- 
+
 
 
   useEffect(() => {
@@ -45,12 +45,12 @@ const ActivateDDPI = () => {
               console.log("Parsed decrypted data:", parsed);
               setModuleData(parsed);
 
-              
+
               if (parsed?.["21"]?.ddpi === true || parsed?.["21"]?.bo_poa === true) {
-  setDdpiActive(true);
-} else {
-  setDdpiActive(false);
-}
+                setDdpiActive(true);
+              } else {
+                setDdpiActive(false);
+              }
 
             } catch {
               setModuleData(decrypted);
@@ -144,7 +144,7 @@ const ActivateDDPI = () => {
           </button>
         </div>
       ) : (
-       
+
         <div className="ddpi-container_ddpi">
           <h2 className="title">Activate DDPI</h2>
           <p className="subtitle">
@@ -248,7 +248,7 @@ const ActivateDDPI = () => {
             </p>
 
             <button
-              className={`proceed-btn ${allChecked ? "" : "disabled"}`}
+              className={`univest-actions-btn ${allChecked ? "" : "disabled"}`}
               disabled={!allChecked}
               onClick={() => navigate("/esign")}
             >

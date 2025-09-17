@@ -1,6 +1,7 @@
 import React from "react";
 import { useLocation } from "react-router-dom"; // ✅ import useLocation
 import "./styles.css";
+import { alright } from "../../lib/utils";
 
 const Congratulation = () => {
   const location = useLocation();
@@ -18,13 +19,8 @@ const Congratulation = () => {
         </p>
       </div>
       <footer className="conFooter">
-        <a
-          href="https://univest.page.link/APPHOME"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <button className="c_alright">Alright</button>
-        </a>
+
+        <button className="univest-actions-btn c_alright" onClick={alright} >Alright</button>
       </footer>
     </div>
   );
