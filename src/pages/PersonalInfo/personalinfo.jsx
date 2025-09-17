@@ -13,12 +13,12 @@ const Section = ({ title, onEdit = null, children }) => (
   <div className="section-wrapper">
     <div className="section-header">
       <h3>{title}</h3>
-      {onEdit && (
+      {/* {onEdit && (
         <button className="edit-btn edit_new" onClick={onEdit}>
           <Pencil size={14} />
           Edit
         </button>
-      )}
+      )} */}
     </div>
     <div className="section-box">{children}</div>
   </div>

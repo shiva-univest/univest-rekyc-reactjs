@@ -1,85 +1,4 @@
-// import React, { useEffect, useState } from "react";
-// import './broker.css';
 
-// const BrokerDetails = () => {
-//   const [brokerData, setBrokerData] = useState({
-//     client_code: "",
-//     boid: "",
-//     dp_id: "",
-//     participant: "",
-//     depository: "",
-//     exchanges: [],
-//     kra_status: ""
-//   });
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       try {
-//         const res = await fetch("http://35.244.37.205:8555/TechBoRest/api/entry/client_list");
-//         const data = await res.json();
-//         setBrokerData(data);
-//       } catch (error) {
-//         console.error("API error:", error);
-//       }
-//     };
-
-//     fetchData();
-//   }, []);
-
-//   const infoList = [
-//     { label: "Unique client code", key: "client_code" },
-//     { label: "Demat acc number (BOID)", key: "boid" },
-//     { label: "DP ID", key: "dp_id" },
-//     { label: "Depository participant", key: "participant" },
-//     { label: "Depository name", key: "depository" },
-//     { label: "Exchanges", key: "exchanges" },
-//     { label: "KRA status", key: "kra_status" }
-//   ];
-
-//   const getValue = (key) => {
-//     const value = brokerData[key];
-//     if (Array.isArray(value)) return value.join(", ");
-//     return value || " ";
-//   };
-
-//   return (
-
-//     <div className="broker-details-container">
-//       <header>
-//         <div className="a_header_main3">
-//           <button className="a_btn_header">
-//             <img src="./Icon_apparrow.svg" alt="" />
-//           </button>
-//           Broker account details
-//         </div>
-//       </header>
-//       <div className="belowheader">
-
-//       <h2>Broker account details</h2>
-//       <div className="gradient-border-wrapper">
-//       <div className="broker-box">
-//         {infoList.map((item, index) => (
-//           <div key={index} className="info-item">
-//             <label>{item.label}</label>
-//             <div className="value-row">
-//               <strong>{getValue(item.key)}</strong>
-//               <button
-//                 className="copy-btn"
-//                 onClick={() => navigator.clipboard.writeText(getValue(item.key))}
-//               >
-//                  <img src="./content_copy_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24 1.svg" alt="" />
-//               </button>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//       </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default BrokerDetails;
 
 import React, { useEffect, useState } from "react";
 import api from "../../api/api";
@@ -95,6 +14,19 @@ const BrokerDetails = () => {
     exchanges: "",
     kra_status: "",
   });
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const handleBackClick = () => {
+    setShowConfirmModal(true);
+  };
+
+  const handleCancel = () => {
+    setShowConfirmModal(false);
+  };
+
+  const handleLeaveAnyway = () => {
+    // Your navigation logic here (e.g., useNavigate or window.history.back())
+    window.history.back();
+  };
 
   const [copiedIndex, setCopiedIndex] = useState(null); // track which item was copied
 
@@ -154,10 +86,12 @@ const BrokerDetails = () => {
     <div className="broker-details-container">
       <header>
         <div className="a_header_main3">
-          <button className="a_btn_header">
+          <div className="broker_account_det"> Broker account details</div>
+          <button className="a_btn_header_broker" onClick={handleBackClick}>
             <img src="./Icon_apparrow.svg" alt="" />
           </button>
-          Broker account details
+          
+         
         </div>
       </header>
 
@@ -166,28 +100,6 @@ const BrokerDetails = () => {
         <div className="gradient-border-wrapper">
           <div className="broker-box">
 
-
-            {/* {infoList.map((item, index) => (
-              <div key={index} className="info-item">
-                <label>{item.label}</label>
-                <div className="value-row">
-                  <strong>{getValue(item.key)}</strong>
-
-                  <button
-                    className="copy-btn"
-                    onClick={() => handleCopy(getValue(item.key), index)}
-                  >
-                    <img
-                      src="./content_copy_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24 1.svg"
-                      alt=""
-                    />
-                    <span className="tooltip">
-                      {copiedIndex === index ? "Copied!" : "Copy"}
-                    </span>
-                  </button>
-                </div>
-              </div>
-            ))} */}
 
             {infoList.map((item, index) => (
   <div key={index} className="info-item">
@@ -224,6 +136,25 @@ const BrokerDetails = () => {
           </div>
         </div>
       </div>
+
+      {showConfirmModal && (
+        <div className="confirm-modal-overlay">
+          <div className="confirm-modal">
+            <p>
+              Unsaved changes will be lost. Are you sure you want to go back?
+            </p>
+            <div className="modal-buttons">
+              <button className="cancel-btn" onClick={handleCancel}>
+                Cancel
+              </button>
+              <button className="leave-btn" onClick={handleLeaveAnyway}>
+                Leave anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

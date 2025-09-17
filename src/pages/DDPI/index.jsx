@@ -190,7 +190,7 @@ const ActivateDDPI = () => {
         </div>
       ) : (
         // ❌ Show Existing Activation Form
-        <div className="ddpi-container">
+        <div className="ddpi-container_ddpi">
           <h2 className="title">Activate DDPI</h2>
           <p className="subtitle">
             Break the hassle to enter TPIN everyday one time

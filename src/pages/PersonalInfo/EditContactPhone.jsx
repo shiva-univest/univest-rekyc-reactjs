@@ -116,58 +116,7 @@ const EditContactPhone = ({ onClose, contact }) => {
     }
   };
 
-  // const handleVerifyOtpSubmit = async () => {
-  //   const otpValue = otp.join("");
-  //   if (otpValue.length !== 6) {
-  //     setOtpError("Enter 6 digit OTP");
-  //     return;
-  //   }
-
-  //   try {
-  //     const token = await getValidToken();
-  //     const response = await callVerifyOtpAPI(otpValue, token);
-  //     const data = await response.json();
-  //     console.log("dataa", token);
-  //     console.log("dataa", response);
-  //     console.log("dataa", data);
-
-  //     if (data?.status === true) {
-  //       setOtpError("");
-  //       alert(data.message || "Phone verified successfully!");
-
-  //       try {
-  //         const formRes = await fetch(
-  //           "https://rekyc.meon.co.in/v1/user/user_form_generation",
-  //           {
-  //             method: "POST",
-  //             headers: {
-  //               "Content-Type": "application/json",
-  //               Authorization: `Bearer ${token}`,
-  //             },
-  //             body: JSON.stringify({ re_esign: false }),
-  //           }
-  //         );
-  //         const formData = await formRes.json();
-  //         console.log("user_form_generation response ->", formData);
-
-  //         if (formData?.status === true) {
-  //           // ✅ Success → Navigate
-  //           navigate("/esign");
-  //         } else {
-  //           // ❌ Error → Show API message
-  //           setOtpError(formData?.message || "Failed to generate form");
-  //         }
-  //       } catch (formErr) {
-  //         console.error("Failed to call user_form_generation:", formErr);
-  //         setOtpError("Something went wrong while generating form");
-  //       }
-  //     } else {
-  //       setOtpError(data?.message || "Enter correct OTP");
-  //     }
-  //   } catch (err) {
-  //     setOtpError("Network error");
-  //   }
-  // };
+ 
 
   const handleVerifyOtpSubmit = async () => {
     if (otp.length !== 6) {

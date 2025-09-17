@@ -3,15 +3,10 @@
   font-family: sans-serif;
 }
 .belowheader{
-  padding: 16px;
+  padding: 82px 20px 16px 20px;
 }
 
-/* .broker-box {
-  border: 1px solid #007bff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-top: 10px;
-} */
+
 
 .gradient-border-wrapper {
   background: linear-gradient(135deg, rgba(8, 98, 188, 1), rgba(97, 178, 243, 1));
@@ -72,17 +67,42 @@
 }
 
 .a_header_main3{
-  box-shadow: 0px 10px 3px -7px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0px 10px 3px -7px rgba(0, 0, 0, 0.1);
   display: flex;
    justify-content: center;
     gap: 14px;
     padding: 24px 20px 15px 20px;
     font-size: 14px;
     font-weight: 500;
-    color: rgba(32, 32, 32, 1);
+    color: rgba(32, 32, 32, 1); */
+
+        padding: 25px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    box-shadow: 0px 0px 4px 0px #80808057;
+    margin-bottom: 1rem;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: white;
 
 }
-
+.broker_account_det{
+ 
+ font-size: 14px;
+    font-weight: 500;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(32, 32, 32, 1);
+}
+.a_btn_header_broker{
+  border: none;
+    background: transparent;
+}
 
 
 
