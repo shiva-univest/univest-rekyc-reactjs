@@ -1,0 +1,519 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.head_cl {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.bank-header svg {
+  width: 32px;
+  height: 32px;
+  fill: #000;
+  cursor: pointer;
+  min-width: 30px;
+  max-width: 40px;
+  background: white;
+}
+
+.bank-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* ensures the p tag is centered */
+  position: relative;
+  padding: 25px 5px;
+  background: white;
+  width: 100%;
+  box-shadow: 0px 0px 4px 0px #80808057;
+}
+
+.bank-back-container {
+  position: absolute;
+  left: 10px;
+  /* keep the arrow on the left */
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.bank-header p {
+  font-size: 14px;
+  text-align: center;
+  margin: 0 auto;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+}
+
+.bank-back {
+  background: white;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.bank-body {
+  width: 100%;
+  background: #f5f5f55c;
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  /* height: 100vh; */
+}
+
+.bank-body button {
+  border-radius: 12px;
+  border: 1px solid #bcbcbc;
+  display: flex;
+  align-items: center;
+  position: relative;
+  justify-content: space-between;
+}
+
+.bank-button {
+  display: flex;
+  width: 100%;
+  padding: 15px 16px;
+  background-color: transparent;
+}
+.info_icon_img {
+  padding: 0 !important;
+}
+.border_if_u_wish {
+  padding: 12px;
+  border: 1px solid rgba(13, 115, 206, 1);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(65, 65, 65, 1);
+}
+
+.bank-button1 img,
+.bank-button2 img {
+  width: 49px;
+  height: 40px;
+}
+
+.bank-body p {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+  font-family: "Inter", sans-serif;
+}
+
+.bank-details {
+  text-align: left;
+  width: 100%;
+  padding: 0px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bank-button svg {
+  width: 10%;
+  position: relative;
+}
+
+.federal-acc-no,
+.indus-acc-no {
+  font-size: 14px !important;
+  font-weight: 500;
+  color: #747474 !important;
+}
+
+.account-details h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+  font-family: "Inter", sans-serif;
+  margin-bottom: 5px;
+}
+
+.b1-primary {
+  background: #0862bc;
+  position: absolute;
+  top: 0;
+  color: white;
+  right: 0px;
+  padding: 4px 13px;
+  border-radius: 0px 11px 0px 9px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.bank-footer p {
+  background-color: #f8eac8;
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: #414141;
+  border: none;
+  border-radius: 4px;
+  font-family: "Inter", sans-serif;
+}
+
+.bank-footer button {
+  background-color: #33a34d;
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+}
+
+.bank-footer {
+  display: flex;
+  padding: 0px 20px;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+#bank-dropdown {
+  position: absolute;
+}
+
+.bank-dropdown {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 150px;
+  padding: 0px 0px;
+  display: flex;
+  flex-direction: column;
+  /* gap: 10px; */
+}
+
+.bank-dropdown span {
+  padding: 12px 8px;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  font-family: "Inter", sans-serif;
+}
+
+.bank-dropdown span:hover {
+  background-color: #f5f5f5;
+}
+
+.red {
+  color: red;
+}
+
+.primary {
+  border-bottom: 1px solid #dfdfdf;
+  border-top: 1px solid #dfdfdf;
+}
+
+.add-account-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content_bank {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 98%;
+  max-width: 100%;
+  position: absolute;
+  bottom: 10px;
+  margin: 5px;
+}
+
+.popup-content_bank h3 {
+  margin-top: 0;
+  color: #202020;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: "Inter", sans-serif;
+  padding: 5px 0px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.popup-buttons button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+}
+
+.submit-btn {
+  background-color: #202020;
+  color: white;
+  border: none;
+}
+
+.account-details-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.deleteaccount-details-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.account-detail-heading {
+  background: #ecf6fe;
+  flex-direction: row;
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 15px;
+  border-radius: 16px 16px 0px 0px;
+}
+
+.account-details-grid {
+  border: 1px solid #0862bc;
+  margin: 20px 0;
+  border-radius: 16px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  flex-direction: column;
+}
+
+.close-btn {
+  margin-top: 20px;
+  padding: 8px 16px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  float: right;
+}
+
+/* Add this to your CSS */
+.bank-button svg:hover {
+  cursor: pointer;
+}
+
+.account-detail-heading h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #202020;
+  font-family: "Inter", sans-serif;
+  /* padding: 10px 20px; */
+  /* margin: 0; */
+  /* line-height: 28px; */
+  text-align: left;
+  /* width: 99%; */
+}
+
+.account-detail-heading p {
+  font-size: 14px;
+  font-weight: 500;
+  color: #202020;
+  font-family: "Inter", sans-serif;
+  /* padding: 10px 20px; */
+  /* margin: 0; */
+  line-height: 24px;
+}
+
+.account-detail-heading button {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0862bc;
+  font-family: "Inter", sans-serif;
+  padding: 12px 10px;
+  /* margin: 0; */
+  line-height: 20px;
+  border: 1px solid #0862bc;
+  background: transparent;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.primary-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0862bc;
+  font-family: "Inter", sans-serif;
+}
+.last {
+  border: none;
+}
+
+.makeprimary-btn {
+  border-radius: 8px;
+  background: #33a34d;
+  color: white;
+  padding: 10px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: "Inter", sans-serif;
+  border: none;
+  cursor: pointer;
+  width: 40%;
+  line-height: 28px;
+}
+
+.go-back-btn {
+  border-radius: 8px;
+  background: #33a34d;
+  color: white;
+  padding: 10px 30px;
+  font-size: 16px;
+  border: none;
+  font-weight: 700;
+  font-family: "Inter", sans-serif;
+  cursor: pointer;
+  line-height: 28px;
+  width: 100%;
+}
+
+.delete-btn {
+  border-radius: 8px;
+  background: white;
+  color: red;
+  padding: 10px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: "Inter", sans-serif;
+  border: 1px solid red;
+  cursor: pointer;
+  line-height: 28px;
+  width: 40%;
+}
+
+.popup-actions-btn {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.alright-btn {
+  border-radius: 8px;
+  background: #33a34d;
+  color: white;
+  padding: 10px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: "Inter", sans-serif;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  line-height: 28px;
+}
+
+.delete-account-details-grid {
+  border: 1px solid #0862bc;
+  margin: 20px 0;
+  border-radius: 16px;
+}
+
+.delete-popup-content {
+  background: white;
+  padding: 15px 15px;
+  position: absolute;
+  bottom: 3px;
+}
+
+.delete-popup-content h3 {
+  display: flex;
+  gap: 10px;
+}
+
+.delete-account-details-grid p {
+  font-size: 14px;
+  font-weight: 500;
+  color: #202020;
+  font-family: "Inter", sans-serif;
+  padding: 10px 20px;
+  line-height: 20px;
+}
+
+.account-details-popup {
+  width: 100%;
+  max-width: 100%;
+}
+.bank_icon_cls {
+  width: 100%;
+}
+
+@media screen and (max-width: 400px) {
+  .delete-btn {
+    padding: 8px 0px;
+    height: fit-content;
+  }
+  .makeprimary-btn {
+    padding: 8px 0px;
+    height: fit-content;
+    width: 45%;
+  }
+}

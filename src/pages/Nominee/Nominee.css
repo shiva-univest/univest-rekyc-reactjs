@@ -1,0 +1,317 @@
+
+/* Container */
+.container3 {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+/* Empty State Card */
+.empty-card {
+  text-align: center;
+  /* padding: 40px 20px;
+  border: 1px dashed #bbb;
+  border-radius: 10px;
+  background: #fafafa; */
+}
+
+.empty-card .icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 15px;
+  background: #e0e0e0;
+  border-radius: 50%;
+}
+
+.empty-card h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.empty-card p {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.empty-card .note {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+/* Add Button */
+.add-btn,
+.add-more-btn {
+  background: #145ca1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.add-btn:hover,
+.add-more-btn:hover {
+  background: #145ca1;
+}
+
+
+.nominee-card {
+
+  border-radius: 10px;
+  margin-bottom: 15px;
+  background: #fff;
+  transition: all 0.3s ease;
+
+  /* overflow: hidden; */
+}
+
+
+.nominee-summary {
+  
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  /* border: 1px solid rgba(13, 115, 206, 1); */
+}
+
+.nominee-summary h3 {
+  margin: 0 0 10px 0;
+}
+
+.nominee-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nominee-field label {
+  font-size: 14px;
+  color: gray;
+  display: block;
+}
+
+.nominee-field p {
+  margin: 2px 0 0;
+  font-weight: bold;
+}
+
+
+.nominee-summary p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.nominee-summary:hover {
+  background: #ebebeb;
+}
+
+.nominee-details {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  gap: 20px;
+  /* border: 1px solid rgba(13, 115, 206, 1); */
+  padding: 12px;
+}
+
+.nominee-details_summary {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  gap: 20px;
+  border: 1px solid rgba(13, 115, 206, 1);
+  padding: 12px;
+}
+
+.nominee-details input,
+.nominee-details select {
+  padding: 10px;
+  border: 1px solid rgba(65, 65, 65, 1);
+  border-radius: 8px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+}
+
+.nominee-details input:focus,
+.nominee-details select:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+
+.inline-fields {
+  display: flex;
+  gap: 12px;
+}
+
+.inline-fields input {
+  flex: 1;
+}
+
+
+.upload-proof {
+  /* background: #f9f9f9; */
+  border: 1px dashed rgba(8, 98, 188, 1);
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+.please_uplo{
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(157, 157, 157, 1);
+}
+
+.upload-label {
+  display: inline-block;
+  cursor: pointer;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.upload-icon {
+  display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.upload-note {
+  font-size: 12px;
+  color: #888;
+  margin-top: 6px;
+}
+
+
+.guardian-block {
+  margin-top: 15px;
+  padding: 15px;
+  background: #eef6ff;
+  border-radius: 8px;
+  border: 1px solid #cce4ff;
+}
+
+.guardian-block h4 {
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+
+.btn-submit {
+  margin-top: 20px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+  width: 100%;
+}
+
+.btn-submit.active {
+  background: #1976d2;
+  color: #fff;
+}
+
+.btn-submit.disabled {
+  background: #d6d6d6;
+  color: #888;
+  cursor: not-allowed;
+}
+
+
+.add-more-btn {
+  margin: 10px 0;
+  display: inline-block;
+}
+.nominee_submit_btn{
+  display: flex;
+  justify-content: center;
+}
+
+
+
+
+.fixed-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;       
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+  border-top: 1px solid #ddd; 
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+  z-index: 1000; 
+}
+
+.fixed-footer .note {
+  font-size: 14px;
+  color: #555;
+  background-color: rgba(248, 234, 200, 1);
+  padding: 4px 12px;
+  width: 100%;
+  border-radius: 4px;
+}
+
+.fixed-footer .add-btn {
+  background: rgba(51, 163, 77, 1);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  width: 100%;
+}
+
+.fixed-footer .add-btn:hover {
+  background: #0056b3;
+}
+
+
+
+
+.back_btn_head_per {
+  border: none;
+  background: transparent;
+}
+.trading_pre_per {
+  font-size: 14px;
+  font-weight: 500;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(32, 32, 32, 1);
+}
+.header_div_per_nominee {
+  padding: 25px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  box-shadow: 0px 0px 4px 0px #80808057;
+  margin-bottom: 1rem;
+}
+
+.nominee_img1{
+  width: -webkit-fill-available;
+} 

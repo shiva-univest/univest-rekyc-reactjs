@@ -1,0 +1,9 @@
+.pagenotfounf{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+.pagenotfounf h1 {
+  margin: 10% 0px 0px 0px;
+}

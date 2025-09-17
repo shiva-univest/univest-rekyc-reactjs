@@ -1,0 +1,235 @@
+body {
+  font-family: sans-serif;
+  background: #f8f9fa;
+  /* padding: 0.7em; */
+  display: flex;
+  place-items: flex-start !important;
+  height: 100vh;
+  /* overflow: hidden; */
+}
+
+footer {
+  font-family: 'Segoe UI', sans-serif;
+}
+.banner_img_btn{
+      width: 100%;
+  border: none;
+  background: transparent;
+}
+
+.card_1 {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 12px !important;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #BCBCBC;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 10px;
+  color:#202020
+}
+
+.card-title i {
+  margin-right: 10px;
+}
+
+.seg_act {
+  font-size: 20px;
+  font-weight: 700;
+  padding-bottom: 0px;
+  margin: 0;
+}
+
+.badge {
+     margin-left: auto;
+    font-size: 10px;
+    color: #26A649;
+    background-color: #F2FFF5;
+    border-radius: 4px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* padding-right: 8px;
+    padding-left: 8px; */
+    padding: 2px 12px;
+}
+
+.banner {
+
+  border-radius: 12px;
+  /* padding: 16px; */
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  position: relative;
+}
+
+.banner-content {
+  max-width: 60%;
+}
+
+.banner-button {
+  background: #fff;
+  color: #0049b7;
+  padding: 10px 18px;
+  font-weight: bold;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.banner-image {
+  width: 100%;
+}
+
+.header_div {
+  padding: 25px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  box-shadow: 0px 0px 4px 0px #80808057;
+  position: fixed;
+    top: 0;
+    width: 100%;
+    background: white;
+}
+
+header {
+  box-shadow: 0px 10px 3px -7px rgba(0, 0, 0, 0.1);
+}
+
+#root {
+  padding: 0px !important;
+}
+
+.back_btn1 {
+  align-self: flex-start;
+}
+
+.trading_pre {
+  font-weight: 600;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.here_your {
+    color: #606060;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 0.7em;
+        line-height: 1.7;
+}
+
+.mainnnn {
+  width: 100%;
+  background: #f5f5f55c;
+  /* padding: 22px 20px; */
+  padding: 94px 20px 16px 20px;
+}
+
+.segment_act {
+  text-align: left;
+ padding: 7px 0px 30px;
+  max-width: 500px;
+}
+
+.Note_modify {
+  /* width: 100%; */
+  background-color: #F8EAC8;
+  padding: 6px 12px 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: left;
+  color: #414141;
+}
+
+.s_footer{
+       position: absolute;
+    bottom: 0;
+    padding: 1rem;
+    }
+
+.back_btn_head {
+  border: none;
+  background: transparent;
+  display: flex;
+}
+
+
+.main_check {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: #1f1f1f;
+  position: relative;
+  font-size: 12px;
+}
+
+.custom-checkbox input {
+  display: none;
+}
+
+ .checkmark {
+  width: 16px;
+  height: 16px;
+  background-color: #fff;
+  border-radius: 5px;
+  border: 2px solid #33a34d; 
+  margin-right: 10px;
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+.same_design_seg{
+  display:flex;
+}
+
+.custom-checkbox input:checked + .checkmark {
+  background-color: #33a34d;
+  border: none; 
+}
+
+
+.checkmark::after {
+  content: "";
+  position: absolute;
+  left: 51%;
+  top: 43%;
+  width: 3px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2.3px 2.3px 0;;
+  transform: translate(-50%, -50%) rotate(45deg);
+  display: none; 
+}
+
+
+.custom-checkbox input:checked + .checkmark::after {
+  display: block;
+}
+
+.custom-checkbox input:disabled + .checkmark {
+  background-color: #afaaaa;
+  cursor: not-allowed;
+  border: none;
+}

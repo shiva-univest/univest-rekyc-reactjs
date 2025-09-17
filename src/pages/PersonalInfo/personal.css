@@ -1,0 +1,512 @@
+.main-container {
+  max-width: 500px;
+  margin: 0 auto;
+  font-family: system-ui, sans-serif;
+  padding: 15px;
+  padding: 94px 20px 16px 20px;
+}
+
+.section-wrapper {
+  margin-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.section-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.edit_new{
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(8, 98, 188, 1) !important;
+  border-radius: 4px !important;
+  background: transparent;
+  color: rgba(8, 98, 188, 1);
+  font-size: 14px;
+  padding: 2px 8px 2px 4px !important;
+  cursor: pointer;
+}
+
+.section-box {
+  border: 1px solid rgba(13, 115, 206, 1);
+  border-radius: 12px;
+  padding: 12px;
+  background-color: #fff;
+}
+
+.field {
+  margin-bottom: 16px;
+  border-bottom: 1px solid gray;
+}
+
+.field label {
+  font-size: 13px;
+  color: #555;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.field p {
+  margin-bottom: 10px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.copy-field .copy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.copy-icon {
+  cursor: pointer;
+  color: #333;
+}
+
+.two-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+
+
+.back_btn1_per {
+  align-self: flex-start;
+}
+.back_btn_head_per {
+  border: none;
+  background: transparent;
+}
+.trading_pre_per {
+  font-size: 14px;
+  font-weight: 500;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(32, 32, 32, 1);
+}
+.header_div_per {
+  padding: 25px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  box-shadow: 0px 0px 4px 0px #80808057;
+  margin-bottom: 1rem;
+  position: fixed;
+    top: 0;
+    width: 100%;
+    background: white;
+}
+.pincode,.phone,.single{
+  border: none;
+    margin: 0;
+}
+
+
+
+
+
+.confirm-modal-overlay {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 99999;
+}
+
+.confirm-modal p {
+  font-size: 16px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.cancel-btn {
+  flex: 1;
+  margin-right: 10px;
+  padding: 12px;
+  border: 1px solid rgba(8, 98, 188, 1);
+  background-color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  color: rgba(8, 98, 188, 1);
+}
+
+.leave-btn {
+  flex: 1;
+  padding: 12px;
+  background-color: rgba(235, 78, 44, 1);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+
+
+
+
+
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.existing-email {
+  background: #fff4d5;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0;
+  font-weight: bold;
+}
+
+.input-label {
+  font-size: 14px;
+  text-align: left;
+  margin-top: 10px;
+  display: block;
+}
+
+input[type="email"] {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid rgba(8, 98, 188, 1);
+  border-radius: 8px;
+  margin-top: 6px;
+}
+
+.verify-button2 {
+  background: #28a745;
+  color: white;
+  font-size: 16px;
+  padding: 12px;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  /* margin-top: 20px; */
+  cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content3 {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.existing-email {
+  background: #fff4d5;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.input-label {
+  font-size: 14px;
+  text-align: left;
+  margin-top: 10px;
+  display: block;
+}
+
+input[type="email"] {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid rgba(8, 98, 188, 1);
+  border-radius: 8px;
+  margin-top: 6px;
+}
+
+.verify-button {
+  background: #28a745;
+  color: white;
+  font-size: 16px;
+  padding: 12px;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  /* margin-top: 20px; */
+  cursor: pointer;
+}
+.email_val_container{
+  display: flex;
+  justify-content: center;
+
+}
+.resend-button{
+  border: none;
+    background: transparent;
+    color: rgba(157, 157, 157, 1);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+.copy-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: #0a66c2; /* LinkedIn blue look */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.edit-btn:hover {
+  text-decoration: underline;
+}
+
+
+
+
+.input-error {
+  border: 1px solid red;
+}
+
+.error-text {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-bottom: 0px;
+}
+
+
+
+.otp-container {
+  display: flex;
+  justify-content: space-between;
+  /* gap: 8px; */
+  margin: 12px 0;
+}
+
+.otp-container input {
+  width: 49px;
+  height: 50px;
+  font-size: 20px;
+  text-align: center;
+  border: 1.5px solid rgba(8, 98, 188, 1);
+  border-radius: 8px;
+      /* padding: 24px 23px !important; */
+}
+
+.otp-container input.input-error {
+  border: 1px solid red;
+}
+
+.resend-active {
+  color: green;
+  cursor: pointer;
+}
+
+.email-display {
+  font-weight: bold;
+  margin: 8px 0;
+  display: flex;
+  justify-content: space-between;
+  color: #0a66c2;
+  margin: 13px 0px 20px 0;
+  font-size: 14px;
+    font-weight: bold;
+}
+
+.edit-button {
+  color: #0a66c2;
+  cursor: pointer;
+  margin-left: 8px;
+}
+.verify_emai{
+  font-size: 20px;
+  text-align: left;
+      margin: 0 0 .7rem 0;
+}
+.a_verification{
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(96, 96, 96, 1)
+}
+
+.bottom_verfiy{
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* two equal columns */
+  gap: 10px; 
+  align-items: center;
+}
+
+input[type="tel"] {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 6px;
+  outline: none;
+  width: 100%;
+}
+
+
+.input-group2 {
+  position: relative;
+  width: 100%;
+  margin: 15px 0;
+}
+
+.custom-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid rgba(65, 65, 65, 1); /* blue border */
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+}
+
+.custom-input:focus {
+  border-color: #0056b3; /* darker blue on focus */
+}
+
+.input-error {
+  border-color: red !important;
+}
+
+/* floating label */
+.floating-label {
+  position: absolute;
+  top: -10px;
+  left: 12px;
+  background: #fff; /* matches input background */
+  padding: 0 4px;
+  font-size: 14px;
+  color: rgba(65, 65, 65, 1); /* blue label */
+  font-weight: 500;
+}
+
+
+
+
+
+
+
+
+
+.input-group {
+  position: relative;
+  margin-top: 20px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* Label default (overlaps placeholder) */
+.input-group label {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  color: #777;
+  font-size: 14px;
+  background: white;
+  padding: 0 4px;
+  pointer-events: none;
+  transition: 0.2s ease all;
+}
+
+/* Float label when focused OR input has value */
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+  top: -7px;
+  left: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #555;
+}

@@ -1,0 +1,33 @@
+.deposit-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
+
+.overlay-content {
+  text-align: center;
+  color: white;
+}
+
+.deposit-message {
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+.deposit-note {
+  font-size: 12px;
+  margin-top: 40px;
+  color: #ccc;
+}
+
+
+/* const [showDepositOverlay, setShowDepositOverlay] = useState(true);
+{showDepositOverlay && <DepositOverlay />} */

@@ -1,0 +1,195 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.penny-header-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 20px;
+}
+
+.penny-header {
+  align-items: center;
+  position: relative;
+  background: white;
+  width: 100%;
+  box-shadow: 0px 0px 4px 0px #80808057;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background: white;
+  /* padding: 0.7em; */
+  display: flex;
+  place-items: flex-start !important;
+  /* height: 100vh; */
+}
+
+.penny-content3 {
+  /* position: absolute; */
+  bottom: 10px;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* height: 10vh; */
+  position: fixed;
+  bottom: 3px;
+  left: 0;
+  width: 96%;
+  margin: 3px 8px;
+}
+
+.penny-container {
+  padding: 30px 20px;
+  position: relative;
+  /* height: 100vh; */
+  display: flex;
+  flex-direction: column;
+}
+
+.penny-content1 {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* height: 10vh; */
+}
+
+.penny-content1 h4 {
+  font-size: 20px;
+  font-family: Inter, sans-serif;
+  font-weight: 700;
+  color: #202020;
+  line-height: 32px;
+}
+
+.penny-content1 p {
+  font-size: 14px;
+  font-family: Inter, sans-serif;
+  font-weight: 500;
+  color: #606060;
+  line-height: 24px;
+}
+
+.penny-content2 {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 0px;
+  height: 80vh;
+}
+
+.penny-content2 select,
+input {
+  padding: 10px 10px;
+  border-radius: 8px;
+  border: 1px solid #414141;
+  background-color: white;
+  height: 44px;
+}
+
+.penny-select:focus-visible,
+.penny-content2 input:focus-visible {
+  outline: none;
+  border-color: #202020;
+}
+
+.penny-content2 select {
+  appearance: none;
+  /* Hides default arrow */
+  -webkit-appearance: none;
+  /* Safari/Chrome */
+  -moz-appearance: none;
+  position: relative;
+}
+
+.penny-bank-button svg {
+  filter: opacity(0.9);
+}
+
+.penny-select:focus-visible {
+  /* Targets the select itself */
+  outline: 1px solid #202020;
+}
+
+.penny-button {
+  background-color: #33a34d;
+  color: white;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: Inter, sans-serif;
+  font-weight: 400;
+  width: 100%;
+}
+
+/* Popup Styles */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.close-popup-btn {
+  padding: 8px 16px;
+  background: #202020;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+.bottom_portfolios {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.input-container {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.input-container input.error {
+  border: 2px solid #ff4444;
+  background-color: #fff5f5;
+}
+
+.error-message {
+  color: #ff4444;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+  font-weight: 500;
+}
+
+/* Optional: Add success styling when validation passes */
+.input-container input.valid {
+  border: 2px solid #28a745;
+  background-color: #f8fff9;
+}

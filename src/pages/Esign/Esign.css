@@ -1,0 +1,176 @@
+.container2 {
+  display: flex;
+  flex-direction: column;
+  /* align-items: center; */
+  /* justify-content: center; */
+  /* min-height: 100vh; */
+  background: #fff;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+/* Header */
+.header {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(32, 32, 32, 1);
+}
+
+/* .header p {
+  font-size: 14px;
+  color: #555;
+  margin-top: 6px;
+} */
+
+/* Aadhaar Card */
+.aadhaar-card img {
+  width: 280px;
+  border-radius: 8px;
+  /* box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15); */
+  margin-bottom: 25px;
+}
+.aadhaar-card{
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+/* eSign Box */
+.esign-box {
+  border: 1px solid rgba(51, 163, 77, 1);
+  border-radius: 12px;
+  padding: 12px;
+  width: 100%;
+  max-width: 380px;
+  background: #fff;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+}
+
+.esign-box h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: rgba(32, 32, 32, 1);
+}
+
+.esign-box p {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(96, 96, 96, 1);
+  margin-bottom: 14px;
+   letter-spacing: 0.5px;
+   word-spacing: 2px;
+}
+
+.esign-box p a {
+  color: rgba(8, 98, 188, 1);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.esign-box p a:hover {
+  text-decoration: underline;
+}
+
+.esign-box button {
+    width: 100%;
+    padding: 12px 16px 12px 10px;
+    background-color: rgba(51, 163, 77, 1);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.esign-box button:hover {
+  background-color: #15803d;
+}
+
+/* Footer */
+/* .footer {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.footer .tick {
+  font-size: 18px;
+  margin-right: 6px;
+} */
+ .footer{
+    position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #ffffff;
+  padding: 10px 20px;
+  /* box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); */
+  display: flex;
+  justify-content: space-between;
+  z-index: 1000;
+  flex-direction: column;
+
+
+ }
+.header_div_change{
+  
+  padding: 25px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  box-shadow: 0px 0px 4px 0px #80808057;
+
+}
+.enter_aadhar{
+  font-size: 14px;
+  color: rgba(96, 96, 96, 1);
+  font-weight: 500;
+ font-family: 'Inter', sans-serif;
+ margin-top: 1rem;
+  letter-spacing: 0.3px;
+  word-spacing: 2px;
+}
+.footer_esign{
+     margin-top: 10px;
+  font-size: 10px;
+  color: #202020;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font-weight: bold;
+}
+.url-btn{
+  padding: 12px 16px 12px 10px;
+    background-color: rgba(51, 163, 77, 1);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 6px;
+    border: none;
+     /* height: 70px; */
+}
+.dynamic-buttons{
+   flex: 1;              /* each takes 50% width */
+  display: flex;        /* centers content */
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  gap: 5px;
+}
