@@ -178,6 +178,7 @@ import { useNavigate } from "react-router-dom";
 import "./style.css";
 import Overlay from "../../Overlay/Overlay";
 import { CgLaptop } from "react-icons/cg";
+import Header from '../../../Components/Header.jsx';
 
 const Pennycompo = () => {
   const [ifscCode, setIfscCode] = useState("");
@@ -190,8 +191,8 @@ const Pennycompo = () => {
 
   // validation error messages added karunga bhai
   const [accountError, setAccountError] = useState("");
-
   const [confirmAccountError, setConfirmAccountError] = useState("");
+  const [ifscCodeError, setIfscCodeError] = useState("");
 
   // Add validation function
   const validateAccountNumber = (accountNum) => {
@@ -271,7 +272,7 @@ const Pennycompo = () => {
   // ✅ IFSC validation API
   const searchIFSC = async () => {
     if (!ifscCode) {
-      alert("Please enter IFSC code");
+      setIfscCodeError("Please enter IFSC code");
       return;
     }
 
@@ -288,7 +289,7 @@ const Pennycompo = () => {
       const data = await response.json();
 
       if (data?.data === "You have entered Invalid IFSC Code.") {
-        alert(data.data);
+        setIfscCodeError(data.data);
         setIfscCode("");
         setBankName("");
       } else if (data?.message?.BANK) {
@@ -480,6 +481,7 @@ const Pennycompo = () => {
 
   return (
     <div className="Peny-container">
+      <Header />
       {showDepositOverlay && <Overlay />}
 
       {/* ❌ Failure popup */}
@@ -518,25 +520,42 @@ const Pennycompo = () => {
         </div>
 
         <div className="penny-content2">
-          <input
-            placeholder="Enter IFSC or Branch name"
-            value={ifscCode}
-            onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
-            onBlur={searchIFSC}
-            style={{ textTransform: "uppercase" }}
-          />
-
-          <input
-            className="penny-bank-button"
-            placeholder="ENTER YOUR BANK NAME"
-            value={bankName}
-            readOnly
-          />
-
-          {/* Account Number Input with Validation */}
-          <div className="input-container">
+          <div className="univest-input-group">
             <input
-              placeholder="ENTER ACCOUNT NUMBER"
+              placeholder="Enter IFSC or Branch name"
+              id="ifscInput"
+              value={ifscCode}
+              onChange={(e) => {
+                setIfscCode(e.target.value.toUpperCase())
+                setIfscCodeError(null)
+              }}
+              className={ifscCodeError ? "error" : ""}
+              onBlur={searchIFSC}
+              required
+            />
+            <label htmlFor="ifscInput" className="floating-label">
+              Enter IFSC or Branch name
+            </label>
+            {ifscCodeError && (
+              <span className="univest-error-message">{ifscCodeError}</span>
+            )}
+          </div>
+
+          <div className="univest-input-group">
+            <input
+              placeholder="Enter your bank name"
+              id="bankdetails"
+              value={bankName}
+              readOnly
+            />
+            <label htmlFor="bankdetails" className="floating-label">
+              Enter your bank name
+            </label>
+          </div>
+          <div className="univest-input-group">
+            <input
+              id="enter-account-number"
+              placeholder="Enter account number"
               value={accountNumber}
               onChange={(e) => handleAccountNumberChange(e.target.value)}
               onPaste={(e) => e.preventDefault()}
@@ -547,33 +566,39 @@ const Pennycompo = () => {
               style={{ width: "100%" }}
               autoComplete="new-password"
             />
+            <label htmlFor="enter-account-number" className="floating-label">
+              Enter account number
+            </label>
             {accountError && (
-              <span className="error-message">{accountError}</span>
+              <span className="univest-error-message">{accountError}</span>
             )}
           </div>
 
-          {/* Confirm Account Number Input with Validation */}
-          <div className="input-container">
+
+          <div className="univest-input-group">
             <input
-              placeholder="RE-CONFIRM ACCOUNT NUMBER"
+              placeholder="Re-confirm your accout number"
               value={confirmAccountNumber}
               onChange={(e) => handleConfirmAccountNumberChange(e.target.value)}
               onPaste={(e) => e.preventDefault()}
-              type="text"
+              type="password"
               inputMode="numeric"
               maxLength="18"
               className={confirmAccountError ? "error" : ""}
               style={{ width: "100%" }}
               autoComplete="new-password"
             />
+            <label htmlFor="enter-account-number" className="floating-label">
+              Re-confirm your accout number
+            </label>
             {confirmAccountError && (
-              <span className="error-message">{confirmAccountError}</span>
+              <span className="univest-error-message">{confirmAccountError}</span>
             )}
           </div>
         </div>
 
         <div className="penny-content3">
-          <button className="penny-button" onClick={handlePennyDrop}>
+          <button className="univest-actions-btn" onClick={handlePennyDrop}>
             Proceed
           </button>
           <p className="bottom_portfolios">

@@ -30,7 +30,7 @@ body {
 
 .penny-content3 {
   /* position: absolute; */
-  bottom: 10px;
+  bottom: 0px;
   width: 100%;
   justify-content: center;
   align-items: center;
@@ -39,10 +39,8 @@ body {
   gap: 10px;
   /* height: 10vh; */
   position: fixed;
-  bottom: 3px;
   left: 0;
-  width: 96%;
-  margin: 3px 8px;
+  padding: 16px;
 }
 
 .penny-container {
@@ -79,34 +77,11 @@ body {
 .penny-content2 {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   padding: 20px 0px;
   height: 80vh;
 }
 
-.penny-content2 select,
-input {
-  padding: 10px 10px;
-  border-radius: 8px;
-  border: 1px solid #414141;
-  background-color: white;
-  height: 44px;
-}
-
-.penny-select:focus-visible,
-.penny-content2 input:focus-visible {
-  outline: none;
-  border-color: #202020;
-}
-
-.penny-content2 select {
-  appearance: none;
-  /* Hides default arrow */
-  -webkit-appearance: none;
-  /* Safari/Chrome */
-  -moz-appearance: none;
-  position: relative;
-}
 
 .penny-bank-button svg {
   filter: opacity(0.9);
@@ -115,19 +90,6 @@ input {
 .penny-select:focus-visible {
   /* Targets the select itself */
   outline: 1px solid #202020;
-}
-
-.penny-button {
-  background-color: #33a34d;
-  color: white;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 12px;
-  font-family: Inter, sans-serif;
-  font-weight: 400;
-  width: 100%;
 }
 
 /* Popup Styles */
@@ -168,28 +130,4 @@ input {
   justify-content: center;
   align-items: center;
   gap: 5px;
-}
-
-.input-container {
-  position: relative;
-  margin-bottom: 10px;
-}
-
-.input-container input.error {
-  border: 2px solid #ff4444;
-  background-color: #fff5f5;
-}
-
-.error-message {
-  color: #ff4444;
-  font-size: 12px;
-  margin-top: 4px;
-  display: block;
-  font-weight: 500;
-}
-
-/* Optional: Add success styling when validation passes */
-.input-container input.valid {
-  border: 2px solid #28a745;
-  background-color: #f8fff9;
 }

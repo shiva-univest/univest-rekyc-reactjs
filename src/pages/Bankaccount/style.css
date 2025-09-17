@@ -74,7 +74,6 @@
   display: flex;
   align-items: center;
   position: relative;
-  justify-content: space-between;
 }
 
 .bank-button {
@@ -83,9 +82,11 @@
   padding: 15px 16px;
   background-color: transparent;
 }
+
 .info_icon_img {
   padding: 0 !important;
 }
+
 .border_if_u_wish {
   padding: 12px;
   border: 1px solid rgba(13, 115, 206, 1);
@@ -112,13 +113,13 @@
 .bank-details {
   text-align: left;
   width: 100%;
-  padding: 0px 15px;
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
 .bank-button svg {
+  margin-left: auto;
   width: 10%;
   position: relative;
 }
@@ -131,6 +132,7 @@
 }
 
 .account-details h4 {
+  text-align: left;
   font-size: 14px;
   font-weight: 600;
   color: #202020;
@@ -160,18 +162,6 @@
   border: none;
   border-radius: 4px;
   font-family: "Inter", sans-serif;
-}
-
-.bank-footer button {
-  background-color: #33a34d;
-  padding: 12px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: white;
-  width: 100%;
-  border: none;
-  border-radius: 8px;
 }
 
 .bank-footer {
@@ -240,12 +230,12 @@
 .popup-content_bank {
   background-color: white;
   padding: 20px;
-  border-radius: 8px;
-  width: 98%;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  width: 100%;
   max-width: 100%;
   position: absolute;
-  bottom: 10px;
-  margin: 5px;
+  bottom: 0px;
 }
 
 .popup-content_bank h3 {
@@ -255,7 +245,6 @@
   font-size: 16px;
   font-weight: 700;
   font-family: "Inter", sans-serif;
-  padding: 5px 0px;
 }
 
 .form-group {
@@ -330,7 +319,7 @@
   flex-direction: row;
   display: flex;
   justify-content: space-between;
-  padding: 5px 15px;
+  padding: 12px 16px;
   border-radius: 16px 16px 0px 0px;
 }
 
@@ -406,6 +395,7 @@
   color: #0862bc;
   font-family: "Inter", sans-serif;
 }
+
 .last {
   border: none;
 }
@@ -502,6 +492,7 @@
   width: 100%;
   max-width: 100%;
 }
+
 .bank_icon_cls {
   width: 100%;
 }
@@ -511,6 +502,7 @@
     padding: 8px 0px;
     height: fit-content;
   }
+
   .makeprimary-btn {
     padding: 8px 0px;
     height: fit-content;

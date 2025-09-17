@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { decryptData } from "../../decode";
 import Loader from "../Loader/Loader";
 import axios from "axios";
+import { openLink } from "../../lib/utils";
 
 const BankaccAccount = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,15 +58,6 @@ const BankaccAccount = () => {
     }
   }, [dataFromOCR, bankDetails]);
 
-  // useEffect(() => {
-  //   console.log("dddddddddddd");
-  //   const fullUrl = window.location.href;
-
-  //   const transId = sessionStorage.getItem("transid");
-  //   if (fullUrl.indexOf("success") > -1 && transId) {
-  //     callReverseResponseAPI(transId);
-  //   }
-  // }, []);
 
   const toggleBottomSheet = () => {
     setIsOpen(!isOpen);
@@ -161,7 +153,7 @@ const BankaccAccount = () => {
       sessionStorage.setItem("transid", transId);
 
       if (data?.shortUrl) {
-        window.location.href = data.shortUrl;
+        openLink(data.shortUrl);
       } else {
         console.error("No shortUrl found in response");
       }

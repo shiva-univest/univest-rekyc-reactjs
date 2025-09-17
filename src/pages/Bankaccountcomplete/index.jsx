@@ -4,6 +4,7 @@ import { decryptData } from "../../decode";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./style.css";
 import axios from "axios";
+import Header from "../../Components/Header";
 
 const BankaccAccountComplete = () => {
   const [loading, setLoading] = useState(false);
@@ -230,14 +231,14 @@ const BankaccAccountComplete = () => {
       } else {
         alert(
           response.data?.message ||
-            "Failed to generate user form. Please try again."
+          "Failed to generate user form. Please try again."
         );
       }
     } catch (error) {
       console.error("User form generation error:", error);
       alert(
         error.response?.data?.message ||
-          "Failed to generate user form. Please try again."
+        "Failed to generate user form. Please try again."
       );
     }
   };
@@ -293,25 +294,7 @@ const BankaccAccountComplete = () => {
 
   return (
     <div className="bankacc-container">
-      <header className="header_part">
-        <div className="bankacc-header">
-          <div className="bankaccacc-back-container">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 32 32"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M9.23077 24L8 22.7692L14.7692 16L8 9.23077L9.23077 8L16 14.7692L22.7692 8L24 9.23077L17.2308 16L24 22.7692L22.7692 24L16 17.2308L9.23077 24Z"
-                fill="#202020"
-              />
-            </svg>
-            <img src="./Frame 1171276551.svg"></img>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <div className="completed-bankacc-body">
         <div className="first-half">
@@ -386,7 +369,7 @@ const BankaccAccountComplete = () => {
             <button
               className="continue_ba_ac"
               onClick={() => verifyBankDetails(bankTempId)}
-              // disabled={!bankTempId}
+            // disabled={!bankTempId}
             >
               Continue
             </button>
