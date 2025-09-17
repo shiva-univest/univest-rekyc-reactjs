@@ -379,7 +379,7 @@ const Bank = ({ encryptedData }) => {
                   onClick={async() => {
                     handleMakePrimary(selectedAccount.id);
                     setShowDropdown(false);
-                    await callUserFormGeneration
+                    await callUserFormGeneration()
                   }}
                 >
                   <img className="info_icon_img" src="./make_prima.svg" alt="" />

@@ -11,58 +11,15 @@ const ActivateDDPI = () => {
   const [ddpiActive, setDdpiActive] = useState(false);
 
   const [checkboxes, setCheckboxes] = useState({
-    main: false,
-    transfer: false,
-    pledging: false,
-    mutualFund: false,
-    tendering: false,
+    main: true,
+    transfer: true,
+    pledging: true,
+    mutualFund: true,
+    tendering: true,
   });
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const payload = { page_id: "9" };
+ 
 
-  //       if (moduleData?.["21"]?.ddpi === false) {
-  //         payload.ddpi = "yes";
-  //       }
-
-  //       console.log("Payload being sent:", payload);
-
-  //       const res = await api.post("user/get_module_data", payload);
-
-  //       if (res.data?.data) {
-  //         try {
-  //           const decrypted = decryptData(res.data.data);
-  //           // const decrypted = decryptData(response.data);
-  //           console.log("Decrypted data of DDPI:", decrypted);
-
-  //           try {
-  //             const parsed = JSON.parse(decrypted);
-  //             console.log("Parsed decrypted data:", parsed);
-  //             setModuleData(parsed);
-
-  //             if (parsed?.["21"]?.ddpi === true) {
-  //               setDdpiActive(true);
-  //             }
-  //           } catch {
-  //             setModuleData(decrypted);
-  //           }
-  //         } catch (decryptErr) {
-  //           console.error("Decryption failed:", decryptErr);
-  //         }
-  //       } else {
-  //         console.warn("No 'data' field in response", res.data);
-  //       }
-  //     } catch (err) {
-  //       console.error("Error fetching module data:", err);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [moduleData?.["21"]?.ddpi]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,9 +45,7 @@ const ActivateDDPI = () => {
               console.log("Parsed decrypted data:", parsed);
               setModuleData(parsed);
 
-              // if (parsed?.["21"]?.ddpi === true) {
-              //   setDdpiActive(true);
-              // }
+              
               if (parsed?.["21"]?.ddpi === true || parsed?.["21"]?.bo_poa === true) {
   setDdpiActive(true);
 } else {
@@ -189,7 +144,7 @@ const ActivateDDPI = () => {
           </button>
         </div>
       ) : (
-        // ❌ Show Existing Activation Form
+       
         <div className="ddpi-container_ddpi">
           <h2 className="title">Activate DDPI</h2>
           <p className="subtitle">

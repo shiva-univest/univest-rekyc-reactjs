@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import OtpInput from "react-otp-input";
+
 import "./personal.css";
 
 const EditContactModal = ({ onClose, contact }) => {
@@ -10,7 +12,8 @@ const EditContactModal = ({ onClose, contact }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [otp, setOtp] = useState(Array(6).fill(""));
+  const [otp, setOtp] = useState("");
+
   const [timer, setTimer] = useState(15);
   const [otpError, setOtpError] = useState("");
   const inputRefs = useRef([]);
@@ -67,7 +70,6 @@ const EditContactModal = ({ onClose, contact }) => {
     });
   };
 
- 
   const handleVerifyOTP = async () => {
     if (!emailRegex.test(newEmail)) {
       setError("Enter a valid Email ID");
@@ -106,14 +108,12 @@ const EditContactModal = ({ onClose, contact }) => {
     }
   };
 
- 
-
   const handleVerifyOtpSubmit = async () => {
-    const otpValue = otp.join("");
-    if (otpValue.length !== 6) {
+    if (otp.length !== 6) {
       setOtpError("Enter 6 digit OTP");
       return;
     }
+    const otpValue = otp; // string already
 
     try {
       const token = await getValidToken();
@@ -167,18 +167,16 @@ const EditContactModal = ({ onClose, contact }) => {
               </div>
             </div>
 
-            
-  <div className="input-group">
-  <input
-    type="email"
-    value={newEmail}
-    onChange={(e) => setNewEmail(e.target.value)}
-    placeholder="Enter new email"  
-    required
-  />
-  <label>Enter new email ID</label>
-</div>
-
+            <div className="input-group">
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="Enter new email"
+                required
+              />
+              <label>Enter new email ID</label>
+            </div>
 
             {error && <p className="error-text"> {error}</p>}
 
@@ -209,7 +207,7 @@ const EditContactModal = ({ onClose, contact }) => {
               </span>
             </p>
 
-            <div className="otp-container">
+            {/* <div className="otp-container">
               {otp.map((digit, idx) => (
                 <input
                   key={idx}
@@ -221,7 +219,30 @@ const EditContactModal = ({ onClose, contact }) => {
                   className={otpError ? "input-error" : ""}
                 />
               ))}
-            </div>
+            </div> */}
+            <OtpInput
+              value={otp}
+              onChange={setOtp}
+              numInputs={6}
+              renderSeparator={null}
+              renderInput={(props) => (
+                <input {...props} className={otpError ? "input-error" : ""} />
+              )}
+              inputStyle={{
+                width: "50px",
+                height: "50px",
+                textAlign: "center",
+                fontSize: "18px",
+                border: "1px solid #ccc",
+                borderRadius: "8px",
+              }}
+              containerStyle={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "10px",
+                marginBottom: "15px",
+              }}
+            />
 
             {otpError && <p className="error-text">❗ {otpError}</p>}
 
@@ -243,7 +264,8 @@ const EditContactModal = ({ onClose, contact }) => {
                       const response = await callUpdateEmailAPI(token);
                       if (response.ok) {
                         setTimer(15);
-                        setOtp(Array(6).fill(""));
+                        // setOtp(Array(6).fill(""));
+                        setOtp("");
                       } else {
                         setOtpError("Failed to resend OTP");
                       }
@@ -256,13 +278,26 @@ const EditContactModal = ({ onClose, contact }) => {
                 </p>
               )}
 
-              <button
+              {/* <button
                 className="verify-button"
                 disabled={otp.join("").length !== 6}
                 onClick={handleVerifyOtpSubmit}
                 style={{
                   backgroundColor:
                     otp.join("").length === 6
+                      ? "rgba(51, 163, 77, 1)"
+                      : "rgba(157, 157, 157, 1)",
+                }}
+              >
+                Verify
+              </button> */}
+              <button
+                className="verify-button"
+                disabled={otp.length !== 6}
+                onClick={handleVerifyOtpSubmit}
+                style={{
+                  backgroundColor:
+                    otp.length === 6
                       ? "rgba(51, 163, 77, 1)"
                       : "rgba(157, 157, 157, 1)",
                 }}

@@ -1,5 +1,3 @@
-
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
@@ -15,7 +13,6 @@ const Esign = () => {
   const handleBackClick = () => setShowConfirmModal(true);
   const handleCancel = () => setShowConfirmModal(false);
   const handleLeaveAnyway = () => window.history.back();
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,12 +55,23 @@ const Esign = () => {
     fetchData();
   }, [navigate]);
 
+  // const formatButtonName = (name) => {
+  //    if (name === "rekyc") return "re-kyc";
+  //   if (name === "rekyc_kra") return "re-kyc_esign";
+
+  //   return `Proceed to ${name}`;
+  // };
   const formatButtonName = (name) => {
-    // if (name === "rekyc") return "re-kyc";
-      if (name === "rekyc") return "Proceed to E-sign";
-    // if (name === "rekyc_kra") return "re-kyc_esign";
-    if (name === "rekyc_kra") return "Proceed to E-sign";
-    return `Proceed to ${name}`;
+    switch (name) {
+      case "rekyc":
+        return "Re-KYC eSign";
+      case "rekyc_kra":
+        return "KRA eSign";
+      case "aadhar":
+        return "eSign with Aadhaar";
+      default:
+        return "Proceed to E-Sign";
+    }
   };
 
   return (
