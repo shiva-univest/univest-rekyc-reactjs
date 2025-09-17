@@ -376,9 +376,10 @@ const Bank = ({ encryptedData }) => {
               <>
                 <span
                   className="primary"
-                  onClick={() => {
+                  onClick={async() => {
                     handleMakePrimary(selectedAccount.id);
                     setShowDropdown(false);
+                    await callUserFormGeneration
                   }}
                 >
                   <img className="info_icon_img" src="./make_prima.svg" alt="" />

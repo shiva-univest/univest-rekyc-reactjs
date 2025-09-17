@@ -167,14 +167,7 @@ const EditContactModal = ({ onClose, contact }) => {
               </div>
             </div>
 
-            {/* <label className="input-label">Enter new email ID</label>
-            <input
-              type="email"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="Enter new email"
-              className={error ? "input-error" : ""}
-            /> */}
+            
   <div className="input-group">
   <input
     type="email"

@@ -386,7 +386,8 @@ const Activatebank = ({ encryptedData }) => {
     };
 
     try {
-      // Step 1: Generate form
+
+       setLoading(true);
       const formResponse = await fetchWithAuthRetry(
         "https://rekyc.meon.co.in/v1/user/user_form_generation",
         { re_esign: false }
@@ -426,6 +427,7 @@ const Activatebank = ({ encryptedData }) => {
     } catch (error) {
       console.error("❌ Error during full proceed flow:", error);
       alert("Request failed. Please try again.");
+       setLoading(false);
     } finally {
       setLoading(false);
     }
