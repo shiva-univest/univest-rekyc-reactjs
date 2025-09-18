@@ -1,175 +1,3 @@
-// import React, { useState } from "react";
-// import Cookies from "js-cookie";
-// import axios from "axios";
-// import "./style.css";
-// import Overlay from "../../Overlay/Overlay";
-
-// const Pennycompo = () => {
-//   const [ifscCode, setIfscCode] = useState("");
-//   const [accountNumber, setAccountNumber] = useState("");
-//   const [confirmAccountNumber, setConfirmAccountNumber] = useState("");
-//   const [bankName, setBankName] = useState("");
-//   const [showDepositOverlay, setShowDepositOverlay] = useState(false);
-
-//   const searchIFSC = async () => {
-//     if (!ifscCode) {
-//       alert("Please enter IFSC code");
-//       return;
-//     }
-
-//     try {
-//       const response = await fetch(
-//         "https://rekyc.meon.co.in/v1/user/razorpay_IFSC_validation",
-//         {
-//           method: "POST",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify({ ifsc: ifscCode }),
-//         }
-//       );
-
-//       const data = await response.json();
-
-//       if (data?.data === "You have entered Invalid IFSC Code.") {
-//         alert(data.data);
-//         setIfscCode("");
-//         setBankName("");
-//       } else if (data?.message?.BANK) {
-//         setBankName(data.message.BANK);
-//       }
-//     } catch (error) {
-//       console.error("Error validating IFSC:", error);
-//     }
-//   };
-
-//   const getAccessToken = () => Cookies.get("access_token");
-//   const getRefreshToken = () => Cookies.get("refresh_token");
-
-//   const refreshAccessToken = async () => {
-//     try {
-//       const response = await axios.post(
-//         "https://rekyc.meon.co.in/v1/user/refresh_token",
-//         {
-//           refresh_token: getRefreshToken(),
-//         }
-//       );
-//       const newToken = response.data.access_token;
-//       Cookies.set("access_token", newToken);
-//       return newToken;
-//     } catch (error) {
-//       alert("Session expired. Please login again.");
-//       return null;
-//     }
-//   };
-
-//   const callPennyDropAPI = async (token) => {
-//     return axios.post(
-//       "https://rekyc.meon.co.in/v1/user/check_pennydrop",
-//       {
-//         account_number: accountNumber,
-//         ifsc: ifscCode,
-//         account_type: "Saving",
-//       },
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//       }
-//     );
-//   };
-
-//   const handlePennyDrop = async () => {
-//     if (!accountNumber || !confirmAccountNumber) {
-//       alert("Please fill in both account number fields.");
-//       return;
-//     }
-
-//     if (accountNumber !== confirmAccountNumber) {
-//       alert("Account numbers do not match.");
-//       return;
-//     }
-
-//     let token = getAccessToken();
-//     try {
-//       await callPennyDropAPI(token);
-//       alert("Account verified successfully!");
-//     } catch (err) {
-//       if (err.response?.status === 401) {
-//         const newToken = await refreshAccessToken();
-//         if (newToken) {
-//           try {
-//             await callPennyDropAPI(newToken);
-//             alert("Account verified successfully after refreshing token!");
-//           } catch (err2) {
-//             alert("Verification failed after retry.");
-//           }
-//         }
-//       } else {
-//         alert("Something went wrong during penny drop.");
-//       }
-//     }
-//   };
-
-//   return (
-//     <div className="Peny-container">
-//       {showDepositOverlay && <Overlay />}
-//       <div className="penny-header">
-//         <div className="penny-header-container">
-//           <img src="./Icon_app.svg" />
-//           <img src="/Frame 1171276551.svg" />
-//         </div>
-//       </div>
-
-//       <div className="penny-container">
-//         <div className="penny-content1">
-//           <h4>Link bank account with IFSC</h4>
-//           <p>
-//             Deposit and withdrawal can happen only from the linked bank account
-//           </p>
-//         </div>
-
-//         <div className="penny-content2">
-//           <input
-//             placeholder="Enter IFSC or Branch name"
-//             value={ifscCode}
-//             onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
-//             onBlur={searchIFSC}
-//             style={{ textTransform: "uppercase" }}
-//           />
-
-//           <input
-//             className="penny-bank-button"
-//             placeholder="ENTER YOUR BANK NAME"
-//             value={bankName}
-//             readOnly
-//           />
-
-//           <input
-//             placeholder="ENTER ACCOUNT NUMBER"
-//             value={accountNumber}
-//             onChange={(e) => setAccountNumber(e.target.value)}
-//           />
-//           <input
-//             placeholder="RE-CONFIRM ACCOUNT NUMBER"
-//             value={confirmAccountNumber}
-//             onChange={(e) => setConfirmAccountNumber(e.target.value)}
-//           />
-//         </div>
-
-//         <div className="penny-content3">
-//           <button className="penny-button" onClick={handlePennyDrop}>
-//             Proceed
-//           </button>
-//           <p className="bottom_portfolios">
-//             <img src="./Frame 150007.svg" />
-//             Portfolios worth 3,500Cr+ connected
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Pennycompo;
 
 import React, { useState } from "react";
 import Cookies from "js-cookie";
@@ -179,6 +7,7 @@ import "./style.css";
 import Overlay from "../../Overlay/Overlay";
 import { CgLaptop } from "react-icons/cg";
 import Header from '../../../Components/Header.jsx';
+import { toast } from "react-toastify";
 
 const Pennycompo = () => {
   const [ifscCode, setIfscCode] = useState("");
@@ -187,7 +16,7 @@ const Pennycompo = () => {
   const [bankName, setBankName] = useState("");
   const [showDepositOverlay, setShowDepositOverlay] = useState(false);
   const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
-  const [popupMessage, setPopupMessage] = useState(""); // ✅ store API error message
+  const [popupMessage, setPopupMessage] = useState(""); 
 
   // validation error messages added karunga bhai
   const [accountError, setAccountError] = useState("");
@@ -314,7 +143,7 @@ const Pennycompo = () => {
       Cookies.set("access_token", newToken);
       return newToken;
     } catch (error) {
-      alert("Session expired. Please login again.");
+      toast.error("Session expired. Please login again.");
       return null;
     }
   };

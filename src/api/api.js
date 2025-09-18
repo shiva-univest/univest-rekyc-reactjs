@@ -1,6 +1,4 @@
-
-
-
+// api.js
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -8,31 +6,35 @@ const api = axios.create({
   baseURL: "https://rekyc.meon.co.in/v1/",
 });
 
-(async () => {
+// 🔹 Auth initializer (runs once before app starts)
+export async function initAuth() {
   const urlParams = new URLSearchParams(window.location.search);
   const tokenFromUrl = urlParams.get("token");
+
   if (tokenFromUrl) {
     try {
+      // Always refresh using URL token if present
       const res = await axios.post(
         "https://rekyc.meon.co.in/v1/user/token/refresh",
-        { refresh: Cookies.get("refresh_token") || tokenFromUrl }
+        { refresh: tokenFromUrl }
       );
-      console.log("res.data", res?.data);
+
       const { access, refresh } = res.data;
 
       if (access) {
-        // 🔹 remove old tokens before setting new ones
+        // Remove old tokens before setting new ones
         Cookies.remove("access_token");
         Cookies.remove("refresh_token");
 
-        Cookies.set("access_token", access);
-        Cookies.set("refresh_token", refresh);
+        Cookies.set("access_token", access, { sameSite: "Strict" });
+        Cookies.set("refresh_token", refresh, { sameSite: "Strict" });
 
-        console.log("Tokens set from URL:", { access, refresh });
+        console.log("✅ Tokens set from URL:", { access, refresh });
       } else {
-        console.warn("Refresh response missing tokens:", res.data);
+        console.warn("⚠️ Refresh response missing tokens:", res.data);
       }
 
+      // Clean URL after token is set
       urlParams.delete("token");
       const cleanUrl =
         window.location.origin +
@@ -40,11 +42,12 @@ const api = axios.create({
         (urlParams.toString() ? `?${urlParams.toString()}` : "");
       window.history.replaceState({}, document.title, cleanUrl);
     } catch (err) {
-      console.error("Failed to exchange tokenFromUrl:", err);
+      console.error("❌ Failed to exchange tokenFromUrl:", err);
     }
   }
-})();
+}
 
+// 🔹 Request Interceptor
 api.interceptors.request.use(
   (config) => {
     const accessToken = Cookies.get("access_token");
@@ -56,6 +59,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// 🔹 Response Interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -66,6 +70,9 @@ api.interceptors.response.use(
 
       const refreshToken = Cookies.get("refresh_token");
       if (!refreshToken) {
+        Cookies.remove("access_token");
+        Cookies.remove("refresh_token");
+        window.location.href = "/notfound";
         return Promise.reject(error);
       }
 
@@ -84,12 +91,12 @@ api.interceptors.response.use(
           return;
         }
 
-        // 🔹 remove old tokens before setting new ones
+        // Update tokens
         Cookies.remove("access_token");
         Cookies.remove("refresh_token");
 
-        Cookies.set("access_token", access);
-        Cookies.set("refresh_token", refresh);
+        Cookies.set("access_token", access, { sameSite: "Strict" });
+        Cookies.set("refresh_token", refresh, { sameSite: "Strict" });
 
         originalRequest.headers["Authorization"] = `Bearer ${access}`;
         return api(originalRequest);

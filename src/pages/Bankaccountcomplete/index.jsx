@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "./style.css";
 import axios from "axios";
 import Header from "../../Components/Header";
+import { toast } from "react-toastify";
 
 const BankaccAccountComplete = () => {
   const [loading, setLoading] = useState(false);
@@ -229,14 +230,14 @@ const BankaccAccountComplete = () => {
         console.log("navigateion to esign page");
         navigate("/esign");
       } else {
-        alert(
+        toast.error(
           response.data?.message ||
           "Failed to generate user form. Please try again."
         );
       }
     } catch (error) {
       console.error("User form generation error:", error);
-      alert(
+      toast.error(
         error.response?.data?.message ||
         "Failed to generate user form. Please try again."
       );

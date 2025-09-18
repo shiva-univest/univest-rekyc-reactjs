@@ -135,7 +135,7 @@ header {
 
 .mainnnn {
   width: 100%;
-  background: #f5f5f55c;
+  background: #fff;
   /* padding: 22px 20px; */
   padding: 94px 20px 16px 20px;
 }
@@ -229,7 +229,8 @@ header {
 }
 
 .custom-checkbox input:disabled + .checkmark {
-  background-color: #afaaaa;
+  /* background-color: #afaaaa; */
+   background-color: #33a34d;
   cursor: not-allowed;
   border: none;
 }

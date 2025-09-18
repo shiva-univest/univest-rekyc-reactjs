@@ -369,6 +369,19 @@
 
 
 
+/* Overlay */
+.bank-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(8, 7, 7, 0.918);
+  opacity: .9;
+  z-index: 9998;
+}
+
+/* Popup */
 .bank-popup-wrapper {
   position: fixed;
   bottom: 0;
@@ -382,6 +395,16 @@
   padding: 24px 16px;
   animation: slideUp 0.3s ease-out;
 }
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 
 .bank-title {
   font-size: 18px;

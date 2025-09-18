@@ -7,6 +7,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import "./style2.css";
 import { SegmentContext } from "../../context/SegmentContext";
+import api from "../../api/api";
 
 const Segment = ({ encryptedData }) => {
   const { segmentData, setSegmentData } = useContext(SegmentContext);
@@ -14,6 +15,8 @@ const Segment = ({ encryptedData }) => {
   const queryParams = new URLSearchParams(location.search);
   const token = queryParams.get("token");
   const navigate = useNavigate();
+  const [esignDataStatus, setEsignDataStatus] = useState("");
+  const [isEsigned, setIsEsigned] = useState(false);
 
   console.log("Token from query param:", token);
 
@@ -332,22 +335,42 @@ const Segment = ({ encryptedData }) => {
 
   useEffect(() => {
     getCheckedSegments();
+    fetchEsignStatus();
   }, []);
 
-  // const getCheckedSegments = () => {
-  //   const checked = [];
+  useEffect(() => {
+    if (esignDataStatus.length > 0) {
+      let links = esignDataStatus.filter((link) => !link.is_esigned);
+      if (!links || links.length === 0) {
+        setIsEsigned(false);
+      } else {
+        setIsEsigned(true);
+      }
+    }
+  }, [esignDataStatus]);
 
-  //   for (const key in checkedStates) {
-  //     if (checkedStates[key]) {
-  //       const [exchange, segment] = key.split("_");
-  //       checked.push({ exchange, segment });
-  //     }
-  //   }
+  const fetchEsignStatus = async () => {
+    try {
+      const moduleRes = await api.post("/user/get_module_data", {
+        page_id: "6",
+      });
+      console.log("get_module_data (raw) ->", moduleRes.data);
 
-  //   const formatted = { segment_data: checked };
-  //   console.log("✅ Checked Segment Data on load:", formatted);
-  //   return formatted;
-  // };
+      let parsed;
+      try {
+        parsed = JSON.parse(decryptData(moduleRes.data.data));
+      } catch (err) {
+        console.error("Failed to parse decrypted data:", err);
+        parsed = {};
+      }
+      let links = parsed?.["12"]?.links || [];
+      console.log("links", links);
+      setEsignDataStatus(links);
+    } catch (err) {
+      console.error("Error fetching eSign data:", err);
+    } finally {
+    }
+  };
 
   const getCheckedSegments = () => {
     const checked = [];
@@ -384,7 +407,7 @@ const Segment = ({ encryptedData }) => {
 
   console.log("getCheckedSegments", getCheckedSegments());
   const { hasBothFNO } = getCheckedSegments();
-
+  console.log("hasBothFNO, hasBothFNO", hasBothFNO, hasBothFNO);
   return (
     <div>
       <header>
@@ -457,7 +480,7 @@ const Segment = ({ encryptedData }) => {
         </div>
 
         {/* Show Activate Banner if NOT both FNO present */}
-        {!hasBothFNO && (
+        {(!hasBothFNO || !isEsigned) && (
           <div className="card_1 card_2">
             <div className="card-title">
               <i className="same_design_seg">
@@ -487,7 +510,7 @@ const Segment = ({ encryptedData }) => {
         )}
         {/* Show Active F&O if both NSE + BSE FNO present */}
 
-        {hasBothFNO && (
+        {hasBothFNO && isEsigned && (
           <div className="card_1 card_3">
             <div className="card-title">
               <i className="same_design_seg">

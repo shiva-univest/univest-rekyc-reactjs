@@ -5,6 +5,7 @@ import { decryptData } from "../../decode";
 import { useLocation, useNavigate } from "react-router-dom";
 import withAuthCheck from "../../hoc/withAuthCheck";
 import { BANKLIST } from "../../lib/utils";
+import api from "../../api/api";
 
 
 
@@ -27,6 +28,8 @@ const Bank = ({ encryptedData }) => {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [showAddAccountPopup, setShowAddAccountPopup] = useState(false);
   const [deleteDetailsPopup, setdeleteDetailsPopup] = useState(false);
+  const [esignDataStatus, setEsignDataStatus]=useState("");
+  const [isEsigned, setIsEsigned]=useState(false);
 
   const parseEncryptedData = () => {
     try {
@@ -79,7 +82,7 @@ const Bank = ({ encryptedData }) => {
       const data = await response.json();
       const decrypted = decryptData(data.data);
       const parsedData = JSON.parse(decrypted);
-
+      console.log(parsedData)
       if (parsedData?.["7"]?.bank_detail_data) {
         const formattedAccounts = parsedData["7"].bank_detail_data.map(
           (account) => ({
@@ -90,6 +93,7 @@ const Bank = ({ encryptedData }) => {
             branchname: account.branch_name,
             ifscCode: account.ifsc,
             accountType: account.account_type,
+            is_new: account.is_new,
           })
         );
         setBankAccounts(formattedAccounts);
@@ -252,12 +256,82 @@ const Bank = ({ encryptedData }) => {
   }, [showAccountDetailsPopup, deleteDetailsPopup]);
 
   useEffect(() => {
+    fetchEsignStatus();
     if (encryptedData) {
       parseEncryptedData();
     } else {
       fetchBankAccounts();
     }
   }, [encryptedData]);
+
+  useEffect(() => {
+    if(esignDataStatus.length > 0)
+    {
+      let links = esignDataStatus.filter((link) => !link.is_esigned);
+      if (!links || links.length === 0) {
+        setIsEsigned(false)
+      }
+      else{
+        setIsEsigned(true)
+      }
+    }
+  }, [esignDataStatus]);
+
+  useEffect(() => {
+    if (!isEsigned && Array.isArray(bankAccounts)) {
+      console.log("bankAccounts", bankAccounts);
+
+      const processAccounts = async () => {
+        for (const account of bankAccounts) {
+          if (account.is_new && !account.isPrimary) {
+            await handleDeleteAccount(account.id);
+          } 
+          else if (account.is_new && account.isPrimary) {
+            const oldAccount = bankAccounts.find(acc => !acc.is_new);
+
+            if (oldAccount) {
+              try {
+                await handleMakePrimary(oldAccount.id);
+                await handleDeleteAccount(account.id);
+              } catch (error) {
+                console.error(`Error processing account ${account.id}`, error);
+              }
+            } else {
+              console.warn("No old account found to make primary before deleting new one");
+            }
+          }
+        }
+      };
+
+      processAccounts();
+    }
+  }, [isEsigned, bankAccounts]);
+
+
+
+  const fetchEsignStatus = async () => {
+    try {
+      const moduleRes = await api.post("/user/get_module_data", {
+        page_id: "6",
+      });
+      console.log("get_module_data (raw) ->", moduleRes.data);
+
+      let parsed;
+      try {
+        parsed = JSON.parse(decryptData(moduleRes.data.data));
+      } catch (err) {
+        console.error("Failed to parse decrypted data:", err);
+        parsed = {};
+      }
+      let links = parsed?.["12"]?.links || [];
+      console.log("links", links)
+      setEsignDataStatus(links);
+    } catch (err) {
+      console.error("Error fetching eSign data:", err);
+    } finally {
+    }
+  };
+
 
   return (
     <div className="bank-container">

@@ -6,14 +6,17 @@ import { decryptData } from "../../decode";
 import Loader from "../Loader/Loader";
 import axios from "axios";
 import { openLink } from "../../lib/utils";
+import { toast } from "react-toastify";
 
 const BankaccAccount = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
+  const [popupShownOnce, setPopupShownOnce] = useState(false);
+
 
   const navigate = useNavigate();
 
-  const [popupMessage, setPopupMessage] = useState(""); // store API error message
+  const [popupMessage, setPopupMessage] = useState(""); 
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -46,17 +49,33 @@ const BankaccAccount = () => {
     };
   }, []);
 
+  // useEffect(() => {
+  //   if (dataFromOCR) {
+  //     const { account, branch, ifsc } = bankDetails;
+
+  //     if (!account?.trim() || !branch?.trim() || !ifsc?.trim()) {
+  //       toggleBottomSheet();
+  //     }
+
+  //     setDataFromOCR(false);
+  //   }
+  // }, [dataFromOCR, bankDetails]);
+
   useEffect(() => {
-    if (dataFromOCR) {
-      const { account, branch, ifsc } = bankDetails;
+  if (dataFromOCR) {
+    const { account, branch, ifsc } = bankDetails;
 
-      if (!account?.trim() || !branch?.trim() || !ifsc?.trim()) {
-        toggleBottomSheet();
-      }
-
-      setDataFromOCR(false);
+    if (
+      !account || account === "-" ||
+      !branch || branch === "-" ||
+      !ifsc || ifsc === "-"
+    ) {
+      toggleBottomSheet();
     }
-  }, [dataFromOCR, bankDetails]);
+
+    setDataFromOCR(false);
+  }
+}, [dataFromOCR, bankDetails]);
 
 
   const toggleBottomSheet = () => {
@@ -175,7 +194,9 @@ const BankaccAccount = () => {
 
   const handleBankDocUpload = async (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     try {
       setLoading(true);
@@ -194,7 +215,7 @@ const BankaccAccount = () => {
       const token = tokenData?.token;
 
       if (!token) {
-        alert("Failed to fetch OCR token.");
+       toast.error("Failed to fetch OCR token.");
         return;
       }
 
@@ -251,7 +272,7 @@ const BankaccAccount = () => {
       }
     } catch (err) {
       console.error("OCR Upload Error:", err);
-      alert("Failed to extract data from bank document.");
+      toast.error("Failed to extract data from bank document.");
     } finally {
       setLoading(false);
     }
@@ -263,7 +284,7 @@ const BankaccAccount = () => {
       const token = await getrefershtoken();
 
       if (!token) {
-        alert("Authorization failed.");
+        toast.error("Authorization failed.");
         return;
       }
 
@@ -286,13 +307,13 @@ const BankaccAccount = () => {
         console.log("Form generation successful, navigating to esign");
         navigate("/esign");
       } else {
-        alert(
+        toast.error(
           formData?.message || "Failed to generate user form. Please try again."
         );
       }
     } catch (error) {
       console.error("User form generation error:", error);
-      alert("Failed to generate user form. Please try again.");
+      toast.error("Failed to generate user form. Please try again.");
     }
   };
 
@@ -302,7 +323,7 @@ const BankaccAccount = () => {
       const token = await getrefershtoken();
 
       if (!token) {
-        alert("Authorization failed.");
+        toast.error("Authorization failed.");
         return;
       }
 
@@ -338,7 +359,7 @@ const BankaccAccount = () => {
     setLoading(true);
 
     if (!token) {
-      alert("Authorization failed.");
+      toast.error("Authorization failed.");
       return;
     }
 
@@ -346,7 +367,7 @@ const BankaccAccount = () => {
     console.log("bankDetails", bankDetails);
 
     if (!account || !ifsc) {
-      alert("Missing account or IFSC details.");
+      toast.error("Missing account or IFSC details.");
       return;
     }
 
@@ -383,19 +404,19 @@ const BankaccAccount = () => {
       if (checkData?.data?.pennydrop_flag === true) {
         console.log("Pennydrop successful, proceeding to verify bank details");
 
-        // Check if we have tempId for verification
+       
         if (checkData.tempId || checkData?.data?.bank_temp_id) {
           const tempId = checkData.tempId || checkData?.data?.bank_temp_id;
           console.log("tempId", tempId);
           await verifyBankDetailsAPI(tempId);
         } else {
-          // If no tempId but pennydrop was successful, go straight to form generation
+          
           await callUserFormGeneration();
         }
         return;
       }
 
-      // Legacy flow: If we have tempId but no explicit pennydrop_flag
+      
       if (checkRes.ok && checkData.success && checkData.tempId) {
         const tempId = checkData.tempId;
         console.log("tempId", tempId);
@@ -806,87 +827,96 @@ const BankaccAccount = () => {
           )}
 
           {showOCRPopup && bankDetails && (
-            <div className="bank-popup-wrapper">
-              <div className="bank-popup">
-                <h3 className="bank-title">Confirm bank details</h3>
-                <p className="bank-subtitle">
-                  You can choose to proceed with the below Bank or link another
-                  one using IFSC
-                </p>
-                <div className="bank-card-final">
-                  <div className="bank-card-header">
-                    <img
-                      src="./bank5.png"
-                      alt="Bank Logo"
-                      className="bank-logo-final"
-                    />
-                    <div>
-                      <div className="bank-code-final">
-                        {bankDetails.bank_name}
+            <>
+             
+              <div
+                className="bank-popup-overlay"
+                onClick={() => setShowOCRPopup(false)} 
+              />
+
+             
+              <div className="bank-popup-wrapper">
+                <div className="bank-popup">
+                  <h3 className="bank-title">Confirm bank details</h3>
+                  <p className="bank-subtitle">
+                    You can choose to proceed with the below Bank or link
+                    another one using IFSC
+                  </p>
+                  <div className="bank-card-final">
+                    <div className="bank-card-header">
+                      <img
+                        src="./bank5.png"
+                        alt="Bank Logo"
+                        className="bank-logo-final"
+                      />
+                      <div>
+                        <div className="bank-code-final">
+                          {bankDetails.bank_name}
+                        </div>
+                        <div className="bank-type-final">Savings</div>
                       </div>
-                      <div className="bank-type-final">Savings</div>
+                    </div>
+
+                    <div className="bank-field">
+                      <label>Bank account number</label>
+                      <input
+                        type="text"
+                        placeholder="Enter account number"
+                        className="bank-input"
+                        value={bankDetails.account || ""}
+                        onChange={(e) =>
+                          setBankDetails((prev) => ({
+                            ...prev,
+                            account: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <div className="bank-field">
+                      <label>Branch name</label>
+                      <input
+                        type="text"
+                        placeholder="Enter branch name"
+                        className="bank-input"
+                        value={bankDetails.branch || ""}
+                        onChange={(e) =>
+                          setBankDetails((prev) => ({
+                            ...prev,
+                            branch: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <div className="bank-field">
+                      <label>IFSC</label>
+                      <input
+                        type="text"
+                        placeholder="Enter IFSC"
+                        className="bank-input"
+                        value={bankDetails.ifsc || ""}
+                        onChange={(e) =>
+                          setBankDetails((prev) => ({
+                            ...prev,
+                            ifsc: e.target.value,
+                          }))
+                        }
+                      />
                     </div>
                   </div>
-
-                  <div className="bank-field">
-                    <label>Bank account number</label>
-                    <input
-                      type="text"
-                      placeholder="Enter account number"
-                      className="bank-input"
-                      value={bankDetails.account || ""}
-                      onChange={(e) =>
-                        setBankDetails((prev) => ({
-                          ...prev,
-                          account: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-
-                  <div className="bank-field">
-                    <label>Branch name</label>
-                    <input
-                      type="text"
-                      placeholder="Enter branch name"
-                      className="bank-input"
-                      value={bankDetails.branch || ""}
-                      onChange={(e) =>
-                        setBankDetails((prev) => ({
-                          ...prev,
-                          branch: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-
-                  <div className="bank-field">
-                    <label>IFSC</label>
-                    <input
-                      type="text"
-                      placeholder="Enter IFSC"
-                      className="bank-input"
-                      value={bankDetails.ifsc || ""}
-                      onChange={(e) =>
-                        setBankDetails((prev) => ({
-                          ...prev,
-                          ifsc: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
+                  <button
+                    className="proceed-btn"
+                    onClick={() => {
+                      setShowOCRPopup(false);
+                      checkAndVerifyBankDetails();
+                    }}
+                  >
+                    Proceed
+                  </button>
                 </div>
-                <button
-                  className="proceed-btn"
-                  onClick={() => {
-                    setShowOCRPopup(false);
-                    checkAndVerifyBankDetails();
-                  }}
-                >
-                  Proceed
-                </button>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>

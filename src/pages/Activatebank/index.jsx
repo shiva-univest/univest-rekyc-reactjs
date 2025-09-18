@@ -7,6 +7,7 @@ import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfjsWorker from "pdfjs-dist/legacy/build/pdf.worker?worker";
 pdfjsLib.GlobalWorkerOptions.workerPort = new pdfjsWorker();
 import Loader from "../Loader/Loader";
+import { toast } from "react-toastify";
 
 import "./style1.css";
 
@@ -70,7 +71,7 @@ const Activatebank = ({ encryptedData }) => {
   const [isPasswordRequired, setIsPasswordRequired] = useState(false);
   const [allowedTypes, setAllowedTypes] = useState([]);
   const [loading, setLoading] = useState(false);
-   const location = useLocation();
+  const location = useLocation();
 
   const segmentData = location.state?.segmentData;
 
@@ -91,6 +92,7 @@ const Activatebank = ({ encryptedData }) => {
             body: JSON.stringify({ page_id: "5" }),
           }
         );
+        console.log("response_", response);
 
         if (!response.ok) {
           throw { status: response.status, data: await response.text() };
@@ -99,11 +101,13 @@ const Activatebank = ({ encryptedData }) => {
       };
 
       try {
-        // 🔹 First call with current access token
+        
+        console.log("Fetching with token:", accessToken);
         const result = await fetchData(accessToken);
 
         if (result?.data) {
           const decrypted = decryptData(result.data);
+          console.log("decrypted_ddaaatttaa", JSON.parse(decrypted));
           const parsed =
             typeof decrypted === "string" ? JSON.parse(decrypted) : decrypted;
           console.log("✅ Decrypted data:", parsed);
@@ -386,8 +390,7 @@ const Activatebank = ({ encryptedData }) => {
     };
 
     try {
-
-       setLoading(true);
+      setLoading(true);
       const formResponse = await fetchWithAuthRetry(
         "https://rekyc.meon.co.in/v1/user/user_form_generation",
         { re_esign: false }
@@ -416,18 +419,18 @@ const Activatebank = ({ encryptedData }) => {
           } else if (esignLink?.url) {
             window.location.href = `https://rekyc.meon.co.in${esignLink.url}`;
           } else {
-            alert("Missing esign URL.");
+            toast.error("Missing esign URL.");
           }
         } else {
-          alert("Failed to get module data.");
+          toast.error("Failed to get module data.");
         }
       } else {
-        alert("Something went wrong. Please try again.");
+        toast.error("Something went wrong. Please try again.");
       }
     } catch (error) {
       console.error("❌ Error during full proceed flow:", error);
-      alert("Request failed. Please try again.");
-       setLoading(false);
+      toast.error("Request failed. Please try again.");
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -438,13 +441,15 @@ const Activatebank = ({ encryptedData }) => {
     if (!file) return;
 
     if (!selectedDoc) {
-      alert("Please select a document type before uploading.");
+      toast.error("Please select a document type before uploading.");
       return;
     }
 
     const extension = file.name.split(".").pop().toLowerCase();
     if (!allowedTypes.includes(extension)) {
-      alert(`Only ${allowedTypes.join(", ").toUpperCase()} files allowed.`);
+      toast.error(
+        `Only ${allowedTypes.join(", ").toUpperCase()} files allowed.`
+      );
       return;
     }
 
@@ -460,7 +465,7 @@ const Activatebank = ({ encryptedData }) => {
         if (err?.name === "PasswordException") {
           setIsPasswordRequired(true);
         } else {
-          alert("Invalid PDF file.");
+          toast.error("Invalid PDF file.");
           setUploadedFile(null);
         }
       }
@@ -476,7 +481,7 @@ const Activatebank = ({ encryptedData }) => {
     const documentId = userModuleData?.["11"]?.document_detail_data?.[0]?.id;
 
     if (!accessToken || !documentId || !selectedDoc) {
-      alert("Missing required data.");
+      toast.error("Missing required data.");
       setLoading(false);
       return;
     }
@@ -510,11 +515,11 @@ const Activatebank = ({ encryptedData }) => {
       console.log("✅ Upload result:", result);
 
       if (result.status) {
-        alert("File uploaded successfully.");
+        toast.success("File uploaded successfully.");
         setIsPasswordRequired(false);
         setPdfPassword("");
       } else {
-        alert("Upload failed.");
+        toast.error("Upload failed.");
       }
     } catch (error) {
       console.warn("Upload failed. Checking for 401...", error);
@@ -554,23 +559,23 @@ const Activatebank = ({ encryptedData }) => {
             console.log("✅ Retry upload result:", retryResult);
 
             if (retryResult.status) {
-              alert("File uploaded successfully.");
+              toast.success("File uploaded successfully.");
               setIsPasswordRequired(false);
               setPdfPassword("");
             } else {
-              alert("Upload failed.");
+              toast.error("Upload failed.");
             }
           } else {
             console.error("Refresh succeeded but no access_token returned.");
-            alert("Session expired. Please log in again.");
+            toast.error("Session expired. Please log in again.");
           }
         } catch (refreshError) {
           console.error("❌ Refresh token request failed:", refreshError);
-          alert("Session expired. Please log in again.");
+          toast.error("Session expired. Please log in again.");
         }
       } else {
         console.error("❌ Upload failed (not token related):", error);
-        alert("Upload failed.");
+        toast.error("Upload failed.");
       }
     } finally {
       setLoading(false);
@@ -588,7 +593,7 @@ const Activatebank = ({ encryptedData }) => {
     const documentId = userModuleData?.["11"]?.document_detail_data?.[0]?.id;
 
     if (!accessToken || !documentId) {
-      alert("Missing token or document ID");
+      toast.error("Missing token or document ID");
       setLoading(false);
       return;
     }
@@ -677,15 +682,15 @@ const Activatebank = ({ encryptedData }) => {
             window.open(retryResult.url, "_blank");
           } else {
             console.error("Refresh succeeded but no access_token returned.");
-            alert("Session expired. Please log in again.");
+            toast.error("Session expired. Please log in again.");
           }
         } catch (refreshError) {
           console.error("❌ Refresh token request failed:", refreshError);
-          alert("Session expired. Please log in again.");
+          toast.error("Session expired. Please log in again.");
         }
       } else {
         console.error("❌ OTP init failed:", error);
-        alert("Something went wrong.");
+        toast.error("Something went wrong.");
       }
     } finally {
       setLoading(false);
@@ -764,15 +769,15 @@ const Activatebank = ({ encryptedData }) => {
             }
           } else {
             console.error("Refresh succeeded but no access_token returned.");
-            alert("Session expired. Please log in again.");
+            toast.error("Session expired. Please log in again.");
           }
         } catch (refreshError) {
           console.error("❌ Refresh token request failed:", refreshError);
-          alert("Session expired. Please log in again.");
+          toast.error("Session expired. Please log in again.");
         }
       } else {
         console.error("❌ get_setu_doc failed:", error);
-        alert(
+        toast.error(
           error.message || "Something went wrong after returning from Setu."
         );
       }
@@ -928,7 +933,7 @@ const Activatebank = ({ encryptedData }) => {
                           .pop()
                           .toLowerCase();
                         if (!allowedTypes.includes(fileExtension)) {
-                          alert(
+                          toast.error(
                             `Only ${allowedTypes
                               .join(", ")
                               .toUpperCase()} files are allowed.`

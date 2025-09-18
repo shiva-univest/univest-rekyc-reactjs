@@ -25,7 +25,7 @@ h3 {
 
 .input-group {
   position: relative;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   border: 1.5px solid rgba(157, 157, 157, 1);
   border-radius: 8px;
   background-color: #fff;
@@ -33,9 +33,9 @@ h3 {
 }
 
 
-.input-group:focus-within {
+/* .input-group:focus-within {
   border: 2px solid rgba(8, 98, 188, 1);
-}
+} */
 
 .input-group label {
   position: absolute;

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import "./personal.css";
 import OtpInput from "react-otp-input";
+import { toast } from "react-toastify";
 
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
@@ -12,11 +13,18 @@ const EditContactPhone = ({ onClose, contact }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
-
-  // const [otp, setOtp] = useState(Array(6).fill(""));
   const [timer, setTimer] = useState(15);
   const [otpError, setOtpError] = useState("");
+  const ranOnce = useRef(false);
   const inputRefs = useRef([]);
+  const firstInputRef = useRef(null);
+  const phoneInputRef = useRef(null);
+
+  useEffect(() => {
+    if (firstInputRef.current) {
+      firstInputRef.current.focus();
+    }
+  }, []);
 
   const phoneRegex = /^[0-9]{10}$/;
 
@@ -116,8 +124,6 @@ const EditContactPhone = ({ onClose, contact }) => {
     }
   };
 
- 
-
   const handleVerifyOtpSubmit = async () => {
     if (otp.length !== 6) {
       setOtpError("Enter 6 digit OTP");
@@ -131,7 +137,7 @@ const EditContactPhone = ({ onClose, contact }) => {
 
       if (data?.status === true) {
         setOtpError("");
-        alert(data.message || "Phone verified successfully!");
+        toast.success(data.message || "Phone verified successfully!");
 
         try {
           const formRes = await fetch(
@@ -163,10 +169,19 @@ const EditContactPhone = ({ onClose, contact }) => {
       setOtpError("Network error");
     }
   };
+  // setTimeout(() => {
+  //     const firstInput = document.querySelector(
+  //       "input[autocomplete='one-time-code']"
+  //     );
+  //     if (firstInput) {
+  //       firstInput.focus();
+  //       firstInput.click();
+  //     }
+  //   }, 300);
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content3">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content3" onClick={(e) => e.stopPropagation()}>
         {step === "phone" ? (
           <>
             <h2>Your details are safe & secure</h2>
@@ -180,19 +195,18 @@ const EditContactPhone = ({ onClose, contact }) => {
             </div>
 
             <div className="input-group2">
-          
               <div className="input-group">
                 <input
+                  ref={phoneInputRef}
                   type="tel"
                   value={newPhone}
                   onChange={(e) => {
-                   
                     const val = e.target.value.replace(/\D/g, "");
                     if (val.length <= 10) {
                       setNewPhone(val);
                     }
                   }}
-                  maxLength={10} 
+                  maxLength={10}
                   placeholder=" "
                   className={`custom-input ${error ? "input-error" : ""}`}
                   required
@@ -201,7 +215,8 @@ const EditContactPhone = ({ onClose, contact }) => {
               </div>
             </div>
 
-            {error && <p className="error-text"> {error}</p>}
+            {/* {error && <p className="error-text_phone"> {error}</p>} */}
+            {error && newPhone && <p className="error-text_phone">{error}</p>}
 
             <button
               className="verify-button2"
@@ -219,7 +234,7 @@ const EditContactPhone = ({ onClose, contact }) => {
             </p>
             <p className="email-display">
               {newPhone}{" "}
-              <span
+              {/* <span
                 className="edit-btn"
                 onClick={() => {
                   setStep("phone");
@@ -227,17 +242,40 @@ const EditContactPhone = ({ onClose, contact }) => {
                 }}
               >
                 ✏ Edit
+              </span> */}
+              <span
+                className="edit-btn"
+                onClick={() => {
+                  setStep("phone");
+                  setOtp(""); // reset OTP inputs
+                  setNewPhone(""); // reset phone input
+                  setError(""); // optional: clear error
+                  setTimeout(() => phoneInputRef.current?.focus(), 100);
+                }}
+              >
+                ✏ Edit
               </span>
             </p>
 
-           
             <OtpInput
               value={otp}
-              onChange={setOtp}
+              onChange={(val) => {
+                // Allow only digits
+                if (/^\d*$/.test(val)) {
+                  setOtp(val);
+                }
+              }}
               numInputs={6}
-              renderSeparator={null} 
+              autoFocus
+              renderSeparator={null}
               renderInput={(props) => (
-                <input {...props} className={otpError ? "input-error" : ""} />
+                <input
+                  {...props}
+                  autoComplete="one-time-code"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className={otpError ? "input-error" : ""}
+                />
               )}
               inputStyle={{
                 width: "44px",
@@ -250,12 +288,14 @@ const EditContactPhone = ({ onClose, contact }) => {
               containerStyle={{
                 display: "flex",
                 justifyContent: "space-between",
-                gap: "10px",
+                gap: "5px",
                 marginBottom: "15px",
               }}
             />
 
-            {otpError && <p className="error-text">❗ {otpError}</p>}
+            {otpError && otp && (
+              <p className="error-text_phone">❗ {otpError}</p>
+            )}
 
             <div className="bottom_verfiy">
               {timer > 0 ? (

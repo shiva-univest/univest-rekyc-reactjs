@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import OtpInput from "react-otp-input";
+import { toast } from "react-toastify";
 
 import "./personal.css";
 
@@ -17,16 +18,26 @@ const EditContactModal = ({ onClose, contact }) => {
   const [timer, setTimer] = useState(15);
   const [otpError, setOtpError] = useState("");
   const inputRefs = useRef([]);
+  const otpRef = useRef(null);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  // Auto countdown
   useEffect(() => {
     if (step === "otp" && timer > 0) {
       const interval = setInterval(() => setTimer((t) => t - 1), 1000);
       return () => clearInterval(interval);
     }
   }, [step, timer]);
+
+  //  setTimeout(() => {
+  //     const firstInput = document.querySelector(
+  //       "input[autocomplete='one-time-code']"
+  //     );
+  //     if (firstInput) {
+  //       firstInput.focus();
+  //       firstInput.click();
+  //     }
+  //   }, 300);
 
   const getValidToken = async () => {
     let token = Cookies.get("access_token");
@@ -85,6 +96,7 @@ const EditContactModal = ({ onClose, contact }) => {
 
       if (response.ok && data?.status) {
         setStep("otp");
+        console.log("otp value:", otp);
         setTimer(15);
       } else {
         setError(data?.message || "Failed to send OTP. Try again.");
@@ -111,9 +123,11 @@ const EditContactModal = ({ onClose, contact }) => {
   const handleVerifyOtpSubmit = async () => {
     if (otp.length !== 6) {
       setOtpError("Enter 6 digit OTP");
+      console.log("otp value:", otp);
       return;
     }
     const otpValue = otp; // string already
+    console.log("Submitting OTP value:", otpValue);
 
     try {
       const token = await getValidToken();
@@ -142,7 +156,7 @@ const EditContactModal = ({ onClose, contact }) => {
           console.error("user_form_generation API failed:", formErr);
         }
 
-        alert(data.message || "Phone verified successfully!");
+        toast.success(data.message || "Phone verified successfully!");
         navigate("/esign");
       } else {
         setOtpError(data?.message || "Enter correct OTP");
@@ -153,8 +167,8 @@ const EditContactModal = ({ onClose, contact }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content3">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content3" onClick={(e) => e.stopPropagation()}>
         {step === "email" ? (
           <>
             <h2>Your details are safe & secure</h2>
@@ -164,6 +178,7 @@ const EditContactModal = ({ onClose, contact }) => {
                 <span className="value email_value">
                   {contact?.email || "Not Available"}
                 </span>
+                <img src="./App Icon.svg"/>
               </div>
             </div>
 
@@ -178,7 +193,7 @@ const EditContactModal = ({ onClose, contact }) => {
               <label>Enter new email ID</label>
             </div>
 
-            {error && <p className="error-text"> {error}</p>}
+            {error && <p className="error-text_phone"> {error}</p>}
 
             <button
               className="verify-button"
@@ -196,7 +211,7 @@ const EditContactModal = ({ onClose, contact }) => {
             </p>
             <p className="email-display">
               {newEmail}{" "}
-              <span
+              {/* <span
                 className="edit-button"
                 onClick={() => {
                   setStep("email");
@@ -204,29 +219,48 @@ const EditContactModal = ({ onClose, contact }) => {
                 }}
               >
                 ✏ Edit
+              </span> */}
+              <span
+                className="edit-button"
+                onClick={() => {
+                  setStep("email");
+                  setOtp(""); // clear OTP fields
+                  setNewEmail(""); // clear the email input
+                  setError(""); 
+                }}
+              >
+                ✏ Edit
               </span>
             </p>
 
-            {/* <div className="otp-container">
-              {otp.map((digit, idx) => (
-                <input
-                  key={idx}
-                  type="number"
-                  maxLength="1"
-                  value={digit}
-                  onChange={(e) => handleChangeOtp(e.target.value, idx)}
-                  ref={(el) => (inputRefs.current[idx] = el)}
-                  className={otpError ? "input-error" : ""}
-                />
-              ))}
-            </div> */}
             <OtpInput
               value={otp}
-              onChange={setOtp}
+              onChange={(val) => {
+                if (/^\d*$/.test(val)) {
+                  setOtp(val);
+                }
+              }}
               numInputs={6}
+              autoFocus // works on desktop
               renderSeparator={null}
-              renderInput={(props) => (
-                <input {...props} className={otpError ? "input-error" : ""} />
+              renderInput={(props, index) => (
+                <input
+                  {...props}
+                  autoComplete="one-time-code" // 🔑 allows SMS OTP autofill
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={1}
+                  onInput={(e) => {
+                    e.target.value = e.target.value.replace(/\D/g, "");
+                  }}
+                  // extra fallback: if autoFocus fails on mobile, tap label focuses first input
+                  onClick={(e) => {
+                    if (index === 0 && !otp) {
+                      e.target.focus();
+                    }
+                  }}
+                  className={otpError ? "input-error" : ""}
+                />
               )}
               inputStyle={{
                 width: "50px",
@@ -239,12 +273,14 @@ const EditContactModal = ({ onClose, contact }) => {
               containerStyle={{
                 display: "flex",
                 justifyContent: "space-between",
-                gap: "10px",
+                gap: "5px",
                 marginBottom: "15px",
               }}
             />
 
-            {otpError && <p className="error-text">❗ {otpError}</p>}
+            {otpError && otp && (
+              <p className="error-text_phone">❗ {otpError}</p>
+            )}
 
             <div className="bottom_verfiy">
               {timer > 0 ? (
@@ -264,7 +300,6 @@ const EditContactModal = ({ onClose, contact }) => {
                       const response = await callUpdateEmailAPI(token);
                       if (response.ok) {
                         setTimer(15);
-                        // setOtp(Array(6).fill(""));
                         setOtp("");
                       } else {
                         setOtpError("Failed to resend OTP");
@@ -278,19 +313,6 @@ const EditContactModal = ({ onClose, contact }) => {
                 </p>
               )}
 
-              {/* <button
-                className="verify-button"
-                disabled={otp.join("").length !== 6}
-                onClick={handleVerifyOtpSubmit}
-                style={{
-                  backgroundColor:
-                    otp.join("").length === 6
-                      ? "rgba(51, 163, 77, 1)"
-                      : "rgba(157, 157, 157, 1)",
-                }}
-              >
-                Verify
-              </button> */}
               <button
                 className="verify-button"
                 disabled={otp.length !== 6}

@@ -20,6 +20,8 @@ import EditContactModal from "./pages/PersonalInfo/EditContactModal";
 import EditContactPhone from "./pages/PersonalInfo/EditContactPhone";
 import Esign from "./pages/Esign/Esign";
 import Nominee from "./pages/Nominee/Nominee";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ProtectedSegment = withAuthCheck(Segment);
 
@@ -101,11 +103,23 @@ const App = () => {
 
   return (
     <>
-      <SegmentProvider>
-        <RouterProvider router={router} />
-      </SegmentProvider>
+       <SegmentProvider>
+      <RouterProvider router={router} />
+    </SegmentProvider>
+
+    {/* Toast container should be inside root */}
+    <ToastContainer
+      position="top-right"
+      autoClose={3000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      pauseOnHover
+      draggable
+      theme="light"
+    />
     </>
   );
-};
+}
 
 export default App;

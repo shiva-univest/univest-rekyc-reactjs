@@ -64,11 +64,11 @@ const Esign = () => {
   const formatButtonName = (name) => {
     switch (name) {
       case "rekyc":
-        return "Re-KYC eSign";
+        return "Proceed to E-Sign";
       case "rekyc_kra":
-        return "KRA eSign";
+        return "Proceed to E-Sign";
       case "aadhar":
-        return "eSign with Aadhaar";
+        return "Proceed to E-Sign";
       default:
         return "Proceed to E-Sign";
     }
@@ -124,6 +124,7 @@ const Esign = () => {
               <p>No links available</p>
             )}
           </div>
+          
         </div>
 
         <div className="footer">
