@@ -214,35 +214,37 @@ const BankaccAccountComplete = () => {
   };
 
   // Function to call user form generation API
-  const callUserFormGeneration = async () => {
-    try {
-      const token = Cookies.get("access_token");
+  // const callUserFormGeneration = async () => {
+  //   try {
+  //     const token = Cookies.get("access_token");
 
-      const response = await axios.post(
-        "https://rekyc.meon.co.in/v1/user/user_form_generation",
-        { re_esign: false },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+  //     const response = await axios.post(
+  //       "https://rekyc.meon.co.in/v1/user/user_form_generation",
+  //       { re_esign: false },
+  //       {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       }
+  //     );
 
-      if (response.data?.status === true) {
-        console.log("navigateion to esign page");
-        navigate("/esign");
-      } else {
-        toast.error(
-          response.data?.message ||
-          "Failed to generate user form. Please try again."
-        );
-      }
-    } catch (error) {
-      console.error("User form generation error:", error);
-      toast.error(
-        error.response?.data?.message ||
-        "Failed to generate user form. Please try again."
-      );
-    }
-  };
+  //     if (response.data?.status === true) {
+  //       console.log("navigateion to esign page");
+  //       navigate("/esign");
+  //     } else {
+  //       alert(
+  //         response.data?.message ||
+  //         "Failed to generate user form. Please try again."
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("User form generation error:", error);
+  //     alert(
+  //       error.response?.data?.message ||
+  //       "Failed to generate user form. Please try again."
+  //     );
+  //   }
+  // };
+
+  
 
   const verifyBankDetails = async () => {
     console.log("button press");

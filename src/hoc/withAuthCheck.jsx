@@ -5,7 +5,7 @@ import axios from "axios";
 import { nativeBACK } from "../lib/utils";
 
 const getToken = () => {
-  return localStorage.getItem("token") || Cookies.get("token");
+  return localStorage.getItem("token") || Cookies.get("access_token");
 };
 
 const getPageIdFromPath = (pathname) => {
@@ -97,7 +97,7 @@ const withAuthCheck = (WrappedComponent) => {
             },
           }
         );
-
+        
         const data = moduleRes.data?.data;
         if (data) {
           setEncryptedData(data);
@@ -128,12 +128,12 @@ const withAuthCheck = (WrappedComponent) => {
       } catch (error) {
       }
     }
+    console.log("encryptedData",encryptedData)
     if (!tokenChecked) return null;
 
     if (!validToken && !Cookies.get("access_token")) {
       return <Navigate to="/notfound" />;
     }
-
     return <WrappedComponent {...props} encryptedData={encryptedData} />;
   };
 };
