@@ -129,6 +129,8 @@ const BankaccAccount = () => {
   };
 
   const callReverseResponseAPI = async (transId, retryCount = 0) => {
+    alert(transId)
+
     setLoading(true);
     console.log("Calling Setu response API...");
 
