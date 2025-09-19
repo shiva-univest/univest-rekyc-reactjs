@@ -5,10 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { decryptData } from "../../decode";
 import Loader from "../Loader/Loader";
 import axios from "axios";
-import { openLink } from "../../lib/utils";
+import { openLink, waitFor } from "../../lib/utils";
 import { toast } from "react-toastify";
 
 const BankaccAccount = () => {
+  const ref = useRef()
   const [isOpen, setIsOpen] = useState(false);
   const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
   const [popupShownOnce, setPopupShownOnce] = useState(false);
@@ -125,8 +126,56 @@ const BankaccAccount = () => {
     }
   };
 
+  const callReverseResponseAPI = async (transId, retryCount = 0) => {
+    console.log("Calling Setu response API...");
+
+    try {
+      let accessToken = Cookies.get("access_token");
+
+      const response = await fetch(
+        "https://rekyc.meon.co.in/v1/user/reverse_pennydrop_api_setu_response",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ entity_id: transId }),
+        }
+      );
+
+
+
+
+      const result = await response.json();
+      let decrypted = decryptData(result.data);
+      decrypted = JSON.parse(decrypted);
+
+      console.log("Decrypted response:11111111111", decrypted);
+
+      const status = decrypted?.status
+      if (status.includes("SUCCESS")) {
+        window.location.href = `/bankaccountcomplete?success=true`
+        return
+      } else if (status.includes("FAILED")) {
+        window.location.href = `/bankaccountcomplete?success=false`
+        return
+      }
+
+      await waitFor(1500)
+      const newToken = await getrefershtoken();
+      if (newToken) {
+        Cookies.set("access_token", newToken);
+        return callReverseResponseAPI(transId, retryCount + 1);
+      } else {
+        throw new Error("Token refresh failed");
+      }
+    } catch (err) {
+      console.error("Error in callReverseResponseAPI:", err);
+    }
+  };
+
   const callReversePennydropAPI = async (retryCount = 0) => {
-    const redirecturl = getRedirectUrl();
     console.log("aaaaaaaaaaaaaaaaaaa");
 
     try {
@@ -175,6 +224,7 @@ const BankaccAccount = () => {
 
       if (data?.upiLink) {
         openLink(data.upiLink);
+        callReverseResponseAPI(transId, 1)
       } else {
         console.error("No upiLink found in response");
       }

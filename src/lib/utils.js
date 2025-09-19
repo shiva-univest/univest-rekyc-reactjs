@@ -280,3 +280,7 @@ export const BANKLIST = [{
     url: "https://storage.googleapis.com/app-assets-univest/react-assets/banks/credit_agricole_corporate.png"
 }
 ]
+
+export function waitFor(miliSeconds) {
+    return new Promise((resolve) => setTimeout(resolve, miliSeconds));
+}
