@@ -302,7 +302,7 @@ const EditContactModal = ({ onClose, contact }) => {
               />
               <label>Enter new email ID</label>
 
-              {error && <p className="error-text_phone">{error}</p>}
+              {error &&  <p className="error-text_phone">{error}</p>}
             </div>
 
             <button

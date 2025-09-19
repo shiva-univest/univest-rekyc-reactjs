@@ -10,8 +10,8 @@ import { toast } from "react-toastify";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 
 const BankaccAccount = () => {
-  const ref = useRef()
-  const count = useRef()
+  const ref = useRef();
+  const count = useRef();
   const [isOpen, setIsOpen] = useState(false);
   const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
   const [popupShownOnce, setPopupShownOnce] = useState(false);
@@ -128,46 +128,126 @@ const BankaccAccount = () => {
     }
   };
 
-  const callReverseResponseAPI = async (transId, retryCount = 0) => {
-    toast.success(transId)
+  // const callReverseResponseAPI = async (transId, retryCount = 0) => {
+  //   toast.success(transId)
 
+  //   setLoading(true);
+  //   console.log("Calling Setu response API...");
+
+  //   try {
+  //     let accessToken = Cookies.get("access_token");
+
+  //     const response = await fetch(
+  //       "https://rekyc.meon.co.in/v1/user/reverse_pennydrop_api_setu_response",
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${accessToken}`,
+  //         },
+  //         body: JSON.stringify({ entity_id: transId }),
+  //       }
+  //     );
+
+  //     const result = await response.json();
+  //     let decrypted = decryptData(result.data);
+  //     decrypted = JSON.parse(decrypted);
+
+  //     const status = decrypted?.status
+  //     toast.success(status)
+  //     if (status.includes("SUCCESS")) {
+  //       window.location.href = `/bankaccountcomplete?success=true`
+  //       setLoading(false);
+  //       clearInterval(ref.current)
+  //       return
+  //     } else if (status.includes("FAILED") || retryCount > 15) {
+  //       window.location.href = `/bankaccountcomplete?success=false`
+  //       setLoading(false);
+  //       clearInterval(ref.current)
+  //       return
+  //     }
+  //   } catch (err) {
+  //     console.error("Error in callReverseResponseAPI:", err);
+  //   }
+  // };
+
+  const callReverseResponseAPI = async (transId, retryCount = 0) => {
+    toast.success(transId);
     setLoading(true);
     console.log("Calling Setu response API...");
 
-    try {
-      let accessToken = Cookies.get("access_token");
-
+    const fetchData = async (token) => {
       const response = await fetch(
         "https://rekyc.meon.co.in/v1/user/reverse_pennydrop_api_setu_response",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ entity_id: transId }),
         }
       );
 
-      const result = await response.json();
+      if (!response.ok) {
+        throw { status: response.status, data: await response.text() };
+      }
+
+      return response.json();
+    };
+
+    try {
+      let accessToken = Cookies.get("access_token");
+
+      let result = await fetchData(accessToken);
+
       let decrypted = decryptData(result.data);
       decrypted = JSON.parse(decrypted);
 
-      const status = decrypted?.status
-      toast.success(status)
+      const status = decrypted?.status;
+      toast.success(status);
+
       if (status.includes("SUCCESS")) {
-        window.location.href = `/bankaccountcomplete?success=true`
-        setLoading(false);
-        clearInterval(ref.current)
-        return
+        window.location.href = `/bankaccountcomplete?success=true`;
+        clearInterval(ref.current);
+        return;
       } else if (status.includes("FAILED") || retryCount > 15) {
-        window.location.href = `/bankaccountcomplete?success=false`
-        setLoading(false);
-        clearInterval(ref.current)
-        return
+        window.location.href = `/bankaccountcomplete?success=false`;
+        clearInterval(ref.current);
+        return;
       }
     } catch (err) {
       console.error("Error in callReverseResponseAPI:", err);
+
+      if (err.status === 401) {
+        const newAccessToken = await getrefreshtoken();
+        if (newAccessToken) {
+          try {
+            console.log("🔑 Retrying with new access token...");
+            const retryResult = await fetchData(newAccessToken);
+
+            let decrypted = decryptData(retryResult.data);
+            decrypted = JSON.parse(decrypted);
+
+            const status = decrypted?.status;
+            toast.success(status);
+
+            if (status.includes("SUCCESS")) {
+              window.location.href = `/bankaccountcomplete?success=true`;
+              clearInterval(ref.current);
+              return;
+            } else if (status.includes("FAILED") || retryCount > 15) {
+              window.location.href = `/bankaccountcomplete?success=false`;
+              clearInterval(ref.current);
+              return;
+            }
+          } catch (retryErr) {
+            console.error("❌ Retry after refresh failed:", retryErr);
+          }
+        }
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -219,13 +299,13 @@ const BankaccAccount = () => {
       sessionStorage.setItem("transid", transId);
 
       if (data?.upiLink) {
-        count.current = 1
+        count.current = 1;
         ref.current = setInterval(() => {
-          callReverseResponseAPI(transId, count.current)
-          count.current = count.current + 1
-        }, 5000)
-        await waitFor(1000)
-        toast.success("opening")
+          callReverseResponseAPI(transId, count.current);
+          count.current = count.current + 1;
+        }, 5000);
+        await waitFor(1000);
+        toast.success("opening");
         openLink(data.upiLink);
       } else {
         console.error("No upiLink found in response");
@@ -244,7 +324,6 @@ const BankaccAccount = () => {
       console.error("API call failed:", error);
     }
   };
-
 
   const handleBankDocUpload = async (e) => {
     const file = e.target.files[0];
