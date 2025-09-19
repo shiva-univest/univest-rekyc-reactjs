@@ -129,7 +129,7 @@ const BankaccAccount = () => {
   };
 
   const callReverseResponseAPI = async (transId, retryCount = 0) => {
-    alert(transId)
+    toast.success(transId)
 
     setLoading(true);
     console.log("Calling Setu response API...");
@@ -154,7 +154,7 @@ const BankaccAccount = () => {
       decrypted = JSON.parse(decrypted);
 
       const status = decrypted?.status
-      alert(status)
+      toast.success(status)
       if (status.includes("SUCCESS")) {
         window.location.href = `/bankaccountcomplete?success=true`
         setLoading(false);
@@ -225,7 +225,7 @@ const BankaccAccount = () => {
           count.current = count.current + 1
         }, 5000)
         await waitFor(1000)
-        alert("opening")
+        toast.success("opening")
         openLink(data.upiLink);
       } else {
         console.error("No upiLink found in response");
