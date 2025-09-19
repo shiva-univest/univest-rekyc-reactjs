@@ -128,126 +128,46 @@ const BankaccAccount = () => {
     }
   };
 
-  // const callReverseResponseAPI = async (transId, retryCount = 0) => {
-  //   toast.success(transId)
-
-  //   setLoading(true);
-  //   console.log("Calling Setu response API...");
-
-  //   try {
-  //     let accessToken = Cookies.get("access_token");
-
-  //     const response = await fetch(
-  //       "https://rekyc.meon.co.in/v1/user/reverse_pennydrop_api_setu_response",
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${accessToken}`,
-  //         },
-  //         body: JSON.stringify({ entity_id: transId }),
-  //       }
-  //     );
-
-  //     const result = await response.json();
-  //     let decrypted = decryptData(result.data);
-  //     decrypted = JSON.parse(decrypted);
-
-  //     const status = decrypted?.status
-  //     toast.success(status)
-  //     if (status.includes("SUCCESS")) {
-  //       window.location.href = `/bankaccountcomplete?success=true`
-  //       setLoading(false);
-  //       clearInterval(ref.current)
-  //       return
-  //     } else if (status.includes("FAILED") || retryCount > 15) {
-  //       window.location.href = `/bankaccountcomplete?success=false`
-  //       setLoading(false);
-  //       clearInterval(ref.current)
-  //       return
-  //     }
-  //   } catch (err) {
-  //     console.error("Error in callReverseResponseAPI:", err);
-  //   }
-  // };
-
   const callReverseResponseAPI = async (transId, retryCount = 0) => {
     toast.success(transId);
+
     setLoading(true);
     console.log("Calling Setu response API...");
 
-    const fetchData = async (token) => {
+    try {
+      let accessToken = Cookies.get("access_token");
+
       const response = await fetch(
         "https://rekyc.meon.co.in/v1/user/reverse_pennydrop_api_setu_response",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({ entity_id: transId }),
         }
       );
 
-      if (!response.ok) {
-        throw { status: response.status, data: await response.text() };
-      }
-
-      return response.json();
-    };
-
-    try {
-      let accessToken = Cookies.get("access_token");
-
-      let result = await fetchData(accessToken);
-
+      const result = await response.json();
       let decrypted = decryptData(result.data);
       decrypted = JSON.parse(decrypted);
 
       const status = decrypted?.status;
       toast.success(status);
-
       if (status.includes("SUCCESS")) {
         window.location.href = `/bankaccountcomplete?success=true`;
+        setLoading(false);
         clearInterval(ref.current);
         return;
       } else if (status.includes("FAILED") || retryCount > 15) {
         window.location.href = `/bankaccountcomplete?success=false`;
+        setLoading(false);
         clearInterval(ref.current);
         return;
       }
     } catch (err) {
       console.error("Error in callReverseResponseAPI:", err);
-
-      if (err.status === 401) {
-        const newAccessToken = await getrefreshtoken();
-        if (newAccessToken) {
-          try {
-            console.log("🔑 Retrying with new access token...");
-            const retryResult = await fetchData(newAccessToken);
-
-            let decrypted = decryptData(retryResult.data);
-            decrypted = JSON.parse(decrypted);
-
-            const status = decrypted?.status;
-            toast.success(status);
-
-            if (status.includes("SUCCESS")) {
-              window.location.href = `/bankaccountcomplete?success=true`;
-              clearInterval(ref.current);
-              return;
-            } else if (status.includes("FAILED") || retryCount > 15) {
-              window.location.href = `/bankaccountcomplete?success=false`;
-              clearInterval(ref.current);
-              return;
-            }
-          } catch (retryErr) {
-            console.error("❌ Retry after refresh failed:", retryErr);
-          }
-        }
-      }
-    } finally {
-      setLoading(false);
     }
   };
 
