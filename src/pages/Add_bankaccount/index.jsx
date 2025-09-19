@@ -125,7 +125,7 @@ const BankaccAccount = () => {
   };
 
   const callReverseResponseAPI = async (transId, retryCount = 0) => {
-    setLoading(true);
+    setLoading(false);
     console.log("Calling Setu response API...");
     const response = await api.post("/user/reverse_pennydrop_api_setu_response", { entity_id: transId });
 
