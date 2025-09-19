@@ -8,14 +8,13 @@ import axios from "axios";
 import { openLink, waitFor } from "../../lib/utils";
 import { toast } from "react-toastify";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
+import api from "../../api/api";
 
 const BankaccAccount = () => {
   const ref = useRef()
   const count = useRef()
   const [isOpen, setIsOpen] = useState(false);
   const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
-  const [popupShownOnce, setPopupShownOnce] = useState(false);
-  const [uploadCount, setUploadCount] = useState(0);
 
   const navigate = useNavigate();
 
@@ -87,10 +86,6 @@ const BankaccAccount = () => {
     setIsOpen(!isOpen);
   };
 
-  const getRedirectUrl = () => {
-    const token = Cookies.get("access_token");
-    return `${window.location.href}?token=${token}`;
-  };
 
   const getrefershtoken = async () => {
     try {
@@ -129,28 +124,14 @@ const BankaccAccount = () => {
   };
 
   const callReverseResponseAPI = async (transId, retryCount = 0) => {
-    toast.success(transId)
-
     setLoading(true);
     console.log("Calling Setu response API...");
 
     try {
-      let accessToken = Cookies.get("access_token");
 
-      const response = await fetch(
-        "https://rekyc.meon.co.in/v1/user/reverse_pennydrop_api_setu_response",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({ entity_id: transId }),
-        }
-      );
+      const response = await api.post("/user/reverse_pennydrop_api_setu_response", { entity_id: transId });
 
-      const result = await response.json();
-      let decrypted = decryptData(result.data);
+      let decrypted = decryptData(response.data);
       decrypted = JSON.parse(decrypted);
 
       const status = decrypted?.status
@@ -225,7 +206,6 @@ const BankaccAccount = () => {
           count.current = count.current + 1
         }, 5000)
         await waitFor(1000)
-        toast.success("opening")
         openLink(data.upiLink);
       } else {
         console.error("No upiLink found in response");
