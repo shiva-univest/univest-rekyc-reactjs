@@ -7,9 +7,6 @@ import withAuthCheck from "../../hoc/withAuthCheck";
 import { BANKLIST } from "../../lib/utils";
 import api from "../../api/api";
 
-
-
-
 const Bank = ({ encryptedData }) => {
   const [bankAccounts, setBankAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +34,7 @@ const Bank = ({ encryptedData }) => {
       const decrypted = decryptData(encryptedData);
       const parsedData = JSON.parse(decrypted);
       console.log("thisssssssssssssssssssssssssss", decrypted);
+      console.log("thisssssssssssssssssssssssssss2", parsedData);
 
       if (parsedData?.["7"]?.bank_detail_data) {
         const formattedAccounts = parsedData["7"].bank_detail_data.map(
@@ -83,7 +81,7 @@ const Bank = ({ encryptedData }) => {
       const data = await response.json();
       const decrypted = decryptData(data.data);
       const parsedData = JSON.parse(decrypted);
-      console.log(parsedData)
+      console.log("parsedDataaaaaaaaaaaaa", parsedData);
       if (parsedData?.["7"]?.bank_detail_data) {
         const formattedAccounts = parsedData["7"].bank_detail_data.map(
           (account) => ({
@@ -322,7 +320,6 @@ const Bank = ({ encryptedData }) => {
     setShowAddAccountPopup(!showAddAccountPopup);
   };
 
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -361,10 +358,9 @@ const Bank = ({ encryptedData }) => {
     if (esignDataStatus.length > 0) {
       let links = esignDataStatus.filter((link) => !link.is_esigned);
       if (!links || links.length === 0 || links) {
-        setIsEsigned(false)
-      }
-      else {
-        setIsEsigned(true)
+        setIsEsigned(false);
+      } else {
+        setIsEsigned(true);
       }
     }
   }, [esignDataStatus]);
@@ -377,9 +373,8 @@ const Bank = ({ encryptedData }) => {
         for (const account of bankAccounts) {
           if (account.is_new && !account.isPrimary) {
             await handleDeleteAccount(account.id);
-          }
-          else if (account.is_new && account.isPrimary) {
-            const oldAccount = bankAccounts.find(acc => !acc.is_new);
+          } else if (account.is_new && account.isPrimary) {
+            const oldAccount = bankAccounts.find((acc) => !acc.is_new);
 
             if (oldAccount) {
               try {
@@ -389,7 +384,9 @@ const Bank = ({ encryptedData }) => {
                 console.error(`Error processing account ${account.id}`, error);
               }
             } else {
-              console.warn("No old account found to make primary before deleting new one");
+              console.warn(
+                "No old account found to make primary before deleting new one"
+              );
             }
           }
         }
@@ -398,8 +395,6 @@ const Bank = ({ encryptedData }) => {
       processAccounts();
     }
   }, [isEsigned, bankAccounts]);
-
-
 
   const fetchEsignStatus = async () => {
     try {
@@ -416,14 +411,13 @@ const Bank = ({ encryptedData }) => {
         parsed = {};
       }
       let links = parsed?.["12"]?.links || [];
-      console.log("links", links)
+      console.log("links", links);
       setEsignDataStatus(links);
     } catch (err) {
       console.error("Error fetching eSign data:", err);
     } finally {
     }
   };
-
 
   return (
     <div className="bank-container">
@@ -462,11 +456,23 @@ const Bank = ({ encryptedData }) => {
               className="account-button-wrapper bank-details"
             >
               <button
-                className={`bank-button ${account.isPrimary ? "primary" : "secondary"}`}
+                className={`bank-button ${
+                  account.isPrimary ? "primary" : "secondary"
+                }`}
                 onClick={() => handleShowAccountDetails(account)}
               >
                 <div className="bank-icon">
-                  <img alt={account.bankName} className="bank_icon_cls" src={BANKLIST?.filter(f => account.bankName?.toLowerCase()?.includes(f.name?.toLowerCase()))?.[0]?.url ?? "./bank5.png"}></img>
+                  <img
+                    alt={account.bankName}
+                    className="bank_icon_cls"
+                    src={
+                      BANKLIST?.filter((f) =>
+                        account.bankName
+                          ?.toLowerCase()
+                          ?.includes(f.name?.toLowerCase())
+                      )?.[0]?.url ?? "./bank5.png"
+                    }
+                  ></img>
                 </div>
                 <div className="account-details">
                   <h4>{account.bankName}</h4>
@@ -505,317 +511,322 @@ const Bank = ({ encryptedData }) => {
             </div>
           ))
         )}
-      </div >
+      </div>
 
       <footer>
         <div className="bank-footer">
           <p>Note: You can add up to 3 bank accounts</p>
-          <button className="univest-actions-btn" onClick={() => navigate("/bankaccount")}>
+          <button
+            className="univest-actions-btn"
+            onClick={() => navigate("/bankaccount")}
+          >
             Add bank account
           </button>
         </div>
       </footer>
 
-      {
-        showDropdown && selectedAccount && (
-          <div
-            className="bank-dropdown"
-            style={{
-              position: "absolute",
-              top: `${dropdownPosition.top}px`,
-              left: `${dropdownPosition.left}px`,
-              zIndex: 1000,
+      {showDropdown && selectedAccount && (
+        <div
+          className="bank-dropdown"
+          style={{
+            position: "absolute",
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            zIndex: 1000,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span
+            onClick={() => {
+              setShowAccountDetailsPopup(true);
+              setShowDropdown(false);
             }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <span
-              onClick={() => {
-                setShowAccountDetailsPopup(true);
-                setShowDropdown(false);
-              }}
-            >
-              <img className="info_icon_img" src="./info_ic.svg" alt="" />
-              Info
-            </span>
-            {/* only show the make primary button if account is not prim */}
-            {!selectedAccount.isPrimary && (
-              <>
-                <span
-                  className="primary"
-                  onClick={async () => {
-                    handleMakePrimary(selectedAccount.id);
-                    setShowDropdown(false);
-                    await callUserFormGeneration()
-                  }}
-                >
-                  <img className="info_icon_img" src="./make_prima.svg" alt="" />
-                  Make primary
-                </span>
-                <span
-                  className="red"
-                  onClick={() => {
-                    setdeleteDetailsPopup(true);
-                    setShowDropdown(false);
-                  }}
-                >
-                  <img className="info_icon_img" src="./delet.svg" alt="" />
-                  Delete
-                </span>
-              </>
-            )}
+            <img className="info_icon_img" src="./info_ic.svg" alt="" />
+            Info
+          </span>
+          {/* only show the make primary button if account is not prim */}
+          {!selectedAccount.isPrimary && (
+            <>
+              <span
+                className="primary"
+                onClick={async () => {
+                  handleMakePrimary(selectedAccount.id);
+                  setShowDropdown(false);
+                  await callUserFormGeneration();
+                }}
+              >
+                <img className="info_icon_img" src="./make_prima.svg" alt="" />
+                Make primary
+              </span>
+              <span
+                className="red"
+                onClick={() => {
+                  setdeleteDetailsPopup(true);
+                  setShowDropdown(false);
+                }}
+              >
+                <img className="info_icon_img" src="./delet.svg" alt="" />
+                Delete
+              </span>
+            </>
+          )}
+        </div>
+      )}
 
-          </div>
-        )
-      }
-
-      {
-        showAccountDetailsPopup && selectedAccount && (
-          <div className="account-details-popup-overlay">
-            <div className="account-details-popup" ref={accountDetailsPopupRef}>
-              <div className="popup-content_bank">
-                <h3>Bank account details</h3>
-                <div className="account-details-grid">
-                  <div className="account-detail-heading">
-                    <div style={{ display: 'flex', textAlign: "center" }}>
-                      <div className="bank-icon">
-                        <img alt={selectedAccount.bankName} className="bank_icon_cls" src={BANKLIST?.filter(f => selectedAccount.bankName?.toLowerCase()?.includes(f.name?.toLowerCase()))?.[0]?.url ?? "./bank5.png"}></img>
-                      </div>
-                      <h3>{selectedAccount.bankName || "-"}
-                        <p>{selectedAccount.accountType || "-"}</p>
-                      </h3>
-
-                      {selectedAccount.isPrimary && (
-                        <span
-                          className="b1-primary"
-                          style={{
-                            position: "absolute",
-                            top: "60px",
-                            right: "21px",
-                          }}
-                        >
-                          Primary
-                        </span>
-                      )}
+      {showAccountDetailsPopup && selectedAccount && (
+        <div className="account-details-popup-overlay">
+          <div className="account-details-popup" ref={accountDetailsPopupRef}>
+            <div className="popup-content_bank">
+              <h3>Bank account details</h3>
+              <div className="account-details-grid">
+                <div className="account-detail-heading">
+                  <div style={{ display: "flex", textAlign: "center" }}>
+                    <div className="bank-icon">
+                      <img
+                        alt={selectedAccount.bankName}
+                        className="bank_icon_cls"
+                        src={
+                          BANKLIST?.filter((f) =>
+                            selectedAccount.bankName
+                              ?.toLowerCase()
+                              ?.includes(f.name?.toLowerCase())
+                          )?.[0]?.url ?? "./bank5.png"
+                        }
+                      ></img>
                     </div>
-                    {/* in here if the account is primary then show the primary badge */}
+                    <h3>
+                      {selectedAccount.bankName || "-"}
+                      <p>{selectedAccount.accountType || "-"}</p>
+                    </h3>
 
-                    {/* show the make primary button only if account is not primary */}
-                    {!selectedAccount.isPrimary && (
-                      <div>
-                        <button
-                          onClick={async () => {
-                            try {
-                              await handleMakePrimary(selectedAccount.id);
-                              setShowAccountDetailsPopup(false);
-                              await callUserFormGeneration();
-                            } catch (error) {
-                              console.error("Error in make primary flow:", error);
-                              alert("Something went wrong. Please try again.");
-                              setFormGenerationLoading(false); // Ensure loading stops on error
-                            }
-                          }}
-                          disabled={formGenerationLoading}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "8px",
-                            opacity: formGenerationLoading ? 0.7 : 1,
-                            cursor: formGenerationLoading
-                              ? "not-allowed"
-                              : "pointer",
-                          }}
-                        >
-                          {formGenerationLoading && (
-                            <div
-                              className="form-generation-spinner"
-                              style={{
-                                width: "16px",
-                                height: "16px",
-                                border: "2px solid #f3f3f3",
-                                borderTop: "2px solid #0862BC",
-                                borderRadius: "50%",
-                                animation: "spin 1s linear infinite",
-                              }}
-                            />
-                          )}
-                          {formGenerationLoading
-                            ? "Generating form..."
-                            : "Make primary"}
-                        </button>
-                      </div>
+                    {selectedAccount.isPrimary && (
+                      <span
+                        className="b1-primary"
+                        style={{
+                          position: "absolute",
+                          top: "60px",
+                          right: "21px",
+                        }}
+                      >
+                        Primary
+                      </span>
                     )}
                   </div>
-
-                  <div className="detail-row">
-                    <span className="detail-label">Name as on bank account</span>
-                    <span
-                      className="detail-value"
-                      style={{
-                        fontWeight: "800",
-                        lineHeight: "30px",
-                        marginTop: "4px",
-                      }}
-                    >
-                      {selectedAccount.bankName}
-                    </span>
-                  </div>
-
-                  <div className="detail-row">
-                    <span className="detail-label">Bank account number</span>
-                    <span
-                      className="detail-value"
-                      style={{
-                        fontWeight: "800",
-                        lineHeight: "30px",
-                        marginTop: "4px",
-                      }}
-                    >
-                      XXXXXXXX{selectedAccount.accountNumber.slice(-4)}
-                    </span>
-                  </div>
-
-                  <div className="detail-row">
-                    <span className="detail-label">Branch name</span>
-                    <span
-                      className="detail-value"
-                      style={{
-                        fontWeight: "800",
-                        lineHeight: "30px",
-                        marginTop: "4px",
-                      }}
-                    >
-                      {selectedAccount.branchname || "-"}
-                    </span>
-                  </div>
-
-                  <div className="detail-row last">
-                    <span className="detail-label">IFSC</span>
-                    <span
-                      className="detail-value"
-                      style={{
-                        fontWeight: "800",
-                        lineHeight: "30px",
-                        marginTop: "4px",
-                      }}
-                    >
-                      {selectedAccount.ifscCode}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="popup-actions-btn">
-                  {/* show the alright button only if account is  primary and remove the delete button */}
-                  {/* look if the bank is primary then dont show the delelte option instead show go-back button */}
-                  {selectedAccount.isPrimary ? (
-                    <button
-                      className="go-back-btn"
-                      onClick={() => {
-                        setShowAccountDetailsPopup(false);
-                      }}
-                    >
-                      Go Back
-                    </button>
-                  ) : (
-                    <button
-                      className="delete-btn"
-                      onClick={() => {
-                        setShowAccountDetailsPopup(false);
-                        setdeleteDetailsPopup(true);
-                      }}
-                    >
-                      Delete
-                    </button>
-                  )}
+                  {/* in here if the account is primary then show the primary badge */}
 
                   {/* show the make primary button only if account is not primary */}
                   {!selectedAccount.isPrimary && (
-                    <button
-                      className="makeprimary-btn"
-                      onClick={async () => {
-                        handleMakePrimary(selectedAccount.id);
-                        await callUserFormGeneration();
-                      }}
-                    >
-                      Make Primary
-                    </button>
+                    <div>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await handleMakePrimary(selectedAccount.id);
+                            setShowAccountDetailsPopup(false);
+                            await callUserFormGeneration();
+                          } catch (error) {
+                            console.error("Error in make primary flow:", error);
+                            alert("Something went wrong. Please try again.");
+                            setFormGenerationLoading(false); // Ensure loading stops on error
+                          }
+                        }}
+                        disabled={formGenerationLoading}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "8px",
+                          opacity: formGenerationLoading ? 0.7 : 1,
+                          cursor: formGenerationLoading
+                            ? "not-allowed"
+                            : "pointer",
+                        }}
+                      >
+                        {formGenerationLoading && (
+                          <div
+                            className="form-generation-spinner"
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              border: "2px solid #f3f3f3",
+                              borderTop: "2px solid #0862BC",
+                              borderRadius: "50%",
+                              animation: "spin 1s linear infinite",
+                            }}
+                          />
+                        )}
+                        {formGenerationLoading
+                          ? "Generating form..."
+                          : "Make primary"}
+                      </button>
+                    </div>
                   )}
                 </div>
-              </div>
-            </div>
-          </div>
-        )
-      }
 
-      {
-        deleteDetailsPopup && selectedAccount && (
-          <div className="deleteaccount-details-popup-overlay">
-            <div className="account-details-popup" ref={deletePopupRef}>
-              <div className="delete-popup-content">
-                <h3>
-                  <span className="info_icon_img">
-                    <img src="./delet_bott.svg" alt="" />
-                  </span>
-                  Delete details
-                </h3>
-                <p className="border_if_u_wish">
-                  If you wish to delete the bank details, please write to us at{" "}
-                  <a href="mailto:support@unibrokers.in">support@unibrokers.in</a>{" "}
-                  and our support team will help you out.
-                </p>
-                <div className="popup-actions-btn">
-                  <button
-                    className="alright-btn"
-                    onClick={() => {
-                      setdeleteDetailsPopup(false);
-                      handleDeleteAccount(selectedAccount.id);
+                <div className="detail-row">
+                  <span className="detail-label">Name as on bank account</span>
+                  <span
+                    className="detail-value"
+                    style={{
+                      fontWeight: "800",
+                      lineHeight: "30px",
+                      marginTop: "4px",
                     }}
                   >
-                    Alright
-                  </button>
+                    {selectedAccount.bankName}
+                  </span>
                 </div>
+
+                <div className="detail-row">
+                  <span className="detail-label">Bank account number</span>
+                  <span
+                    className="detail-value"
+                    style={{
+                      fontWeight: "800",
+                      lineHeight: "30px",
+                      marginTop: "4px",
+                    }}
+                  >
+                    XXXXXXXX{selectedAccount.accountNumber.slice(-4)}
+                  </span>
+                </div>
+
+                <div className="detail-row">
+                  <span className="detail-label">Branch name</span>
+                  <span
+                    className="detail-value"
+                    style={{
+                      fontWeight: "800",
+                      lineHeight: "30px",
+                      marginTop: "4px",
+                    }}
+                  >
+                    {selectedAccount.branchname || "-"}
+                  </span>
+                </div>
+
+                <div className="detail-row last">
+                  <span className="detail-label">IFSC</span>
+                  <span
+                    className="detail-value"
+                    style={{
+                      fontWeight: "800",
+                      lineHeight: "30px",
+                      marginTop: "4px",
+                    }}
+                  >
+                    {selectedAccount.ifscCode}
+                  </span>
+                </div>
+              </div>
+
+              <div className="popup-actions-btn">
+                {/* show the alright button only if account is  primary and remove the delete button */}
+                {/* look if the bank is primary then dont show the delelte option instead show go-back button */}
+                {selectedAccount.isPrimary ? (
+                  <button
+                    className="go-back-btn"
+                    onClick={() => {
+                      setShowAccountDetailsPopup(false);
+                    }}
+                  >
+                    Go Back
+                  </button>
+                ) : (
+                  <button
+                    className="delete-btn"
+                    onClick={() => {
+                      setShowAccountDetailsPopup(false);
+                      setdeleteDetailsPopup(true);
+                    }}
+                  >
+                    Delete
+                  </button>
+                )}
+
+                {/* show the make primary button only if account is not primary */}
+                {!selectedAccount.isPrimary && (
+                  <button
+                    className="makeprimary-btn"
+                    onClick={async () => {
+                      handleMakePrimary(selectedAccount.id);
+                      await callUserFormGeneration();
+                    }}
+                  >
+                    Make Primary
+                  </button>
+                )}
               </div>
             </div>
           </div>
-        )
-      }
+        </div>
+      )}
+
+      {deleteDetailsPopup && selectedAccount && (
+        <div className="deleteaccount-details-popup-overlay">
+          <div className="account-details-popup" ref={deletePopupRef}>
+            <div className="delete-popup-content">
+              <h3>
+                <span className="info_icon_img">
+                  <img src="./delet_bott.svg" alt="" />
+                </span>
+                Delete details
+              </h3>
+              <p className="border_if_u_wish">
+                If you wish to delete the bank details, please write to us at{" "}
+                <a href="mailto:support@unibrokers.in">support@unibrokers.in</a>{" "}
+                and our support team will help you out.
+              </p>
+              <div className="popup-actions-btn">
+                <button
+                  className="alright-btn"
+                  onClick={() => {
+                    setdeleteDetailsPopup(false);
+                    handleDeleteAccount(selectedAccount.id);
+                  }}
+                >
+                  Alright
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Form Generation Loader Overlay */}
-      {
-        formGenerationLoading && (
+      {formGenerationLoading && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
           <div
             style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 9999,
+              width: "50px",
+              height: "50px",
+              border: "4px solid #f3f3f3",
+              borderTop: "4px solid #0862BC",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              marginBottom: "16px",
             }}
-          >
-            <div
-              style={{
-                width: "50px",
-                height: "50px",
-                border: "4px solid #f3f3f3",
-                borderTop: "4px solid #0862BC",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-                marginBottom: "16px",
-              }}
-            />
-            <p style={{ color: "white", fontSize: "16px", fontWeight: "500" }}>
-              Generating form...
-            </p>
-          </div>
-        )
-      }
-    </div >
+          />
+          <p style={{ color: "white", fontSize: "16px", fontWeight: "500" }}>
+            Generating form...
+          </p>
+        </div>
+      )}
+    </div>
   );
 };
 

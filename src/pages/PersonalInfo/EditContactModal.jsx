@@ -3,10 +3,10 @@ import Cookies from "js-cookie";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import OtpInput from "react-otp-input";
 import { toast } from "react-toastify";
-import { decryptData } from "../../decode";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 
 import "./personal.css";
+import { decryptData } from "../../decode";
 
 const EditContactModal = ({ onClose, contact }) => {
   const navigate = useNavigate();
@@ -14,16 +14,16 @@ const EditContactModal = ({ onClose, contact }) => {
   const [newEmail, setNewEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false); // Add this new state
 
   const [otp, setOtp] = useState("");
 
-  const [timer, setTimer] = useState(15);
+  const [timer, setTimer] = useState(60);
   const [otpError, setOtpError] = useState("");
   const inputRefs = useRef([]);
   const otpRef = useRef(null);
 
-  // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.(com|net|org|in|edu|gov)$/i;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   useEffect(() => {
     if (step === "otp" && timer > 0) {
@@ -117,6 +117,7 @@ const EditContactModal = ({ onClose, contact }) => {
   // Function to call user form generation API
   const callUserFormGeneration = async () => {
     try {
+       setLoading(true); 
       const token = Cookies.get("access_token");
 
       if (!token) {
@@ -151,6 +152,9 @@ const EditContactModal = ({ onClose, contact }) => {
     } catch (error) {
       console.error("User form generation error:", error);
       alert("Failed to generate user form. Please try again.");
+    }
+    finally {
+      setLoading(false); // ⬅️ always hide loader
     }
   };
 
@@ -192,7 +196,7 @@ const EditContactModal = ({ onClose, contact }) => {
       if (response.ok && data?.status) {
         setStep("otp");
         console.log("otp value:", otp);
-        setTimer(15);
+        setTimer(60);
       } else {
         setError(data?.message || "Failed to send OTP. Try again.");
       }
@@ -215,23 +219,15 @@ const EditContactModal = ({ onClose, contact }) => {
     }
   };
 
-  const handleEmailChange = (e) => {
-    const value = e.target.value;
-    setNewEmail(value);
-
-    if (value && !emailRegex.test(value)) {
-      setError("Please enter a valid email address");
-    } else {
-      setError("");
-    }
-  };
-
   const handleVerifyOtpSubmit = async () => {
     if (otp.length !== 6) {
       setOtpError("Enter 6 digit OTP");
       console.log("otp value:", otp);
       return;
     }
+    setVerifyingOtp(true); // Start loading
+    setOtpError(""); // Clear any previous errors
+
     const otpValue = otp; // string already
     console.log("Submitting OTP value:", otpValue);
 
@@ -244,7 +240,6 @@ const EditContactModal = ({ onClose, contact }) => {
         setOtpError("");
 
         try {
-           setLoading(true); 
           const formRes = await fetch(
             "https://rekyc.meon.co.in/v1/user/user_form_generation",
             {
@@ -271,19 +266,19 @@ const EditContactModal = ({ onClose, contact }) => {
       }
     } catch (err) {
       setOtpError("Network error");
+    } finally {
+      setVerifyingOtp(false); // Stop loading
     }
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-       {loading && <VerificationLoader isVisible={loading} />}
       <div className="modal-content3" onClick={(e) => e.stopPropagation()}>
         {step === "email" ? (
           <>
             <h2>Your details are safe & secure</h2>
             <div className="existing-email">
-              <span className="label new_label_email">Existing email ID</span>
-              <br />
+              <span className="label">Existing email ID</span>
               <div className="email_val_container">
                 <span className="value email_value">
                   {contact?.email || "Not Available"}
@@ -296,14 +291,14 @@ const EditContactModal = ({ onClose, contact }) => {
               <input
                 type="email"
                 value={newEmail}
-                onChange={handleEmailChange}
+                onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="Enter new email"
                 required
               />
               <label>Enter new email ID</label>
-
-              {error &&  <p className="error-text_phone">{error}</p>}
             </div>
+
+            {error && <p className="error-text_phone"> {error}</p>}
 
             <button
               className="verify-button"
@@ -348,6 +343,7 @@ const EditContactModal = ({ onClose, contact }) => {
               onChange={(val) => {
                 if (/^\d*$/.test(val)) {
                   setOtp(val);
+                  setOtpError("");
                 }
               }}
               numInputs={6}
@@ -409,7 +405,7 @@ const EditContactModal = ({ onClose, contact }) => {
                       const token = await getValidToken();
                       const response = await callUpdateEmailAPI(token);
                       if (response.ok) {
-                        setTimer(15);
+                        setTimer(60);
                         setOtp("");
                       } else {
                         setOtpError("Failed to resend OTP");
@@ -422,19 +418,18 @@ const EditContactModal = ({ onClose, contact }) => {
                   Resend OTP
                 </p>
               )}
-
               <button
                 className="verify-button"
-                disabled={otp.length !== 6}
+                disabled={otp.length !== 6 || verifyingOtp} // Disable when loading or invalid OTP
                 onClick={handleVerifyOtpSubmit}
                 style={{
                   backgroundColor:
-                    otp.length === 6
+                    otp.length === 6 && !verifyingOtp
                       ? "rgba(51, 163, 77, 1)"
                       : "rgba(157, 157, 157, 1)",
                 }}
               >
-                Verify
+                {verifyingOtp ? "Verifying OTP..." : "Verify"}
               </button>
             </div>
           </>

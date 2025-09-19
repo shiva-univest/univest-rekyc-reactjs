@@ -180,12 +180,12 @@ const UserInfoCard = () => {
 
   const contact = {
     email:
-      userModuleData["1"]?.contact_detail_data?.[0]?.email ||
       userModuleData["1"]?.contact_detail_data?.[1]?.email ||
+      userModuleData["1"]?.contact_detail_data?.[0]?.email ||
       null,
     mobile:
-      userModuleData["1"]?.contact_detail_data?.[0]?.mobile ||
       userModuleData["1"]?.contact_detail_data?.[1]?.mobile ||
+      userModuleData["1"]?.contact_detail_data?.[0]?.mobile ||
       null,
   };
 

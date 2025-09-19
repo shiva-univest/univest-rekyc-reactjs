@@ -87,7 +87,6 @@ const BankaccAccount = () => {
     setIsOpen(!isOpen);
   };
 
-
   const getrefershtoken = async () => {
     try {
       const refreshToken = Cookies.get("refresh_token");
@@ -127,28 +126,32 @@ const BankaccAccount = () => {
   const callReverseResponseAPI = async (transId, retryCount = 0) => {
     setLoading(false);
     console.log("Calling Setu response API...");
-    const response = await api.post("/user/reverse_pennydrop_api_setu_response", { entity_id: transId });
+    const response = await api.post(
+      "/user/reverse_pennydrop_api_setu_response",
+      { entity_id: transId }
+    );
 
+    toast.success(JSON.stringify(response.data));
     let decrypted = decryptData(response.data?.data);
     decrypted = JSON.parse(decrypted);
+    toast.success(decrypted);
 
-    const status = decrypted?.status
-    toast.success(status)
+    const status = decrypted?.status;
+    toast.success(status);
     if (status.includes("SUCCESS")) {
-      window.location.href = `/bankaccountcomplete?success=true`
+      window.location.href = `/bankaccountcomplete?success=true`;
       setLoading(false);
-      clearInterval(ref.current)
-      return
+      clearInterval(ref.current);
+      return;
     } else if (status.includes("FAILED") || retryCount > 15) {
-      window.location.href = `/bankaccountcomplete?success=false`
+      window.location.href = `/bankaccountcomplete?success=false`;
       setLoading(false);
-      clearInterval(ref.current)
-      return
+      clearInterval(ref.current);
+      return;
     }
   };
 
   const callReversePennydropAPI = async (replaceWith, retryCount = 0) => {
-
     try {
       setLoading(true);
       let accessToken = Cookies.get("access_token");
@@ -195,12 +198,12 @@ const BankaccAccount = () => {
 
       if (data?.upiLink) {
         if (isMobile) {
-          count.current = 1
+          count.current = 1;
           ref.current = setInterval(() => {
-            callReverseResponseAPI(transId, count.current)
-            count.current = count.current + 1
-          }, 5000)
-          await waitFor(1000)
+            callReverseResponseAPI(transId, count.current);
+            count.current = count.current + 1;
+          }, 5000);
+          await waitFor(1000);
           openLink(data.upiLink);
         } else {
           openLink(data.shortUrl);
@@ -214,8 +217,6 @@ const BankaccAccount = () => {
       setError(error.message);
     }
   };
-
-
 
   const handleBankDocUpload = async (e) => {
     const file = e.target.files[0];
@@ -960,7 +961,17 @@ const BankaccAccount = () => {
                   <div className="bank-card-final">
                     <div className="bank-card-header">
                       <div className="bank-icon">
-                        <img alt={bankDetails.bank_name} className="bank_icon_cls" src={BANKLIST?.filter(f => bankDetails.bank_name?.toLowerCase()?.includes(f.name?.toLowerCase()))?.[0]?.url ?? "./bank5.png"}></img>
+                        <img
+                          alt={bankDetails.bank_name}
+                          className="bank_icon_cls"
+                          src={
+                            BANKLIST?.filter((f) =>
+                              bankDetails.bank_name
+                                ?.toLowerCase()
+                                ?.includes(f.name?.toLowerCase())
+                            )?.[0]?.url ?? "./bank5.png"
+                          }
+                        ></img>
                       </div>
                       <div>
                         <div className="bank-code-final">

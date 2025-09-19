@@ -103,23 +103,23 @@ const App = () => {
 
   return (
     <>
-       <SegmentProvider>
-      <RouterProvider router={router} />
-    </SegmentProvider>
+      <SegmentProvider>
+        <RouterProvider router={router} />
+      </SegmentProvider>
 
-    {/* Toast container should be inside root */}
-    <ToastContainer
-      position="top-right"
-      autoClose={3000}
-      hideProgressBar={false}
-      newestOnTop={false}
-      closeOnClick
-      pauseOnHover
-      draggable
-      theme="light"
-    />
+      {/* Toast container should be inside root */}
+      <ToastContainer
+        position="top-right"
+        autoClose={10000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+      />
     </>
   );
-}
+};
 
 export default App;
