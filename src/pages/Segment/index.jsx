@@ -8,6 +8,7 @@ import Cookies from "js-cookie";
 import "./style2.css";
 import { SegmentContext } from "../../context/SegmentContext";
 import api from "../../api/api";
+import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 
 const Segment = ({ encryptedData }) => {
   const { segmentData, setSegmentData } = useContext(SegmentContext);
@@ -17,6 +18,7 @@ const Segment = ({ encryptedData }) => {
   const navigate = useNavigate();
   const [esignDataStatus, setEsignDataStatus] = useState("");
   const [isEsigned, setIsEsigned] = useState(false);
+   const [loading, setLoading] = useState(false);
 
   console.log("Token from query param:", token);
 
@@ -409,7 +411,9 @@ const Segment = ({ encryptedData }) => {
   const { hasBothFNO } = getCheckedSegments();
   console.log("hasBothFNO, hasBothFNO", hasBothFNO, hasBothFNO);
   return (
+    
     <div>
+       {loading && <VerificationLoader isVisible={loading} />}
       <header>
         <div className="header_div">
           <p className="trading_pre">Trading preference</p>
