@@ -7,6 +7,7 @@ import Loader from "../Loader/Loader";
 import axios from "axios";
 import { openLink } from "../../lib/utils";
 import { toast } from "react-toastify";
+import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 
 const BankaccAccount = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -620,7 +621,7 @@ const BankaccAccount = () => {
 
   return (
     <div className="bankacc-container">
-      {loading && <Loader />}
+      {loading && <VerificationLoader isVisible={loading} />}
       <header className="header_part">
         <div className="bankacc-header">
           <div className="bankaccacc-back-container">

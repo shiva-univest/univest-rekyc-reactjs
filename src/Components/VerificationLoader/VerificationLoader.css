@@ -1,0 +1,73 @@
+.verification-loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999999999999999999;
+  backdrop-filter: blur(2px);
+}
+
+.verification-loader-container {
+  /* maek this square and little bigger */
+  width: 300px;
+  height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 300px;
+
+  width: 90%;
+  animation: fadeInScale 0.3s ease-out;
+}
+
+.verification-loader-gif {
+  width: 150px;
+  height: auto;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+}
+
+.verification-loader-message {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .verification-loader-container {
+    padding: 2rem 1.5rem;
+    max-width: 280px;
+  }
+
+  .verification-loader-gif {
+    width: 100px;
+  }
+
+  .verification-loader-message {
+    font-size: 14px;
+  }
+}

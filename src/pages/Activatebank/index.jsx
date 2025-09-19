@@ -8,6 +8,7 @@ import pdfjsWorker from "pdfjs-dist/legacy/build/pdf.worker?worker";
 pdfjsLib.GlobalWorkerOptions.workerPort = new pdfjsWorker();
 import Loader from "../Loader/Loader";
 import { toast } from "react-toastify";
+import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 
 import "./style1.css";
 
@@ -76,6 +77,7 @@ const Activatebank = ({ encryptedData }) => {
   const segmentData = location.state?.segmentData;
 
   useEffect(() => {
+
     const fetchPageModuleMapping = async () => {
       let accessToken = Cookies.get("access_token");
       const refreshToken = Cookies.get("refresh_token");
@@ -101,7 +103,7 @@ const Activatebank = ({ encryptedData }) => {
       };
 
       try {
-        
+         setLoading(true);
         console.log("Fetching with token:", accessToken);
         const result = await fetchData(accessToken);
 
@@ -173,7 +175,9 @@ const Activatebank = ({ encryptedData }) => {
             error
           );
         }
-      }
+      }finally {
+      setLoading(false); 
+    }
     };
 
     fetchPageModuleMapping();
@@ -848,7 +852,7 @@ const Activatebank = ({ encryptedData }) => {
 
   return (
     <div>
-      {loading && <Loader />}
+       {loading && <VerificationLoader isVisible={loading} />}
       <header>
         <div className="a_header_main">
           <button className="a_btn_header">
