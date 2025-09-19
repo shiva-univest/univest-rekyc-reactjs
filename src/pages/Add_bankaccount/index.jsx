@@ -219,12 +219,14 @@ const BankaccAccount = () => {
       sessionStorage.setItem("transid", transId);
 
       if (data?.upiLink) {
-        openLink(data.upiLink);
         count.current = 1
         ref.current = setInterval(() => {
           callReverseResponseAPI(transId, count.current)
           count.current = count.current + 1
         }, 5000)
+        await waitFor(1000)
+        alert("opening")
+        openLink(data.upiLink);
       } else {
         console.error("No upiLink found in response");
       }
