@@ -173,10 +173,10 @@ const BankaccAccount = () => {
       const transId = data?.id;
       sessionStorage.setItem("transid", transId);
 
-      if (data?.shortUrl) {
-        openLink(data.shortUrl);
+      if (data?.upiLink) {
+        openLink(data.upiLink);
       } else {
-        console.error("No shortUrl found in response");
+        console.error("No upiLink found in response");
       }
     } catch (error) {
       console.error("Error in callReversePennydropAPI:", error);
@@ -194,92 +194,6 @@ const BankaccAccount = () => {
     }
   };
 
-  // const handleBankDocUpload = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (!file) {
-  //     return;
-  //   }
-
-  //   try {
-  //     setLoading(true);
-
-  //     const tokenRes = await fetch("https://ocr.meon.co.in/get_token", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         company_id: "66031",
-  //         email: "univest@gmail.com",
-  //         password: "univest@12345",
-  //       }),
-  //     });
-
-  //     const tokenData = await tokenRes.json();
-  //     const token = tokenData?.token;
-
-  //     if (!token) {
-  //      toast.error("Failed to fetch OCR token.");
-  //       return;
-  //     }
-
-  //     const formData = new FormData();
-  //     formData.append("bankprooffile", file);
-  //     formData.append("name", "uni");
-  //     formData.append("sources", "kyc");
-  //     formData.append("ifsc", "");
-  //     formData.append("account_number", "1566332244");
-  //     formData.append("req_id", "uni2q");
-  //     formData.append("company", "univest");
-
-  //     const ocrRes = await fetch(
-  //       "https://ocr.meon.co.in/extract_bank_details",
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //         body: formData,
-  //       }
-  //     );
-
-  //     const ocrData = await ocrRes.json();
-  //     const extracted = ocrData?.extracted_data || {};
-
-  //     const name = extracted.ocr_Account_Holder_Name?.trim() || "";
-  //     const ifsc = extracted.ocr_IFSC?.trim().toUpperCase() || "";
-  //     const account = extracted.ocr_account_number?.trim() || "";
-
-  //     let branch = "";
-  //     let bank_name = "";
-
-  //     if (ifsc) {
-  //       const ifscRes = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
-  //       if (ifscRes.ok) {
-  //         const ifscData = await ifscRes.json();
-  //         branch = ifscData.BRANCH || "";
-  //         bank_name = ifscData.BANK || "";
-  //       }
-  //     }
-  //     if (name || ifsc || account) {
-  //       setBankDetails({
-  //         name: name || "-",
-  //         ifsc: ifsc || "-",
-  //         account: account || "-",
-  //         branch: branch || "-",
-  //         bank_name: bank_name || "-",
-  //       });
-  //       setIsOpen(false);
-  //       setShowOCRPopup(true);
-  //     } else {
-  //       setIsOpen(true);
-  //     }
-  //   } catch (err) {
-  //     console.error("OCR Upload Error:", err);
-  //     toast.error("Failed to extract data from bank document.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  // New function to fetch module data and redirect to eSign link
 
   const handleBankDocUpload = async (e) => {
     const file = e.target.files[0];
