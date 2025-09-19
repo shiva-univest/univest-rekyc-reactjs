@@ -124,7 +124,7 @@ const BankaccAccount = () => {
   };
 
   const callReverseResponseAPI = async (transId, retryCount = 0) => {
-    setLoading(false);
+    setLoading(true);
     console.log("Calling Setu response API...");
     const response = await api.post(
       "/user/reverse_pennydrop_api_setu_response",
@@ -135,7 +135,7 @@ const BankaccAccount = () => {
     decrypted = JSON.parse(decrypted);
 
     const status = decrypted?.response?.active_status?.status;
-    toast.success(status);
+    
     if (status.includes("SUCCESS")) {
       window.location.href = `/bankaccountcomplete?success=true`;
       setLoading(false);
