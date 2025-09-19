@@ -387,92 +387,90 @@ const BankaccAccountComplete = () => {
   };
 
   return (
-    <div className="bankacc-container">
-      <Header />
+    <>
+      <div className="bankacc-container">
+        <Header />
 
-      <div className="completed-bankacc-body">
-        <div className="first-half">
-          <div className="above_the_view">
-            <img className="tick_mark_img" src="./91001-success 1.svg"></img>
-            <p className="bank_account_cls">Bank account</p>
-            <p className="bank_account_cls">verified successfully</p>
-            <p className="rs_one_refund">₹1 will be refunded in 24 hours</p>
-            <section className="Completed-sections-maincontainer">
-              <div className="bank-card">
-                <div className="bank-icon">
-                  <img alt={bankDetails.bank_name} className="bank_icon_cls" src={BANKLIST?.filter(f => bankDetails.bank_name?.toLowerCase()?.includes(f.name?.toLowerCase()))?.[0]?.url ?? "./bank5.png"}></img>
-                </div>
-                <div className="bank-details">
-                  <h6 className="account-name">{bankDetails.bank_name}</h6>
-                  <p className="account-type">Savings</p>
-                </div>
-              </div>
-
-              <div className="Completed-sections">
-                <div className="completed-section1">
-                  <label>Name as on Bank account</label>
-                  <input value={bankDetails.name} readOnly />
-                </div>
-
-                <div className="completed-section2">
-                  <label>Bank account number</label>
-                  <input value={bankDetails.account_number} readOnly />
-                </div>
-
-                <div className="completed-section3">
-                  <label>Branch name</label>
-                  <input value={bankDetails.branch_name} readOnly />
-                </div>
-
-                <div className="completed-section4">
-                  <label>IFSC</label>
-                  <input value={bankDetails.ifsc} readOnly />
-                </div>
-              </div>
-            </section>
-
-            {showTimeoutPopup && (
-              <div className="bottom-sheet-overlay">
-                <div className="bottom-sheet">
-                  <div className="popup-icon">
-                    <img src="./exclamation_icon.svg" id="" alt="bank icon" />
+        <div className="completed-bankacc-body">
+          <div className="first-half">
+            <div className="above_the_view">
+              <img className="tick_mark_img" src="./91001-success 1.svg"></img>
+              <p className="bank_account_cls">Bank account</p>
+              <p className="bank_account_cls">verified successfully</p>
+              <p className="rs_one_refund">₹1 will be refunded in 24 hours</p>
+              <section className="Completed-sections-maincontainer">
+                <div className="bank-card">
+                  <div className="bank-icon">
+                    <img alt={bankDetails.bank_name} className="bank_icon_cls" src={BANKLIST?.filter(f => bankDetails.bank_name?.toLowerCase()?.includes(f.name?.toLowerCase()))?.[0]?.url ?? "./bank5.png"}></img>
                   </div>
-                  <h2>Your bank details couldn’t be verified</h2>
-                  <p>
-                    The name on your bank account does not match the name on
-                    your PAN.
-                    <br />
-                    Please use the bank account with the same name as on your
-                    PAN.
-                  </p>
-                  <button
-                    className="bottom-sheet-button"
-                    onClick={() => {
-                      setShowTimeoutPopup(false);
-                      navigate("/bankaccount");
-                    }}
-                  >
-                    Continue with another account
-                  </button>
+                  <div className="bank-details">
+                    <h6 className="account-name">{bankDetails.bank_name}</h6>
+                    <p className="account-type">Savings</p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-          {/* <div className="below_the_view">
-            <button className="continue_ba_ac">Continue</button>
-          </div> */}
-          <div className="below_the_view">
-            <button
-              className="continue_ba_ac"
-              onClick={() => verifyBankDetails(bankTempId)}
-            // disabled={!bankTempId}
-            >
-              Continue
-            </button>
+
+                <div className="Completed-sections">
+                  <div className="completed-section1">
+                    <label>Name as on Bank account</label>
+                    <input value={bankDetails.name} readOnly />
+                  </div>
+
+                  <div className="completed-section2">
+                    <label>Bank account number</label>
+                    <input value={bankDetails.account_number} readOnly />
+                  </div>
+
+                  <div className="completed-section3">
+                    <label>Branch name</label>
+                    <input value={bankDetails.branch_name} readOnly />
+                  </div>
+
+                  <div className="completed-section4">
+                    <label>IFSC</label>
+                    <input value={bankDetails.ifsc} readOnly />
+                  </div>
+                </div>
+              </section>
+
+              {showTimeoutPopup && (
+                <div className="bottom-sheet-overlay">
+                  <div className="bottom-sheet">
+                    <div className="popup-icon">
+                      <img src="./exclamation_icon.svg" id="" alt="bank icon" />
+                    </div>
+                    <h2>Your bank details couldn’t be verified</h2>
+                    <p>
+                      The name on your bank account does not match the name on
+                      your PAN.
+                      <br />
+                      Please use the bank account with the same name as on your
+                      PAN.
+                    </p>
+                    <button
+                      className="bottom-sheet-button"
+                      onClick={() => {
+                        setShowTimeoutPopup(false);
+                        navigate("/bankaccount");
+                      }}
+                    >
+                      Continue with another account
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       </div>
-    </div>
+      <button
+        className="univest-actions-btn univest-footer"
+        onClick={() => verifyBankDetails(bankTempId)}
+      // disabled={!bankTempId}
+      >
+        Continue
+      </button>
+    </>
   );
 };
 

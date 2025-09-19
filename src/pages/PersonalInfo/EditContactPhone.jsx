@@ -3,9 +3,9 @@ import Cookies from "js-cookie";
 import "./personal.css";
 import OtpInput from "react-otp-input";
 import { toast } from "react-toastify";
-import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
-
+import { decryptData } from "../../decode";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 
 const EditContactPhone = ({ onClose, contact }) => {
   const navigate = useNavigate();
@@ -14,14 +14,14 @@ const EditContactPhone = ({ onClose, contact }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
-  const [timer, setTimer] = useState(15);
+  const [timer, setTimer] = useState(60);
   const [otpError, setOtpError] = useState("");
   const ranOnce = useRef(false);
   const inputRefs = useRef([]);
   const firstInputRef = useRef(null);
   const phoneInputRef = useRef(null);
   const [verifyingOtp, setVerifyingOtp] = useState(false); // Add this new state
-   
+
 
   useEffect(() => {
     if (firstInputRef.current) {
@@ -113,6 +113,7 @@ const EditContactPhone = ({ onClose, contact }) => {
   // Function to call user form generation API
   const callUserFormGeneration = async () => {
     try {
+      setLoading(true);
       const token = await getValidToken();
 
       if (!token) {
@@ -297,7 +298,7 @@ const EditContactPhone = ({ onClose, contact }) => {
       if (response.ok && data?.status) {
         // If updatemobile is successful, proceed to OTP step directly
         setStep("otp");
-        setTimer(15);
+        setTimer(60);
       } else {
         // If updatemobile returns false, call get_module_data API
         const moduleResult = await checkMobileInModuleData(newPhone, token);
@@ -356,7 +357,7 @@ const EditContactPhone = ({ onClose, contact }) => {
         toast.success(data.message || "Phone verified successfully!");
 
         try {
- setLoading(true);
+          setLoading(true);
           const formRes = await fetch(
             "https://rekyc.meon.co.in/v1/user/user_form_generation",
             {
@@ -386,26 +387,32 @@ const EditContactPhone = ({ onClose, contact }) => {
       }
     } catch (err) {
       setOtpError("Network error");
-    } finally {
-      setVerifyingOtp(false); // Stop loading
-      setLoading(false);
     }
   };
-
+  // setTimeout(() => {
+  //     const firstInput = document.querySelector(
+  //       "input[autocomplete='one-time-code']"
+  //     );
+  //     if (firstInput) {
+  //       firstInput.focus();
+  //       firstInput.click();
+  //     }
+  //   }, 300);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <VerificationLoader isVisible={loading || verifyingOtp} />
+      {loading && <VerificationLoader isVisible={loading} />}
       <div className="modal-content3" onClick={(e) => e.stopPropagation()}>
         {step === "phone" ? (
           <>
             <h2>Your details are safe & secure</h2>
             <div className="existing-email">
-              <span className="label">Existing mobile no</span>
+              <span className="label mobile_label_exist">Existing mobile no</span>
               <div className="email_val_container">
                 <span className="value email_value">
                   {contact?.mobile || "Not Available"}
                 </span>
+                <img src="./App Icon.svg" />
               </div>
             </div>
 
@@ -420,9 +427,7 @@ const EditContactPhone = ({ onClose, contact }) => {
                     if (val.length <= 10) {
                       setNewPhone(val);
                     }
-                    if (error) {
-                      setError("");
-                    }
+                    setError("");
                   }}
                   maxLength={10}
                   placeholder=" "
@@ -433,7 +438,6 @@ const EditContactPhone = ({ onClose, contact }) => {
               </div>
             </div>
 
-            {/* {error && <p className="error-text_phone"> {error}</p>} */}
             {error && newPhone && <p className="error-text_phone">{error}</p>}
 
             <button
@@ -533,7 +537,7 @@ const EditContactPhone = ({ onClose, contact }) => {
                       const token = await getValidToken();
                       const response = await callUpdatePhoneAPI(token);
                       if (response.ok) {
-                        setTimer(15);
+                        setTimer(60);
                         setOtp(""); // reset string instead of array
                       } else {
                         setOtpError("Failed to resend OTP");
@@ -546,6 +550,7 @@ const EditContactPhone = ({ onClose, contact }) => {
                   Resend OTP
                 </p>
               )}
+
               {/* <button
                 className="verify-button"
                 disabled={otp.join("").length !== 6}
@@ -559,10 +564,9 @@ const EditContactPhone = ({ onClose, contact }) => {
               >
                 Verify
               </button> */}
-
               <button
                 className="verify-button"
-                disabled={otp.length !== 6 || verifyingOtp} // Disable when loading or invalid OTP
+                disabled={otp.length !== 6 || verifyingOtp}
                 onClick={handleVerifyOtpSubmit}
                 style={{
                   backgroundColor:
@@ -571,7 +575,7 @@ const EditContactPhone = ({ onClose, contact }) => {
                       : "rgba(157, 157, 157, 1)",
                 }}
               >
-                {verifyingOtp ? "Verifying OTP..." : "Verify"}
+                Verify
               </button>
             </div>
           </>

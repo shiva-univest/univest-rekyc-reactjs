@@ -103,7 +103,7 @@ const Activatebank = ({ encryptedData }) => {
       };
 
       try {
-         setLoading(true);
+        setLoading(true);
         console.log("Fetching with token:", accessToken);
         const result = await fetchData(accessToken);
 
@@ -175,9 +175,9 @@ const Activatebank = ({ encryptedData }) => {
             error
           );
         }
-      }finally {
-      setLoading(false); 
-    }
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchPageModuleMapping();
@@ -674,6 +674,7 @@ const Activatebank = ({ encryptedData }) => {
             const retryResult = await fetchInit(accessToken);
 
             if (!retryResult?.success || !retryResult?.url) {
+              setLoading(false);
               throw new Error("Retry init response missing success or url");
             }
 
@@ -687,17 +688,21 @@ const Activatebank = ({ encryptedData }) => {
           } else {
             console.error("Refresh succeeded but no access_token returned.");
             toast.error("Session expired. Please log in again.");
+            setLoading(false);
+
           }
         } catch (refreshError) {
           console.error("❌ Refresh token request failed:", refreshError);
           toast.error("Session expired. Please log in again.");
+          setLoading(false);
+
         }
       } else {
         console.error("❌ OTP init failed:", error);
         toast.error("Something went wrong.");
+        setLoading(false);
+
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -852,7 +857,7 @@ const Activatebank = ({ encryptedData }) => {
 
   return (
     <div>
-       {loading && <VerificationLoader isVisible={loading} />}
+      {loading && <VerificationLoader isVisible={loading} />}
       <header>
         <div className="a_header_main">
           <button className="a_btn_header">
@@ -900,85 +905,85 @@ const Activatebank = ({ encryptedData }) => {
 
             {userModuleData?.["11"]?.document_detail_data?.[0]
               ?.document_name && (
-              <div className="upload-section">
-                <label htmlFor="document">Upload Income Proof</label>
+                <div className="upload-section">
+                  <label htmlFor="document">Upload Income Proof</label>
 
-                <div
-                  className="custom-select-trigger"
-                  onClick={() => setShowPopup(true)}
-                >
-                  {selectedDoc
-                    ? selectedDoc === "bank"
-                      ? "Bank statement (last 6 months)"
-                      : selectedDoc === "salary"
-                      ? "Salary slip (last month)"
-                      : "ITR acknowledgement (last FY)"
-                    : "Select document"}
-                  <span className="dropdown-icon">
-                    <img src="./Arrow---Left-2.svg" alt="" />
-                  </span>
+                  <div
+                    className="custom-select-trigger"
+                    onClick={() => setShowPopup(true)}
+                  >
+                    {selectedDoc
+                      ? selectedDoc === "bank"
+                        ? "Bank statement (last 6 months)"
+                        : selectedDoc === "salary"
+                          ? "Salary slip (last month)"
+                          : "ITR acknowledgement (last FY)"
+                      : "Select document"}
+                    <span className="dropdown-icon">
+                      <img src="./Arrow---Left-2.svg" alt="" />
+                    </span>
+                  </div>
+
+                  <div className="upload-box">
+                    <label className="upload_doc_logo_wrapper">
+                      <input
+                        type="file"
+                        hidden
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+
+                          const allowedTypes =
+                            userModuleData?.["11"]?.document_detail_data?.[0]
+                              ?.document_file_type?.allowed_type || [];
+
+                          const fileExtension = file.name
+                            .split(".")
+                            .pop()
+                            .toLowerCase();
+                          if (!allowedTypes.includes(fileExtension)) {
+                            toast.error(
+                              `Only ${allowedTypes
+                                .join(", ")
+                                .toUpperCase()} files are allowed.`
+                            );
+                            return;
+                          }
+
+                          setUploadedFile(file);
+                          e.target
+                            .closest("label")
+                            .classList.add("file-selected");
+
+                          const token = Cookies.get("access_token");
+                          const documentId =
+                            userModuleData?.["11"]?.document_detail_data?.[0]?.id;
+                          if (!token || !documentId || !selectedDoc) return;
+
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          formData.append("file_suggestion", selectedDoc);
+
+                          try {
+                            const res = await fetch(
+                              `https://rekyc.meon.co.in/v1/user/upload_user_documents/${documentId}`,
+                              {
+                                method: "POST",
+                                headers: { Authorization: `Bearer ${token}` },
+                                body: formData,
+                              }
+                            );
+                            const result = await res.json();
+                            console.log("✅ Upload result:", result);
+                          } catch (err) {
+                            console.error("❌ Upload error:", err);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
-
-                <div className="upload-box">
-                  <label className="upload_doc_logo_wrapper">
-                    <input
-                      type="file"
-                      hidden
-                      onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-
-                        const allowedTypes =
-                          userModuleData?.["11"]?.document_detail_data?.[0]
-                            ?.document_file_type?.allowed_type || [];
-
-                        const fileExtension = file.name
-                          .split(".")
-                          .pop()
-                          .toLowerCase();
-                        if (!allowedTypes.includes(fileExtension)) {
-                          toast.error(
-                            `Only ${allowedTypes
-                              .join(", ")
-                              .toUpperCase()} files are allowed.`
-                          );
-                          return;
-                        }
-
-                        setUploadedFile(file);
-                        e.target
-                          .closest("label")
-                          .classList.add("file-selected");
-
-                        const token = Cookies.get("access_token");
-                        const documentId =
-                          userModuleData?.["11"]?.document_detail_data?.[0]?.id;
-                        if (!token || !documentId || !selectedDoc) return;
-
-                        const formData = new FormData();
-                        formData.append("file", file);
-                        formData.append("file_suggestion", selectedDoc);
-
-                        try {
-                          const res = await fetch(
-                            `https://rekyc.meon.co.in/v1/user/upload_user_documents/${documentId}`,
-                            {
-                              method: "POST",
-                              headers: { Authorization: `Bearer ${token}` },
-                              body: formData,
-                            }
-                          );
-                          const result = await res.json();
-                          console.log("✅ Upload result:", result);
-                        } catch (err) {
-                          console.error("❌ Upload error:", err);
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
-            )}
+              )}
 
             <div className="upload-box">
               <label className="upload_doc_logo_wrapper">
@@ -989,7 +994,7 @@ const Activatebank = ({ encryptedData }) => {
                       <img src="./file-icon.svg" alt="" /> {uploadedFile.name}
                     </>
                   ) : userModuleData?.["11"]?.document_detail_data?.[0]
-                      ?.document ? (
+                    ?.document ? (
                     <>
                       <img src="./file-icon.svg" alt="" />
                       {userModuleData["11"].document_detail_data[0].document
