@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import OtpInput from "react-otp-input";
 import { toast } from "react-toastify";
+import { decryptData } from "../../decode";
 
 import "./personal.css";
 
@@ -138,9 +139,8 @@ const EditContactModal = ({ onClose, contact }) => {
 
       if (formData?.status === true) {
         console.log("Form generation successful, navigating to esign");
-       
+
         await fetchAndRedirectToEsignLink(token);
-        
       } else {
         alert(
           formData?.message || "Failed to generate user form. Please try again."
@@ -250,7 +250,7 @@ const EditContactModal = ({ onClose, contact }) => {
         }
 
         toast.success(data.message || "Phone verified successfully!");
-         await callUserFormGeneration(token);
+        await callUserFormGeneration(token);
         // navigate("/esign");
       } else {
         setOtpError(data?.message || "Enter correct OTP");
@@ -272,7 +272,7 @@ const EditContactModal = ({ onClose, contact }) => {
                 <span className="value email_value">
                   {contact?.email || "Not Available"}
                 </span>
-                <img src="./App Icon.svg"/>
+                <img src="./App Icon.svg" />
               </div>
             </div>
 
@@ -320,7 +320,7 @@ const EditContactModal = ({ onClose, contact }) => {
                   setStep("email");
                   setOtp(""); // clear OTP fields
                   setNewEmail(""); // clear the email input
-                  setError(""); 
+                  setError("");
                 }}
               >
                 ✏ Edit

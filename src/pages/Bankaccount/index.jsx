@@ -48,6 +48,7 @@ const Bank = ({ encryptedData }) => {
             branchname: account.branch_name,
             ifscCode: account.ifsc,
             accountType: account.account_type,
+            is_new: account.is_new,
           })
         );
         setBankAccounts(formattedAccounts);
@@ -214,7 +215,7 @@ const Bank = ({ encryptedData }) => {
       } else {
         // Open the first available eSign link
         const firstLink = links[0];
-        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_blank");
+        window.location.href = `https://rekyc.meon.co.in${firstLink.url}`;
 
         // Optionally, you can also navigate to congratulations or stay on current page
         // navigate("/congratulations");
@@ -252,7 +253,7 @@ const Bank = ({ encryptedData }) => {
 
       if (formData?.status === true) {
         console.log("Form generation successful, navigating to esign");
-        
+        // Fetch module data to get eSign links
         await fetchAndRedirectToEsignLink(token);
       } else {
         alert(
@@ -360,7 +361,7 @@ const Bank = ({ encryptedData }) => {
     if(esignDataStatus.length > 0)
     {
       let links = esignDataStatus.filter((link) => !link.is_esigned);
-      if (!links || links.length === 0) {
+      if (!links || links.length === 0 || links) {
         setIsEsigned(false)
       }
       else{
