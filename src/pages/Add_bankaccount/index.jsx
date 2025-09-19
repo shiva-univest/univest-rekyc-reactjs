@@ -131,12 +131,10 @@ const BankaccAccount = () => {
       { entity_id: transId }
     );
 
-    toast.success(JSON.stringify(response.data));
     let decrypted = decryptData(response.data?.data);
     decrypted = JSON.parse(decrypted);
-    toast.success(decrypted);
 
-    const status = decrypted?.status;
+    const status = decrypted?.response?.active_status?.status;
     toast.success(status);
     if (status.includes("SUCCESS")) {
       window.location.href = `/bankaccountcomplete?success=true`;

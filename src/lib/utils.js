@@ -40,11 +40,6 @@ export const BANKLIST = [{
     url: "https://storage.googleapis.com/app-assets-univest/react-assets/banks/Bank+of+Baroda.png"
 },
 {
-    id: 3,
-    name: "Bank of India",
-    url: "https://storage.googleapis.com/app-assets-univest/react-assets/banks/Bank+of+India.png"
-},
-{
     id: 4,
     name: "Bank of Maharashtra",
     url: "https://storage.googleapis.com/app-assets-univest/react-assets/banks/Bank+of+Maharashtra.png"
@@ -278,6 +273,11 @@ export const BANKLIST = [{
     id: 50,
     name: "Credit Agricole Corporate & Investment Bank",
     url: "https://storage.googleapis.com/app-assets-univest/react-assets/banks/credit_agricole_corporate.png"
+},
+{
+    id: 3,
+    name: "Bank of India",
+    url: "https://storage.googleapis.com/app-assets-univest/react-assets/banks/Bank+of+India.png"
 }
 ]
 
