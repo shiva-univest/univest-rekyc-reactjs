@@ -28,8 +28,8 @@ const Bank = ({ encryptedData }) => {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [showAddAccountPopup, setShowAddAccountPopup] = useState(false);
   const [deleteDetailsPopup, setdeleteDetailsPopup] = useState(false);
-  const [esignDataStatus, setEsignDataStatus]=useState("");
-  const [isEsigned, setIsEsigned]=useState(false);
+  const [esignDataStatus, setEsignDataStatus] = useState("");
+  const [isEsigned, setIsEsigned] = useState(false);
 
   const parseEncryptedData = () => {
     try {
@@ -358,13 +358,12 @@ const Bank = ({ encryptedData }) => {
   }, [encryptedData]);
 
   useEffect(() => {
-    if(esignDataStatus.length > 0)
-    {
+    if (esignDataStatus.length > 0) {
       let links = esignDataStatus.filter((link) => !link.is_esigned);
       if (!links || links.length === 0 || links) {
         setIsEsigned(false)
       }
-      else{
+      else {
         setIsEsigned(true)
       }
     }
@@ -378,7 +377,7 @@ const Bank = ({ encryptedData }) => {
         for (const account of bankAccounts) {
           if (account.is_new && !account.isPrimary) {
             await handleDeleteAccount(account.id);
-          } 
+          }
           else if (account.is_new && account.isPrimary) {
             const oldAccount = bankAccounts.find(acc => !acc.is_new);
 
@@ -543,7 +542,7 @@ const Bank = ({ encryptedData }) => {
               <>
                 <span
                   className="primary"
-                  onClick={async() => {
+                  onClick={async () => {
                     handleMakePrimary(selectedAccount.id);
                     setShowDropdown(false);
                     await callUserFormGeneration()

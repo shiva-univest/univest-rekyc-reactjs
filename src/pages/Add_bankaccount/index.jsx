@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { decryptData } from "../../decode";
 import Loader from "../Loader/Loader";
 import axios from "axios";
-import { openLink, waitFor } from "../../lib/utils";
+import { BANKLIST, openLink, waitFor } from "../../lib/utils";
 import { toast } from "react-toastify";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 import api from "../../api/api";
@@ -968,11 +968,9 @@ const BankaccAccount = () => {
                   </p>
                   <div className="bank-card-final">
                     <div className="bank-card-header">
-                      <img
-                        src="./bank5.png"
-                        alt="Bank Logo"
-                        className="bank-logo-final"
-                      />
+                      <div className="bank-icon">
+                        <img alt={bankDetails.bank_name} className="bank_icon_cls" src={BANKLIST?.filter(f => bankDetails.bank_name?.toLowerCase()?.includes(f.name?.toLowerCase()))?.[0]?.url ?? "./bank5.png"}></img>
+                      </div>
                       <div>
                         <div className="bank-code-final">
                           {bankDetails.bank_name}

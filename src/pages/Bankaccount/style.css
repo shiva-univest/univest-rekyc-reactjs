@@ -60,7 +60,7 @@
 
 .bank-body {
   width: 100%;
-  background:white;
+  background: white;
   padding: 22px 20px;
   display: flex;
   flex-direction: column;
@@ -126,6 +126,7 @@
 
 .federal-acc-no,
 .indus-acc-no {
+  text-align: left;
   font-size: 14px !important;
   font-weight: 500;
   color: #747474 !important;
