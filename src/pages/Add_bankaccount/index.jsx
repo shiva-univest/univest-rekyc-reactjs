@@ -150,10 +150,11 @@ const BankaccAccount = () => {
       }
     } catch (err) {
       console.error("Error in callReverseResponseAPI:", err);
+      toast.success(JSON.stringify(err))
     }
   };
 
-  const callReversePennydropAPI = async (retryCount = 0) => {
+  const callReversePennydropAPI = async (replaceWith, retryCount = 0) => {
 
     try {
       setLoading(true);
@@ -182,7 +183,7 @@ const BankaccAccount = () => {
         const newToken = await getrefershtoken();
         if (newToken) {
           Cookies.set("access_token", newToken);
-          return callReversePennydropAPI(retryCount + 1);
+          return callReversePennydropAPI(replaceWith, retryCount + 1);
         }
         throw new Error("Failed to refresh token");
       }
@@ -207,7 +208,7 @@ const BankaccAccount = () => {
             count.current = count.current + 1
           }, 5000)
           await waitFor(1000)
-          openLink(data.upiLink);
+          openLink(data.upiLink?.replace("upi://", replaceWith));
         } else {
           openLink(data.shortUrl);
         }
@@ -221,13 +222,7 @@ const BankaccAccount = () => {
     }
   };
 
-  const handleButtonClick = async () => {
-    try {
-      await callReversePennydropAPI();
-    } catch (error) {
-      console.error("API call failed:", error);
-    }
-  };
+
 
 
   const handleBankDocUpload = async (e) => {
@@ -685,7 +680,7 @@ const BankaccAccount = () => {
         <div className="bankacc-body-b3">
           <button
             className="bankacc-button bankacc-button1"
-            onClick={handleButtonClick}
+            onClick={() => callReversePennydropAPI("phonepe://")}
           >
             <img src="./phonepay.png" alt="bank icon" />
             <div className="bank-details bank-details1">
@@ -721,7 +716,7 @@ const BankaccAccount = () => {
 
           <button
             className="bankacc-button bankacc-button2"
-            onClick={handleButtonClick}
+            onClick={() => callReversePennydropAPI("tez://")}
           >
             <img src="./gpay.png" alt="bank icon" />
             <div className="bank-details bank-details1">
@@ -757,7 +752,7 @@ const BankaccAccount = () => {
 
           <button
             className="bankacc-button bankacc-button3"
-            onClick={handleButtonClick}
+            onClick={() => callReversePennydropAPI("upi://")}
           >
             <img src="./otherpay.png" alt="bank icon" />
             <div className="bank-details bank-details1">
