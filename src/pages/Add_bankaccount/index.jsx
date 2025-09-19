@@ -208,7 +208,7 @@ const BankaccAccount = () => {
             count.current = count.current + 1
           }, 5000)
           await waitFor(1000)
-          openLink(data.upiLink?.replace("upi://", replaceWith));
+          openLink(data.upiLink);
         } else {
           openLink(data.shortUrl);
         }
