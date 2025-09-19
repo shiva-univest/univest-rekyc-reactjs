@@ -11,6 +11,7 @@ import VerificationLoader from "../../Components/VerificationLoader/Verification
 
 const BankaccAccount = () => {
   const ref = useRef()
+  const count = useRef()
   const [isOpen, setIsOpen] = useState(false);
   const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
   const [popupShownOnce, setPopupShownOnce] = useState(false);
@@ -146,34 +147,22 @@ const BankaccAccount = () => {
         }
       );
 
-
-
-
       const result = await response.json();
       let decrypted = decryptData(result.data);
       decrypted = JSON.parse(decrypted);
-
-      console.log("Decrypted response:11111111111", decrypted);
 
       const status = decrypted?.status
       alert(status)
       if (status.includes("SUCCESS")) {
         window.location.href = `/bankaccountcomplete?success=true`
         setLoading(false);
+        clearInterval(ref.current)
         return
       } else if (status.includes("FAILED") || retryCount > 15) {
         window.location.href = `/bankaccountcomplete?success=false`
         setLoading(false);
+        clearInterval(ref.current)
         return
-      }
-
-      await waitFor(5000)
-      const newToken = await getrefershtoken();
-      if (newToken) {
-        Cookies.set("access_token", newToken);
-        return callReverseResponseAPI(transId, retryCount + 1);
-      } else {
-        throw new Error("Token refresh failed");
       }
     } catch (err) {
       console.error("Error in callReverseResponseAPI:", err);
@@ -229,7 +218,11 @@ const BankaccAccount = () => {
 
       if (data?.upiLink) {
         openLink(data.upiLink);
-        callReverseResponseAPI(transId, 1)
+        count.current = 1
+        ref.current = setInterval(() => {
+          callReverseResponseAPI(transId, count.current)
+          count.current = count.current + 1
+        }, 5000)
       } else {
         console.error("No upiLink found in response");
       }
@@ -237,7 +230,6 @@ const BankaccAccount = () => {
       setLoading(false);
       console.error("Error in callReversePennydropAPI:", error);
       setError(error.message);
-    } finally {
     }
   };
 
