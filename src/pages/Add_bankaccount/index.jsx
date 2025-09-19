@@ -127,30 +127,23 @@ const BankaccAccount = () => {
   const callReverseResponseAPI = async (transId, retryCount = 0) => {
     setLoading(true);
     console.log("Calling Setu response API...");
+    const response = await api.post("/user/reverse_pennydrop_api_setu_response", { entity_id: transId });
 
-    try {
+    let decrypted = decryptData(response.data?.data);
+    decrypted = JSON.parse(decrypted);
 
-      const response = await api.post("/user/reverse_pennydrop_api_setu_response", { entity_id: transId });
-
-      let decrypted = decryptData(response.data?.data);
-      decrypted = JSON.parse(decrypted);
-
-      const status = decrypted?.status
-      toast.success(status)
-      if (status.includes("SUCCESS")) {
-        window.location.href = `/bankaccountcomplete?success=true`
-        setLoading(false);
-        clearInterval(ref.current)
-        return
-      } else if (status.includes("FAILED") || retryCount > 15) {
-        window.location.href = `/bankaccountcomplete?success=false`
-        setLoading(false);
-        clearInterval(ref.current)
-        return
-      }
-    } catch (err) {
-      console.error("Error in callReverseResponseAPI:", err);
-      toast.success(JSON.stringify(err))
+    const status = decrypted?.status
+    toast.success(status)
+    if (status.includes("SUCCESS")) {
+      window.location.href = `/bankaccountcomplete?success=true`
+      setLoading(false);
+      clearInterval(ref.current)
+      return
+    } else if (status.includes("FAILED") || retryCount > 15) {
+      window.location.href = `/bankaccountcomplete?success=false`
+      setLoading(false);
+      clearInterval(ref.current)
+      return
     }
   };
 
