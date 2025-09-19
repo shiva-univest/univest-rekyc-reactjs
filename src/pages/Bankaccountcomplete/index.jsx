@@ -244,7 +244,99 @@ const BankaccAccountComplete = () => {
   //   }
   // };
 
-  
+
+  // New function to fetch module data and redirect to eSign link
+  const fetchAndRedirectToEsignLink = async (token) => {
+    try {
+      const moduleRes = await fetch(
+        "https://rekyc.meon.co.in/v1/user/get_module_data",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ page_id: "6" }),
+        }
+      );
+
+      const moduleData = await moduleRes.json();
+      console.log("get_module_data (raw) ->", moduleData);
+
+      let parsed;
+      try {
+        // You'll need to import the decryptData function
+        parsed = JSON.parse(decryptData(moduleData.data));
+      } catch (err) {
+        console.error("Failed to parse decrypted data:", err);
+        parsed = {};
+      }
+
+      // Get links
+      let links = parsed?.["12"]?.links || [];
+
+      // Filter out signed ones
+      links = links.filter((link) => !link.is_esigned);
+
+      console.log("Filtered Links ->", links);
+
+      if (!links || links.length === 0) {
+        // No links available, redirect to congratulations
+        navigate("/congratulations");
+      } else {
+        // Open the first available eSign link
+        const firstLink = links[0];
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_blank");
+
+        // Optionally, you can also navigate to congratulations or stay on current page
+        // navigate("/congratulations");
+      }
+    } catch (err) {
+      console.error("Error fetching eSign data:", err);
+      alert("Failed to get eSign link. Please try again.");
+    }
+  };
+
+  // Function to call user form generation API
+  const callUserFormGeneration = async () => {
+    try {
+      const token = await getrefershtoken();
+
+      if (!token) {
+        alert("Authorization failed.");
+        return;
+      }
+
+      const response = await fetch(
+        "https://rekyc.meon.co.in/v1/user/user_form_generation",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ re_esign: false }),
+        }
+      );
+
+      const formData = await response.json();
+      console.log("User form generation response:", formData);
+
+      if (formData?.status === true) {
+        console.log("Form generation successful, navigating to esign");
+        // Fetch module data to get eSign links
+        await fetchAndRedirectToEsignLink(token);
+      } else {
+        alert(
+          formData?.message || "Failed to generate user form. Please try again."
+        );
+      }
+    } catch (error) {
+      console.error("User form generation error:", error);
+      alert("Failed to generate user form. Please try again.");
+    }
+  };
+
 
   const verifyBankDetails = async () => {
     console.log("button press");

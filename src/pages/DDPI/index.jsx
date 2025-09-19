@@ -3,12 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { decryptData } from "../../decode";
 import api from "../../api/api";
 import "./style.css";
+import Cookies from "js-cookie";
 
 const ActivateDDPI = () => {
   const [expanded, setExpanded] = useState(false);
   const [moduleData, setModuleData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [ddpiActive, setDdpiActive] = useState(false);
+  const [esignDataStatus, setEsignDataStatus] = useState("");
+  const [isEsigned, setIsEsigned] = useState(false);  
+  const navigate = useNavigate();
 
   const [checkboxes, setCheckboxes] = useState({
     main: true,
@@ -18,7 +22,46 @@ const ActivateDDPI = () => {
     tendering: true,
   });
 
+  useEffect(() => {
+    fetchEsignStatus();
+  }, []);
 
+  useEffect(() => {
+    if(esignDataStatus.length > 0)
+    {
+      let links = esignDataStatus.filter((link) => !link.is_esigned);
+      if (!links || links.length === 0) {
+        setIsEsigned(false)
+      }
+      else{
+        setIsEsigned(true)
+      }
+    }
+  }, [esignDataStatus]);
+  
+  const fetchEsignStatus = async () => {
+    try {
+      const moduleRes = await api.post("/user/get_module_data", {
+        page_id: "6",
+      });
+      console.log("get_module_data (raw) ->", moduleRes.data);
+
+      let parsed;
+      try {
+        parsed = JSON.parse(decryptData(moduleRes.data.data));
+      } catch (err) {
+        console.error("Failed to parse decrypted data:", err);
+        parsed = {};
+      }
+      let links = parsed?.["12"]?.links || [];
+      console.log("links", links)
+      setEsignDataStatus(links);
+
+    } catch (err) {
+      console.error("Error fetching eSign data:", err);
+    } finally {
+    }
+  };
 
 
   useEffect(() => {
@@ -47,7 +90,13 @@ const ActivateDDPI = () => {
 
 
               if (parsed?.["21"]?.ddpi === true || parsed?.["21"]?.bo_poa === true) {
-                setDdpiActive(true);
+                if((esignDataStatus.length > 0 && isEsigned) || esignDataStatus.length == 0)
+                {
+                  setDdpiActive(true);
+                }
+                if(esignDataStatus.length > 0 && !isEsigned){
+                  setDdpiActive(false);
+                }
               } else {
                 setDdpiActive(false);
               }
@@ -70,9 +119,132 @@ const ActivateDDPI = () => {
     };
 
     fetchData();
-  }, [moduleData?.["21"]?.ddpi]);
+  }, [moduleData?.["21"]?.ddpi, esignDataStatus, isEsigned]);
 
-  const navigate = useNavigate();
+  const proceedToEsign = async () => {
+    try {
+      const accessToken = Cookies.get("access_token");
+
+      // Send your checkboxes state to API
+      const payload = {
+        ddpi: checkboxes.main,       // true/false
+        ddpi_for_security: checkboxes.transfer,
+        ddpi_for_pledge: checkboxes.pledging,
+        ddpi_for_mtf: checkboxes.mutualFund,
+        ddpi_for_offers: checkboxes.tendering,
+      };
+
+      console.log("DDPI Payload being sent:", payload);
+
+      const response = await fetch(
+        `https://rekyc.meon.co.in/v1/user/other_details`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to save ddpi data");
+      }
+
+      const result = await response.json();
+      console.log("DDPI save response:", result);
+      if(result?.status)
+      {
+        callUserFormGeneration(accessToken)
+      }
+
+    } catch (error) {
+      console.error("Save error:", error);
+      setError(error.message);
+    }
+  };
+
+
+  const callUserFormGeneration = async (accessToken) => {
+    try {
+
+      if (!accessToken) {
+        alert("Authorization failed.");
+        return;
+      }
+
+      const response = await fetch(
+        "https://rekyc.meon.co.in/v1/user/user_form_generation",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ re_esign: false }),
+        }
+      );
+
+      const formData = await response.json();
+      console.log("User form generation response:", formData);
+      if (formData?.status === true) {
+        console.log("Form generation successful, navigating to esign");
+        fetchAndRedirectToEsignLink(accessToken)
+      } else {
+        alert(
+          formData?.message || "Failed to generate user form. Please try again."
+        );
+      }
+    } catch (error) {
+      console.error("User form generation error:", error);
+      alert("Failed to generate user form. Please try again.");
+    }
+  };
+
+   const fetchAndRedirectToEsignLink = async (accessToken) => {
+    try {
+      const moduleRes = await fetch(
+        "https://rekyc.meon.co.in/v1/user/get_module_data",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ page_id: "6" }),
+        }
+      );
+
+      const moduleData = await moduleRes.json();
+      console.log("get_module_data (raw) ->", moduleData);
+
+      let parsed;
+      try {
+        parsed = JSON.parse(decryptData(moduleData.data));
+      } catch (err) {
+        console.error("Failed to parse decrypted data:", err);
+        parsed = {};
+      }
+
+      let links = parsed?.["12"]?.links || [];
+
+      links = links.filter((link) => !link.is_esigned);
+
+      console.log("Filtered Links ->", links);
+
+      if (!links || links.length === 0) {
+        navigate("/congratulations");
+      } else {
+        const firstLink = links[0];
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_blank");
+      }
+    } catch (err) {
+      console.error("Error fetching eSign data:", err);
+      alert("Failed to get eSign link. Please try again.");
+    }
+  };
+
 
   if (loading) return <div>Loading...</div>;
 
@@ -250,7 +422,7 @@ const ActivateDDPI = () => {
             <button
               className={`univest-actions-btn ${allChecked ? "" : "disabled"}`}
               disabled={!allChecked}
-              onClick={() => navigate("/esign")}
+              onClick={() => proceedToEsign()}
             >
               Proceed to E-Sign
             </button>

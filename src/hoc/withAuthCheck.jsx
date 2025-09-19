@@ -60,7 +60,7 @@ const withAuthCheck = (WrappedComponent) => {
     }, [location.search]);
 
     const fetchTokenAndModuleData = async (token) => {
-      const refreshToken = token || Cookies.get("refresh_token");
+      const refreshToken = Cookies.get("refresh_token");
       console.log("refreshTokennnnnnn", token, Cookies.get("refresh_token"));
       if (!refreshToken) {
         console.warn("No refresh token found.");
@@ -97,7 +97,7 @@ const withAuthCheck = (WrappedComponent) => {
             },
           }
         );
-        
+        console.log("Module Data Response:", moduleRes.data);
         const data = moduleRes.data?.data;
         if (data) {
           setEncryptedData(data);
@@ -112,12 +112,11 @@ const withAuthCheck = (WrappedComponent) => {
       }
     };
 
-
     const handleBack = () => {
       if (window.history.length > 0) {
         window.history.back();
       } else {
-        nativeBACK()
+        nativeBACK();
       }
     };
 
@@ -125,10 +124,9 @@ const withAuthCheck = (WrappedComponent) => {
       try {
         window.webviewBack = handleBack;
         window.flutter_inappwebview.callHandler("isIOSBack", true);
-      } catch (error) {
-      }
+      } catch (error) {}
     }
-    console.log("encryptedData",encryptedData)
+    console.log("encryptedData", encryptedData);
     if (!tokenChecked) return null;
 
     if (!validToken && !Cookies.get("access_token")) {

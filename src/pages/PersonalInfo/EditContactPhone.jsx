@@ -54,6 +54,172 @@ const EditContactPhone = ({ onClose, contact }) => {
     }
     return token;
   };
+  // New function to fetch module data and redirect to eSign link
+  const fetchAndRedirectToEsignLink = async (token) => {
+    try {
+      const moduleRes = await fetch(
+        "https://rekyc.meon.co.in/v1/user/get_module_data",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ page_id: "6" }),
+        }
+      );
+
+      const moduleData = await moduleRes.json();
+      console.log("get_module_data (raw) ->", moduleData);
+
+      let parsed;
+      try {
+        // You'll need to import the decryptData function
+        const { decryptData } = await import("../../decode");
+        parsed = JSON.parse(decryptData(moduleData.data));
+      } catch (err) {
+        console.error("Failed to parse decrypted data:", err);
+        parsed = {};
+      }
+
+      // Get links
+      let links = parsed?.["12"]?.links || [];
+
+      // Filter out signed ones
+      links = links.filter((link) => !link.is_esigned);
+
+      console.log("Filtered Links ->", links);
+
+      if (!links || links.length === 0) {
+        // No links available, redirect to congratulations
+        navigate("/congratulations");
+      } else {
+        // Open the first available eSign link
+        const firstLink = links[0];
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_blank");
+
+        // Optionally, you can also navigate to congratulations or stay on current page
+        // navigate("/congratulations");
+      }
+    } catch (err) {
+      console.error("Error fetching eSign data:", err);
+      alert("Failed to get eSign link. Please try again.");
+    }
+  };
+
+  // Function to call user form generation API
+  const callUserFormGeneration = async () => {
+    try {
+      const token = await getValidToken();
+
+      if (!token) {
+        toast.error("Authorization failed.");
+        return;
+      }
+
+      const response = await fetch(
+        "https://rekyc.meon.co.in/v1/user/user_form_generation",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ re_esign: false }),
+        }
+      );
+
+      const formData = await response.json();
+      console.log("User form generation response:", formData);
+
+      if (formData?.status === true) {
+        console.log("Form generation successful, navigating to esign");
+        await fetchAndRedirectToEsignLink(token);
+
+        // navigate("/esign");
+      } else {
+        toast.error(
+          formData?.message || "Failed to generate user form. Please try again."
+        );
+      }
+    } catch (error) {
+      console.error("User form generation error:", error);
+      toast.error("Failed to generate user form. Please try again.");
+    }
+  };
+
+  const checkMobileInModuleData = async (enteredMobile, token) => {
+    try {
+      const moduleDataResponse = await fetch(
+        "https://rekyc.meon.co.in/v1/user/get_module_data",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ page_id: "1" }),
+        }
+      );
+
+      if (!moduleDataResponse.ok) {
+        throw new Error("Failed to fetch module data");
+      }
+
+      const moduleData = await moduleDataResponse.json();
+      console.log("Module Data Response:", moduleData);
+
+      if (!moduleData?.data) {
+        return { success: false, error: "No module data received" };
+      }
+
+      // Decrypt the module data
+      const { decryptData } = await import("../../decode");
+      const decryptedData = JSON.parse(decryptData(moduleData.data));
+      console.log("Decrypted module data:", decryptedData);
+
+      // Check contact_detail_data for is_new: true entries
+      const contactDetailData = decryptedData["1"]?.contact_detail_data || [];
+      console.log("Contact detail data:", contactDetailData);
+
+      // Find entries where is_new is true
+      const newContacts = contactDetailData.filter(
+        (contact) => contact.is_new === true
+      );
+      console.log("New contacts (is_new: true):", newContacts);
+
+      // Check if entered mobile number matches any new contact
+      const enteredMobileWithCountryCode = `+91${enteredMobile}`;
+      const matchingContact = newContacts.find(
+        (contact) =>
+          contact.mobile === enteredMobileWithCountryCode ||
+          contact.mobile === enteredMobile
+      );
+
+      console.log("Entered mobile:", enteredMobileWithCountryCode);
+      console.log("Matching contact:", matchingContact);
+
+      if (matchingContact) {
+        return {
+          success: true,
+          isValidMobile: true,
+          shouldRedirectToEsign: true,
+        };
+      } else {
+        return {
+          success: true,
+          isValidMobile: false,
+          error: "This mobile number is updated for another account",
+        };
+      }
+    } catch (moduleErr) {
+      console.error("Failed to fetch or process module data:", moduleErr);
+      return {
+        success: false,
+        error: "Failed to verify mobile number details",
+      };
+    }
+  };
 
   const callUpdatePhoneAPI = async (token) => {
     const response = await fetch(
@@ -86,6 +252,32 @@ const EditContactPhone = ({ onClose, contact }) => {
     return response;
   };
 
+  // const handleVerifyPhone = async () => {
+  //   if (!phoneRegex.test(newPhone)) {
+  //     setError("Enter a valid 10-digit phone number");
+  //     return;
+  //   }
+  //   setError("");
+  //   setLoading(true);
+
+  //   try {
+  //     const token = await getValidToken();
+  //     const response = await callUpdatePhoneAPI(token);
+  //     const data = await response.json();
+
+  //     if (response.ok && data?.status) {
+  //       setStep("otp");
+  //       setTimer(15);
+  //     } else {
+  //       setError(data?.message || "Failed to send OTP. Try again.");
+  //     }
+  //   } catch (err) {
+  //     setError("Network error");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleVerifyPhone = async () => {
     if (!phoneRegex.test(newPhone)) {
       setError("Enter a valid 10-digit phone number");
@@ -100,13 +292,32 @@ const EditContactPhone = ({ onClose, contact }) => {
       const data = await response.json();
 
       if (response.ok && data?.status) {
+        // If updatemobile is successful, proceed to OTP step directly
         setStep("otp");
         setTimer(15);
       } else {
-        setError(data?.message || "Failed to send OTP. Try again.");
+        // If updatemobile returns false, call get_module_data API
+        const moduleResult = await checkMobileInModuleData(newPhone, token);
+
+        if (!moduleResult.success) {
+          setError(moduleResult.error);
+          return;
+        }
+
+        if (moduleResult.isValidMobile) {
+          // Mobile number matches existing contact with is_new: false
+          // Proceed to OTP step
+          // setStep("otp");
+          // setTimer(15);
+          await callUserFormGeneration();
+          // navigate("/esign");
+        } else {
+          // Mobile number doesn't match any existing contact
+          setError(moduleResult.error);
+        }
       }
     } catch (err) {
-      setError("Network error");
+      setError("Network error", err);
     } finally {
       setLoading(false);
     }
@@ -154,7 +365,9 @@ const EditContactPhone = ({ onClose, contact }) => {
           const formData = await formRes.json();
 
           if (formData?.status === true) {
-            navigate("/esign");
+            // await callUserFormGeneration();
+             await fetchAndRedirectToEsignLink(token);
+            // navigate("/esign");
           } else {
             setOtpError(formData?.message || "Failed to generate form");
           }
@@ -204,6 +417,9 @@ const EditContactPhone = ({ onClose, contact }) => {
                     const val = e.target.value.replace(/\D/g, "");
                     if (val.length <= 10) {
                       setNewPhone(val);
+                    }
+                    if (error) {
+                      setError("");
                     }
                   }}
                   maxLength={10}

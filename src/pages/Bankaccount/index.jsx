@@ -228,7 +228,7 @@ const Bank = ({ encryptedData }) => {
   // Function to call user form generation API
   const callUserFormGeneration = async () => {
     try {
-      const token = await getrefershtoken();
+      const token = Cookies.get("access_token");
 
       if (!token) {
         alert("Authorization failed.");
@@ -252,7 +252,7 @@ const Bank = ({ encryptedData }) => {
 
       if (formData?.status === true) {
         console.log("Form generation successful, navigating to esign");
-        // Fetch module data to get eSign links
+        
         await fetchAndRedirectToEsignLink(token);
       } else {
         alert(

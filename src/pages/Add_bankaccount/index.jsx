@@ -12,11 +12,11 @@ const BankaccAccount = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
   const [popupShownOnce, setPopupShownOnce] = useState(false);
-
+  const [uploadCount, setUploadCount] = useState(0);
 
   const navigate = useNavigate();
 
-  const [popupMessage, setPopupMessage] = useState(""); 
+  const [popupMessage, setPopupMessage] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -62,21 +62,23 @@ const BankaccAccount = () => {
   // }, [dataFromOCR, bankDetails]);
 
   useEffect(() => {
-  if (dataFromOCR) {
-    const { account, branch, ifsc } = bankDetails;
+    if (dataFromOCR) {
+      const { account, branch, ifsc } = bankDetails;
 
-    if (
-      !account || account === "-" ||
-      !branch || branch === "-" ||
-      !ifsc || ifsc === "-"
-    ) {
-      toggleBottomSheet();
+      if (
+        !account ||
+        account === "-" ||
+        !branch ||
+        branch === "-" ||
+        !ifsc ||
+        ifsc === "-"
+      ) {
+        toggleBottomSheet();
+      }
+
+      setDataFromOCR(false);
     }
-
-    setDataFromOCR(false);
-  }
-}, [dataFromOCR, bankDetails]);
-
+  }, [dataFromOCR, bankDetails]);
 
   const toggleBottomSheet = () => {
     setIsOpen(!isOpen);
@@ -192,14 +194,100 @@ const BankaccAccount = () => {
     }
   };
 
+  // const handleBankDocUpload = async (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) {
+  //     return;
+  //   }
+
+  //   try {
+  //     setLoading(true);
+
+  //     const tokenRes = await fetch("https://ocr.meon.co.in/get_token", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         company_id: "66031",
+  //         email: "univest@gmail.com",
+  //         password: "univest@12345",
+  //       }),
+  //     });
+
+  //     const tokenData = await tokenRes.json();
+  //     const token = tokenData?.token;
+
+  //     if (!token) {
+  //      toast.error("Failed to fetch OCR token.");
+  //       return;
+  //     }
+
+  //     const formData = new FormData();
+  //     formData.append("bankprooffile", file);
+  //     formData.append("name", "uni");
+  //     formData.append("sources", "kyc");
+  //     formData.append("ifsc", "");
+  //     formData.append("account_number", "1566332244");
+  //     formData.append("req_id", "uni2q");
+  //     formData.append("company", "univest");
+
+  //     const ocrRes = await fetch(
+  //       "https://ocr.meon.co.in/extract_bank_details",
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //         body: formData,
+  //       }
+  //     );
+
+  //     const ocrData = await ocrRes.json();
+  //     const extracted = ocrData?.extracted_data || {};
+
+  //     const name = extracted.ocr_Account_Holder_Name?.trim() || "";
+  //     const ifsc = extracted.ocr_IFSC?.trim().toUpperCase() || "";
+  //     const account = extracted.ocr_account_number?.trim() || "";
+
+  //     let branch = "";
+  //     let bank_name = "";
+
+  //     if (ifsc) {
+  //       const ifscRes = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
+  //       if (ifscRes.ok) {
+  //         const ifscData = await ifscRes.json();
+  //         branch = ifscData.BRANCH || "";
+  //         bank_name = ifscData.BANK || "";
+  //       }
+  //     }
+  //     if (name || ifsc || account) {
+  //       setBankDetails({
+  //         name: name || "-",
+  //         ifsc: ifsc || "-",
+  //         account: account || "-",
+  //         branch: branch || "-",
+  //         bank_name: bank_name || "-",
+  //       });
+  //       setIsOpen(false);
+  //       setShowOCRPopup(true);
+  //     } else {
+  //       setIsOpen(true);
+  //     }
+  //   } catch (err) {
+  //     console.error("OCR Upload Error:", err);
+  //     toast.error("Failed to extract data from bank document.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  // New function to fetch module data and redirect to eSign link
+
   const handleBankDocUpload = async (e) => {
     const file = e.target.files[0];
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     try {
       setLoading(true);
+      setShowOCRPopup(true); // 👈 show popup immediately (loader can appear inside)
 
       const tokenRes = await fetch("https://ocr.meon.co.in/get_token", {
         method: "POST",
@@ -215,7 +303,8 @@ const BankaccAccount = () => {
       const token = tokenData?.token;
 
       if (!token) {
-       toast.error("Failed to fetch OCR token.");
+        toast.error("Failed to fetch OCR token.");
+        setShowOCRPopup(false);
         return;
       }
 
@@ -232,9 +321,7 @@ const BankaccAccount = () => {
         "https://ocr.meon.co.in/extract_bank_details",
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         }
       );
@@ -257,6 +344,7 @@ const BankaccAccount = () => {
           bank_name = ifscData.BANK || "";
         }
       }
+
       if (name || ifsc || account) {
         setBankDetails({
           name: name || "-",
@@ -266,18 +354,21 @@ const BankaccAccount = () => {
           bank_name: bank_name || "-",
         });
         setIsOpen(false);
-        setShowOCRPopup(true);
+        setShowOCRPopup(true); // 👈 always reopen popup with new data
       } else {
         setIsOpen(true);
+        setShowOCRPopup(false);
       }
     } catch (err) {
       console.error("OCR Upload Error:", err);
       toast.error("Failed to extract data from bank document.");
+      setShowOCRPopup(false);
     } finally {
       setLoading(false);
+      e.target.value = ""; // 👈 reset so same file can be uploaded again
     }
   };
-  // New function to fetch module data and redirect to eSign link
+
   const fetchAndRedirectToEsignLink = async (token) => {
     try {
       const moduleRes = await fetch(
@@ -399,7 +490,6 @@ const BankaccAccount = () => {
         await fetchAndRedirectToEsignLink(token);
 
         // navigate("/esign");
-
       } else {
         toast.error(
           formData?.message || "Failed to generate user form. Please try again."
@@ -498,19 +588,16 @@ const BankaccAccount = () => {
       if (checkData?.data?.pennydrop_flag === true) {
         console.log("Pennydrop successful, proceeding to verify bank details");
 
-       
         if (checkData.tempId || checkData?.data?.bank_temp_id) {
           const tempId = checkData.tempId || checkData?.data?.bank_temp_id;
           console.log("tempId", tempId);
           await verifyBankDetailsAPI(tempId);
         } else {
-          
           await callUserFormGeneration();
         }
         return;
       }
 
-      
       if (checkRes.ok && checkData.success && checkData.tempId) {
         const tempId = checkData.tempId;
         console.log("tempId", tempId);
@@ -922,13 +1009,11 @@ const BankaccAccount = () => {
 
           {showOCRPopup && bankDetails && (
             <>
-             
               <div
                 className="bank-popup-overlay"
-                onClick={() => setShowOCRPopup(false)} 
+                onClick={() => setShowOCRPopup(false)}
               />
 
-             
               <div className="bank-popup-wrapper">
                 <div className="bank-popup">
                   <h3 className="bank-title">Confirm bank details</h3>
