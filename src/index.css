@@ -44,6 +44,14 @@ body {
   z-index: 1;
 }
 
+.univest-footer {
+  width: auto;
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+}
+
 
 
 .univest-input-group {

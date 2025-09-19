@@ -117,7 +117,7 @@ const EditContactModal = ({ onClose, contact }) => {
   // Function to call user form generation API
   const callUserFormGeneration = async () => {
     try {
-       setLoading(true); 
+      setLoading(true);
       const token = Cookies.get("access_token");
 
       if (!token) {
