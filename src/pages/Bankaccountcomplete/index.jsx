@@ -6,6 +6,7 @@ import "./style.css";
 import axios from "axios";
 import Header from "../../Components/Header";
 import { toast } from "react-toastify";
+import { BANKLIST } from "../../lib/utils";
 
 const BankaccAccountComplete = () => {
   const [loading, setLoading] = useState(false);
@@ -398,7 +399,9 @@ const BankaccAccountComplete = () => {
             <p className="rs_one_refund">₹1 will be refunded in 24 hours</p>
             <section className="Completed-sections-maincontainer">
               <div className="bank-card">
-                <img className="bank-icon" src="./bank5.png" alt="Bank Icon" />
+                <div className="bank-icon">
+                  <img alt={bankDetails.bank_name} className="bank_icon_cls" src={BANKLIST?.filter(f => bankDetails.bank_name?.toLowerCase()?.includes(f.name?.toLowerCase()))?.[0]?.url ?? "./bank5.png"}></img>
+                </div>
                 <div className="bank-details">
                   <h6 className="account-name">{bankDetails.bank_name}</h6>
                   <p className="account-type">Savings</p>
@@ -462,7 +465,7 @@ const BankaccAccountComplete = () => {
             <button
               className="continue_ba_ac"
               onClick={() => verifyBankDetails(bankTempId)}
-              // disabled={!bankTempId}
+            // disabled={!bankTempId}
             >
               Continue
             </button>
