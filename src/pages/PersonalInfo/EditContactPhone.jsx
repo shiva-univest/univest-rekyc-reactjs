@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 import "./personal.css";
 import OtpInput from "react-otp-input";
 import { toast } from "react-toastify";
-
+import { decryptData } from "../../decode";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
 const EditContactPhone = ({ onClose, contact }) => {
@@ -13,7 +13,7 @@ const EditContactPhone = ({ onClose, contact }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
-  const [timer, setTimer] = useState(15);
+  const [timer, setTimer] = useState(60);
   const [otpError, setOtpError] = useState("");
   const ranOnce = useRef(false);
   const inputRefs = useRef([]);
@@ -294,7 +294,7 @@ const EditContactPhone = ({ onClose, contact }) => {
       if (response.ok && data?.status) {
         // If updatemobile is successful, proceed to OTP step directly
         setStep("otp");
-        setTimer(15);
+        setTimer(60);
       } else {
         // If updatemobile returns false, call get_module_data API
         const moduleResult = await checkMobileInModuleData(newPhone, token);
@@ -366,7 +366,7 @@ const EditContactPhone = ({ onClose, contact }) => {
 
           if (formData?.status === true) {
             // await callUserFormGeneration();
-             await fetchAndRedirectToEsignLink(token);
+            await fetchAndRedirectToEsignLink(token);
             // navigate("/esign");
           } else {
             setOtpError(formData?.message || "Failed to generate form");
@@ -399,11 +399,12 @@ const EditContactPhone = ({ onClose, contact }) => {
           <>
             <h2>Your details are safe & secure</h2>
             <div className="existing-email">
-              <span className="label">Existing mobile no</span>
+              <span className="label mobile_label_exist">Existing mobile no</span>
               <div className="email_val_container">
                 <span className="value email_value">
                   {contact?.mobile || "Not Available"}
                 </span>
+                <img src="./App Icon.svg" />
               </div>
             </div>
 
@@ -418,20 +419,19 @@ const EditContactPhone = ({ onClose, contact }) => {
                     if (val.length <= 10) {
                       setNewPhone(val);
                     }
-                    if (error) {
-                      setError("");
-                    }
+                    // Always clear error on change
+                    setError("");
                   }}
                   maxLength={10}
                   placeholder=" "
                   className={`custom-input ${error ? "input-error" : ""}`}
                   required
                 />
+
                 <label className="floating-label">Enter new mobile no</label>
               </div>
             </div>
 
-            {/* {error && <p className="error-text_phone"> {error}</p>} */}
             {error && newPhone && <p className="error-text_phone">{error}</p>}
 
             <button
@@ -530,7 +530,7 @@ const EditContactPhone = ({ onClose, contact }) => {
                       const token = await getValidToken();
                       const response = await callUpdatePhoneAPI(token);
                       if (response.ok) {
-                        setTimer(15);
+                        setTimer(60);
                         setOtp(""); // reset string instead of array
                       } else {
                         setOtpError("Failed to resend OTP");

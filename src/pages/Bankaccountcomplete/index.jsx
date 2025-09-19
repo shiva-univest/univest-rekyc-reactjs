@@ -244,7 +244,6 @@ const BankaccAccountComplete = () => {
   //   }
   // };
 
-
   // New function to fetch module data and redirect to eSign link
   const fetchAndRedirectToEsignLink = async (token) => {
     try {
@@ -300,7 +299,7 @@ const BankaccAccountComplete = () => {
   // Function to call user form generation API
   const callUserFormGeneration = async () => {
     try {
-      const token = await getrefershtoken();
+      const token = Cookies.get("access_token");
 
       if (!token) {
         alert("Authorization failed.");
@@ -336,7 +335,6 @@ const BankaccAccountComplete = () => {
       alert("Failed to generate user form. Please try again.");
     }
   };
-
 
   const verifyBankDetails = async () => {
     console.log("button press");
@@ -464,7 +462,7 @@ const BankaccAccountComplete = () => {
             <button
               className="continue_ba_ac"
               onClick={() => verifyBankDetails(bankTempId)}
-            // disabled={!bankTempId}
+              // disabled={!bankTempId}
             >
               Continue
             </button>

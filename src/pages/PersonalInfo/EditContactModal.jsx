@@ -21,7 +21,8 @@ const EditContactModal = ({ onClose, contact }) => {
   const inputRefs = useRef([]);
   const otpRef = useRef(null);
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.(com|net|org|in|edu|gov)$/i;
 
   useEffect(() => {
     if (step === "otp" && timer > 0) {
@@ -213,6 +214,17 @@ const EditContactModal = ({ onClose, contact }) => {
     }
   };
 
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setNewEmail(value);
+
+    if (value && !emailRegex.test(value)) {
+      setError("Please enter a valid email address");
+    } else {
+      setError("");
+    }
+  };
+
   const handleVerifyOtpSubmit = async () => {
     if (otp.length !== 6) {
       setOtpError("Enter 6 digit OTP");
@@ -267,7 +279,8 @@ const EditContactModal = ({ onClose, contact }) => {
           <>
             <h2>Your details are safe & secure</h2>
             <div className="existing-email">
-              <span className="label">Existing email ID</span>
+              <span className="label new_label_email">Existing email ID</span>
+              <br />
               <div className="email_val_container">
                 <span className="value email_value">
                   {contact?.email || "Not Available"}
@@ -280,14 +293,14 @@ const EditContactModal = ({ onClose, contact }) => {
               <input
                 type="email"
                 value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
+                onChange={handleEmailChange}
                 placeholder="Enter new email"
                 required
               />
               <label>Enter new email ID</label>
-            </div>
 
-            {error && <p className="error-text_phone"> {error}</p>}
+              {error && <p className="error-text_phone">{error}</p>}
+            </div>
 
             <button
               className="verify-button"

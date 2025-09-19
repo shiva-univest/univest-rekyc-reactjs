@@ -194,10 +194,11 @@
   border-radius: 8px;
   padding: 10px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin: 16px 0;
   font-weight: bold;
+  flex-direction: column;
 }
 
 .input-label {
@@ -281,11 +282,16 @@ input[type="email"] {
   border-radius: 8px;
   padding: 10px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin: 16px 0;
   font-weight: bold;
   font-size: 14px;
+}
+.mobile_label_exist{
+  font-size: 10px;
+  font-weight: 500;
+  margin-bottom: 7px;
 }
 
 .input-label {
@@ -318,6 +324,7 @@ input[type="email"] {
 .email_val_container{
   display: flex;
   justify-content: center;
+  gap: 5px;
 
 }
 .resend-button{
@@ -506,6 +513,11 @@ input[type="tel"] {
   padding: 0 4px;
   pointer-events: none;
   transition: 0.2s ease all;
+}
+.new_label_email{
+  text-align: left;
+  font-size: 10px;
+  font-weight: 500;
 }
 
 /* Float label when focused OR input has value */
