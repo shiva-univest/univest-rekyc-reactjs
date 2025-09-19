@@ -128,6 +128,7 @@ const BankaccAccount = () => {
   };
 
   const callReverseResponseAPI = async (transId, retryCount = 0) => {
+    setLoading(true);
     console.log("Calling Setu response API...");
 
     try {
@@ -155,15 +156,18 @@ const BankaccAccount = () => {
       console.log("Decrypted response:11111111111", decrypted);
 
       const status = decrypted?.status
+      alert(status)
       if (status.includes("SUCCESS")) {
         window.location.href = `/bankaccountcomplete?success=true`
+        setLoading(false);
         return
-      } else if (status.includes("FAILED")) {
+      } else if (status.includes("FAILED") || retryCount > 15) {
         window.location.href = `/bankaccountcomplete?success=false`
+        setLoading(false);
         return
       }
 
-      await waitFor(1500)
+      await waitFor(5000)
       const newToken = await getrefershtoken();
       if (newToken) {
         Cookies.set("access_token", newToken);
@@ -230,10 +234,10 @@ const BankaccAccount = () => {
         console.error("No upiLink found in response");
       }
     } catch (error) {
+      setLoading(false);
       console.error("Error in callReversePennydropAPI:", error);
       setError(error.message);
     } finally {
-      setLoading(false);
     }
   };
 
