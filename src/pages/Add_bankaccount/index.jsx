@@ -9,6 +9,7 @@ import { BANKLIST, openLink, waitFor } from "../../lib/utils";
 import { toast } from "react-toastify";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 import api from "../../api/api";
+import { isMobile } from "react-device-detect";
 
 const BankaccAccount = () => {
   const ref = useRef()
@@ -131,7 +132,7 @@ const BankaccAccount = () => {
 
       const response = await api.post("/user/reverse_pennydrop_api_setu_response", { entity_id: transId });
 
-      let decrypted = decryptData(response.data);
+      let decrypted = decryptData(response.data?.data);
       decrypted = JSON.parse(decrypted);
 
       const status = decrypted?.status
@@ -153,7 +154,6 @@ const BankaccAccount = () => {
   };
 
   const callReversePennydropAPI = async (retryCount = 0) => {
-    console.log("aaaaaaaaaaaaaaaaaaa");
 
     try {
       setLoading(true);
@@ -200,13 +200,17 @@ const BankaccAccount = () => {
       sessionStorage.setItem("transid", transId);
 
       if (data?.upiLink) {
-        count.current = 1
-        ref.current = setInterval(() => {
-          callReverseResponseAPI(transId, count.current)
-          count.current = count.current + 1
-        }, 5000)
-        await waitFor(1000)
-        openLink(data.upiLink);
+        if (isMobile) {
+          count.current = 1
+          ref.current = setInterval(() => {
+            callReverseResponseAPI(transId, count.current)
+            count.current = count.current + 1
+          }, 5000)
+          await waitFor(1000)
+          openLink(data.upiLink);
+        } else {
+          openLink(data.shortUrl);
+        }
       } else {
         console.error("No upiLink found in response");
       }
