@@ -4,6 +4,7 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import OtpInput from "react-otp-input";
 import { toast } from "react-toastify";
 import { decryptData } from "../../decode";
+import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 
 import "./personal.css";
 
@@ -243,6 +244,7 @@ const EditContactModal = ({ onClose, contact }) => {
         setOtpError("");
 
         try {
+           setLoading(true); 
           const formRes = await fetch(
             "https://rekyc.meon.co.in/v1/user/user_form_generation",
             {
@@ -274,6 +276,7 @@ const EditContactModal = ({ onClose, contact }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
+       {loading && <VerificationLoader isVisible={loading} />}
       <div className="modal-content3" onClick={(e) => e.stopPropagation()}>
         {step === "email" ? (
           <>

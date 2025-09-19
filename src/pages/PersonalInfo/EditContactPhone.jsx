@@ -5,6 +5,7 @@ import OtpInput from "react-otp-input";
 import { toast } from "react-toastify";
 import { decryptData } from "../../decode";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 
 const EditContactPhone = ({ onClose, contact }) => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const EditContactPhone = ({ onClose, contact }) => {
   const inputRefs = useRef([]);
   const firstInputRef = useRef(null);
   const phoneInputRef = useRef(null);
+  
 
   useEffect(() => {
     if (firstInputRef.current) {
@@ -110,6 +112,7 @@ const EditContactPhone = ({ onClose, contact }) => {
   // Function to call user form generation API
   const callUserFormGeneration = async () => {
     try {
+       setLoading(true); 
       const token = await getValidToken();
 
       if (!token) {
@@ -351,6 +354,7 @@ const EditContactPhone = ({ onClose, contact }) => {
         toast.success(data.message || "Phone verified successfully!");
 
         try {
+           setLoading(true); 
           const formRes = await fetch(
             "https://rekyc.meon.co.in/v1/user/user_form_generation",
             {
@@ -394,6 +398,7 @@ const EditContactPhone = ({ onClose, contact }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
+      {loading && <VerificationLoader isVisible={loading} />}
       <div className="modal-content3" onClick={(e) => e.stopPropagation()}>
         {step === "phone" ? (
           <>

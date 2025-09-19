@@ -90,6 +90,7 @@ const Segment = ({ encryptedData }) => {
     console.log("segment_data", segment_data);
 
     try {
+       setLoading(true);
       console.log("in the second segment");
       await axios.post(
         "https://rekyc.meon.co.in/v1/user/update_user_segments",
@@ -100,6 +101,9 @@ const Segment = ({ encryptedData }) => {
       console.log("Segment updated:", segment_data);
     } catch (error) {
       console.error("Error updating segments:", error);
+    }
+    finally {
+      setLoading(false); 
     }
   };
 
@@ -202,6 +206,7 @@ const Segment = ({ encryptedData }) => {
     setSegmentData(segment_data);
 
     try {
+       setLoading(true);
       const token = localStorage.getItem("token");
 
       await axios.post(
