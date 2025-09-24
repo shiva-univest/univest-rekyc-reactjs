@@ -7,6 +7,7 @@ import axios from "axios";
 import Header from "../../Components/Header";
 import { toast } from "react-toastify";
 import { BANKLIST } from "../../lib/utils";
+import { triggerWebhook } from "../../helper/usewebhook";
 
 const BankaccAccountComplete = () => {
   const [loading, setLoading] = useState(false);
@@ -15,6 +16,7 @@ const BankaccAccountComplete = () => {
   const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
   const navigate = useNavigate();
   const location = useLocation(); // Add this
+  const [moduleSharedData, setModuleSharedData] = useState(null);
 
   // Get data passed from pennydrop
   const passedBankData = location.state?.bankData;
@@ -64,6 +66,48 @@ const BankaccAccountComplete = () => {
     // const cleanUrl = `${window.location.origin}${window.location.pathname}`;
     // window.history.replaceState(null, "", cleanUrl);
   }, [passedBankData]); // Add dependency
+
+
+  useEffect(() => {
+    const fetchModuleData = async () => {
+      try {
+        const moduleDataResponse = await fetch(
+          "https://rekyc.meon.co.in/v1/user/get_module_data",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Cookies.get("access_token")}`,
+            },
+            body: JSON.stringify({ page_id: "2" }),
+          }
+        );
+
+        if (!moduleDataResponse.ok) {
+          throw new Error("Failed to fetch module data");
+        }
+
+        const moduleData = await moduleDataResponse.json();
+        console.log("Module Data Response:", moduleData);
+
+        if (!moduleData?.data) {
+          return { success: false, error: "No module data received" };
+        }
+
+        const { decryptData } = await import("../../decode");
+        const decryptedData = JSON.parse(decryptData(moduleData.data));
+        setModuleSharedData(decryptedData?.shared_data || null);
+      } catch (moduleErr) {
+        console.error("Failed to fetch or process module data:", moduleErr);
+        return {
+          success: false,
+          error: "Failed to verify mobile number details",
+        };
+      }
+    };
+
+    fetchModuleData();
+  }, [Cookies.get("access_token")]);
 
   const getrefreshtoken = async () => {
     try {
@@ -286,7 +330,7 @@ const BankaccAccountComplete = () => {
       } else {
         // Open the first available eSign link
         const firstLink = links[0];
-        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_blank");
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`);
 
         // Optionally, you can also navigate to congratulations or stay on current page
         // navigate("/congratulations");
@@ -372,6 +416,12 @@ const BankaccAccountComplete = () => {
       if (result.status === true) {
         // call the api user_form_generation api here and based on the status of that api we will navigate to teh esign
         console.log("calling the user from generation ap1111111111i");
+         triggerWebhook({
+          step: "bank",
+          eSignCompleted: "no",
+          finalUpdateExecuted: "no",
+         userId: moduleSharedData?.clientcode || "<user-id>",
+        });
         await callUserFormGeneration();
         console.log("user form generation success");
         return;

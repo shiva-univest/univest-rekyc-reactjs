@@ -10,12 +10,14 @@ import { toast } from "react-toastify";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 import api from "../../api/api";
 import { isMobile } from "react-device-detect";
+import { triggerWebhook } from "../../helper/usewebhook";
 
 const BankaccAccount = () => {
   const ref = useRef();
   const count = useRef();
   const [isOpen, setIsOpen] = useState(false);
   const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
+  const [moduleSharedData, setModuleSharedData] = useState(null);
 
   const navigate = useNavigate();
 
@@ -51,6 +53,48 @@ const BankaccAccount = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+
+  useEffect(() => {
+    const fetchModuleData = async () => {
+      try {
+        const moduleDataResponse = await fetch(
+          "https://rekyc.meon.co.in/v1/user/get_module_data",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Cookies.get("access_token")}`,
+            },
+            body: JSON.stringify({ page_id: "2" }),
+          }
+        );
+
+        if (!moduleDataResponse.ok) {
+          throw new Error("Failed to fetch module data");
+        }
+
+        const moduleData = await moduleDataResponse.json();
+        console.log("Module Data Response:", moduleData);
+
+        if (!moduleData?.data) {
+          return { success: false, error: "No module data received" };
+        }
+
+        const { decryptData } = await import("../../decode");
+        const decryptedData = JSON.parse(decryptData(moduleData.data));
+        setModuleSharedData(decryptedData?.shared_data || null);
+      } catch (moduleErr) {
+        console.error("Failed to fetch or process module data:", moduleErr);
+        return {
+          success: false,
+          error: "Failed to verify mobile number details",
+        };
+      }
+    };
+
+    fetchModuleData();
+  }, [Cookies.get("access_token")]);
 
   // useEffect(() => {
   //   if (dataFromOCR) {
@@ -168,7 +212,7 @@ const BankaccAccount = () => {
             Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
-            redirect_url: "http://uat-rekyc.univest.in/bankaccountcomplete",
+            redirect_url: "http://rekyc.univest.in/bankaccountcomplete",
           }),
         }
       );
@@ -421,6 +465,7 @@ const BankaccAccount = () => {
       console.log("User form generation response:", formData);
 
       if (formData?.status === true) {
+        
         console.log("Form generation successful, navigating to esign");
         await fetchAndRedirectToEsignLink(token);
 
@@ -461,6 +506,12 @@ const BankaccAccount = () => {
         console.log(
           "Bank verification successful, calling user form generation"
         );
+         triggerWebhook({
+          step: "bank",
+          eSignCompleted: "no",
+          finalUpdateExecuted: "no",
+          userId: moduleSharedData?.clientcode || "<user-id>",
+        });
         await callUserFormGeneration();
       } else {
         setPopupMessage(verifyData?.message || "Bank verification failed");
@@ -528,6 +579,12 @@ const BankaccAccount = () => {
           console.log("tempId", tempId);
           await verifyBankDetailsAPI(tempId);
         } else {
+           triggerWebhook({
+          step: "bank",
+          eSignCompleted: "no",
+          finalUpdateExecuted: "no",
+          userId: moduleSharedData?.clientcode || "<user-id>",
+        });
           await callUserFormGeneration();
         }
         return;

@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import withAuthCheck from "../../hoc/withAuthCheck";
 import { BANKLIST } from "../../lib/utils";
 import api from "../../api/api";
+import { triggerWebhook } from "../../helper/usewebhook";
 
 const Bank = ({ encryptedData }) => {
   const [bankAccounts, setBankAccounts] = useState([]);
@@ -27,6 +28,7 @@ const Bank = ({ encryptedData }) => {
   const [deleteDetailsPopup, setdeleteDetailsPopup] = useState(false);
   const [esignDataStatus, setEsignDataStatus] = useState("");
   const [isEsigned, setIsEsigned] = useState(false);
+  const [moduleSharedData, setModuleSharedData] = useState(null);
 
   const parseEncryptedData = () => {
     try {
@@ -56,6 +58,47 @@ const Bank = ({ encryptedData }) => {
       setError("Failed to load account data");
     }
   };
+
+  useEffect(() => {
+    const fetchModuleData = async () => {
+      try {
+        const moduleDataResponse = await fetch(
+          "https://rekyc.meon.co.in/v1/user/get_module_data",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Cookies.get("access_token")}`,
+            },
+            body: JSON.stringify({ page_id: "2" }),
+          }
+        );
+
+        if (!moduleDataResponse.ok) {
+          throw new Error("Failed to fetch module data");
+        }
+
+        const moduleData = await moduleDataResponse.json();
+        console.log("Module Data Response:", moduleData);
+
+        if (!moduleData?.data) {
+          return { success: false, error: "No module data received" };
+        }
+
+        const { decryptData } = await import("../../decode");
+        const decryptedData = JSON.parse(decryptData(moduleData.data));
+        setModuleSharedData(decryptedData?.shared_data || null);
+      } catch (moduleErr) {
+        console.error("Failed to fetch or process module data:", moduleErr);
+        return {
+          success: false,
+          error: "Failed to verify mobile number details",
+        };
+      }
+    };
+
+    fetchModuleData();
+  }, [Cookies.get("access_token")]);
 
   const fetchBankAccounts = async () => {
     try {
@@ -233,7 +276,12 @@ const Bank = ({ encryptedData }) => {
         alert("Authorization failed.");
         return;
       }
-
+ triggerWebhook({
+          step: "bank",
+          eSignCompleted: "no",
+          finalUpdateExecuted: "no",
+         userId: moduleSharedData?.clientcode || "<user-id>",
+        });
       const response = await fetch(
         "https://rekyc.meon.co.in/v1/user/user_form_generation",
         {
@@ -250,6 +298,7 @@ const Bank = ({ encryptedData }) => {
       console.log("User form generation response:", formData);
 
       if (formData?.status === true) {
+
         console.log("Form generation successful, navigating to esign");
         // Fetch module data to get eSign links
         await fetchAndRedirectToEsignLink(token);
@@ -553,6 +602,8 @@ const Bank = ({ encryptedData }) => {
                 onClick={async () => {
                   handleMakePrimary(selectedAccount.id);
                   setShowDropdown(false);
+
+           
                   await callUserFormGeneration();
                 }}
               >

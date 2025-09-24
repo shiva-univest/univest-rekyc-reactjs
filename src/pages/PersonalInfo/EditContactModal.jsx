@@ -4,6 +4,7 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import OtpInput from "react-otp-input";
 import { toast } from "react-toastify";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
+import { triggerWebhook } from "../../helper/usewebhook";
 
 import "./personal.css";
 import { decryptData } from "../../decode";
@@ -17,6 +18,7 @@ const EditContactModal = ({ onClose, contact }) => {
   const [verifyingOtp, setVerifyingOtp] = useState(false); // Add this new state
 
   const [otp, setOtp] = useState("");
+  const [moduleSharedData, setModuleSharedData] = useState(null);
 
   const [timer, setTimer] = useState(60);
   const [otpError, setOtpError] = useState("");
@@ -41,6 +43,47 @@ const EditContactModal = ({ onClose, contact }) => {
   //       firstInput.click();
   //     }
   //   }, 300);
+
+  useEffect(() => {
+    const fetchModuleData = async () => {
+      try {
+        const moduleDataResponse = await fetch(
+          "https://rekyc.meon.co.in/v1/user/get_module_data",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Cookies.get("access_token")}`,
+            },
+            body: JSON.stringify({ page_id: "1" }),
+          }
+        );
+
+        if (!moduleDataResponse.ok) {
+          throw new Error("Failed to fetch module data");
+        }
+
+        const moduleData = await moduleDataResponse.json();
+        console.log("Module Data Response:", moduleData);
+
+        if (!moduleData?.data) {
+          return { success: false, error: "No module data received" };
+        }
+
+        const { decryptData } = await import("../../decode");
+        const decryptedData = JSON.parse(decryptData(moduleData.data));
+        setModuleSharedData(decryptedData?.shared_data || null);
+      } catch (moduleErr) {
+        console.error("Failed to fetch or process module data:", moduleErr);
+        return {
+          success: false,
+          error: "Failed to verify mobile number details",
+        };
+      }
+    };
+
+    fetchModuleData();
+  }, [Cookies.get("access_token")]);
 
   const getValidToken = async () => {
     let token = Cookies.get("access_token");
@@ -103,7 +146,7 @@ const EditContactModal = ({ onClose, contact }) => {
       } else {
         // Open the first available eSign link
         const firstLink = links[0];
-        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_blank");
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`);
 
         // Optionally, you can also navigate to congratulations or stay on current page
         // navigate("/congratulations");
@@ -152,8 +195,7 @@ const EditContactModal = ({ onClose, contact }) => {
     } catch (error) {
       console.error("User form generation error:", error);
       alert("Failed to generate user form. Please try again.");
-    }
-    finally {
+    } finally {
       setLoading(false); // ⬅️ always hide loader
     }
   };
@@ -189,7 +231,7 @@ const EditContactModal = ({ onClose, contact }) => {
     setLoading(true);
 
     try {
-      const token = await getValidToken();
+      const token = Cookies.get("access_token");
       const response = await callUpdateEmailAPI(token);
       const data = await response.json();
 
@@ -235,8 +277,13 @@ const EditContactModal = ({ onClose, contact }) => {
       const token = await getValidToken();
       const response = await callVerifyOtpAPI(otpValue, token);
       const data = await response.json();
-
       if (data?.status === true) {
+        triggerWebhook({
+          step: "email",
+          eSignCompleted: "no",
+          finalUpdateExecuted: "no",
+          userId: moduleSharedData?.clientcode || "<user-id>",
+        });
         setOtpError("");
 
         try {
@@ -258,7 +305,8 @@ const EditContactModal = ({ onClose, contact }) => {
           console.error("user_form_generation API failed:", formErr);
         }
 
-        toast.success(data.message || "Phone verified successfully!");
+        toast.success(data.message || "Email verified successfully!");
+
         await callUserFormGeneration(token);
         // navigate("/esign");
       } else {

@@ -4,6 +4,7 @@ import { decryptData } from "../../decode";
 import api from "../../api/api";
 import "./style.css";
 import Cookies from "js-cookie";
+import { triggerWebhook } from "../../helper/usewebhook";
 
 const ActivateDDPI = () => {
   const [expanded, setExpanded] = useState(false);
@@ -12,6 +13,7 @@ const ActivateDDPI = () => {
   const [ddpiActive, setDdpiActive] = useState(false);
   const [esignDataStatus, setEsignDataStatus] = useState("");
   const [isEsigned, setIsEsigned] = useState(false);  
+  const [moduleSharedData, setModuleSharedData] = useState(null);
   const navigate = useNavigate();
 
   const [checkboxes, setCheckboxes] = useState({
@@ -25,6 +27,47 @@ const ActivateDDPI = () => {
   useEffect(() => {
     fetchEsignStatus();
   }, []);
+
+  useEffect(() => {
+    const fetchModuleData = async () => {
+      try {
+        const moduleDataResponse = await fetch(
+          "https://rekyc.meon.co.in/v1/user/get_module_data",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Cookies.get("access_token")}`,
+            },
+            body: JSON.stringify({ page_id: "6" }),
+          }
+        );
+
+        if (!moduleDataResponse.ok) {
+          throw new Error("Failed to fetch module data");
+        }
+
+        const moduleData = await moduleDataResponse.json();
+        console.log("Module Data Response:", moduleData);
+
+        if (!moduleData?.data) {
+          return { success: false, error: "No module data received" };
+        }
+
+        const { decryptData } = await import("../../decode");
+        const decryptedData = JSON.parse(decryptData(moduleData.data));
+        setModuleSharedData(decryptedData?.shared_data || null);
+      } catch (moduleErr) {
+        console.error("Failed to fetch or process module data:", moduleErr);
+        return {
+          success: false,
+          error: "Failed to verify mobile number details",
+        };
+      }
+    };
+
+    fetchModuleData();
+  }, [Cookies.get("access_token")]);
 
   useEffect(() => {
     if(esignDataStatus.length > 0)
@@ -156,6 +199,12 @@ const ActivateDDPI = () => {
       console.log("DDPI save response:", result);
       if(result?.status)
       {
+         triggerWebhook({
+          step: "ddpi",
+          eSignCompleted: "no",
+          finalUpdateExecuted: "no",
+         userId: moduleSharedData?.clientcode || "<user-id>",
+        });
         callUserFormGeneration(accessToken)
       }
 
@@ -189,6 +238,7 @@ const ActivateDDPI = () => {
       const formData = await response.json();
       console.log("User form generation response:", formData);
       if (formData?.status === true) {
+        
         console.log("Form generation successful, navigating to esign");
         fetchAndRedirectToEsignLink(accessToken)
       } else {
@@ -237,7 +287,7 @@ const ActivateDDPI = () => {
         navigate("/congratulations");
       } else {
         const firstLink = links[0];
-        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_blank");
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`);
       }
     } catch (err) {
       console.error("Error fetching eSign data:", err);

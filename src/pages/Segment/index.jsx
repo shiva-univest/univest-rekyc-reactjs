@@ -9,6 +9,7 @@ import "./style2.css";
 import { SegmentContext } from "../../context/SegmentContext";
 import api from "../../api/api";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
+import { triggerWebhook } from "../../helper/usewebhook";
 
 const Segment = ({ encryptedData }) => {
   const { segmentData, setSegmentData } = useContext(SegmentContext);
@@ -19,12 +20,13 @@ const Segment = ({ encryptedData }) => {
   const [esignDataStatus, setEsignDataStatus] = useState("");
   const [isEsigned, setIsEsigned] = useState(false);
    const [loading, setLoading] = useState(false);
+   const [moduleSharedData, setModuleSharedData] = useState(null);
 
   console.log("Token from query param:", token);
 
   const refreshAccessToken = async () => {
     try {
-      const refreshToken = localStorage.getItem("refresh_token"); // or Cookies.get("refresh_token")
+      const refreshToken = localStorage.getItem("refresh_token"); 
       if (!refreshToken) throw new Error("No refresh token available");
 
       const res = await axios.post(
@@ -46,6 +48,48 @@ const Segment = ({ encryptedData }) => {
       throw err;
     }
   };
+
+
+  useEffect(() => {
+    const fetchModuleData = async () => {
+      try {
+        const moduleDataResponse = await fetch(
+          "https://rekyc.meon.co.in/v1/user/get_module_data",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Cookies.get("access_token")}`,
+            },
+            body: JSON.stringify({ page_id: "6" }),
+          }
+        );
+
+        if (!moduleDataResponse.ok) {
+          throw new Error("Failed to fetch module data");
+        }
+
+        const moduleData = await moduleDataResponse.json();
+        console.log("Module Data Response:", moduleData);
+
+        if (!moduleData?.data) {
+          return { success: false, error: "No module data received" };
+        }
+
+        const { decryptData } = await import("../../decode");
+        const decryptedData = JSON.parse(decryptData(moduleData.data));
+        setModuleSharedData(decryptedData?.shared_data || null);
+      } catch (moduleErr) {
+        console.error("Failed to fetch or process module data:", moduleErr);
+        return {
+          success: false,
+          error: "Failed to verify mobile number details",
+        };
+      }
+    };
+
+    fetchModuleData();
+  }, [Cookies.get("access_token")]);
 
   useEffect(() => {
     const parsed = JSON.parse(decryptData(encryptedData))[13][
@@ -284,7 +328,12 @@ const Segment = ({ encryptedData }) => {
     try {
       const accessToken = Cookies.get("access_token");
       await makeApiCall(accessToken);
-
+       triggerWebhook({
+          step: "trading segment",
+          eSignCompleted: "no",
+          finalUpdateExecuted: "no",
+          userId: moduleSharedData?.clientcode || "<user-id>"
+        });
       setSegmentData((prev) => [
         ...(prev || []),
         { exchange: "NSE", segment: "FNO", ticked: true, is_new: true },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, use } from "react";
 import Cookies from "js-cookie";
 import "./personal.css";
 import OtpInput from "react-otp-input";
@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { decryptData } from "../../decode";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
+import { triggerWebhook } from "../../helper/usewebhook";
 
 const EditContactPhone = ({ onClose, contact }) => {
   const navigate = useNavigate();
@@ -21,13 +22,53 @@ const EditContactPhone = ({ onClose, contact }) => {
   const firstInputRef = useRef(null);
   const phoneInputRef = useRef(null);
   const [verifyingOtp, setVerifyingOtp] = useState(false); // Add this new state
-
-
+  const [moduleSharedData, setModuleSharedData] = useState(null);
   useEffect(() => {
     if (firstInputRef.current) {
       firstInputRef.current.focus();
     }
   }, []);
+
+  useEffect(() => {
+    const fetchModuleData = async () => {
+      try {
+        const moduleDataResponse = await fetch(
+          "https://rekyc.meon.co.in/v1/user/get_module_data",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Cookies.get("access_token")}`,
+            },
+            body: JSON.stringify({ page_id: "1" }),
+          }
+        );
+
+        if (!moduleDataResponse.ok) {
+          throw new Error("Failed to fetch module data");
+        }
+
+        const moduleData = await moduleDataResponse.json();
+        console.log("Module Data Response:", moduleData);
+
+        if (!moduleData?.data) {
+          return { success: false, error: "No module data received" };
+        }
+
+        const { decryptData } = await import("../../decode");
+        const decryptedData = JSON.parse(decryptData(moduleData.data));
+        setModuleSharedData(decryptedData?.shared_data || null);
+      } catch (moduleErr) {
+        console.error("Failed to fetch or process module data:", moduleErr);
+        return {
+          success: false,
+          error: "Failed to verify mobile number details",
+        };
+      }
+    };
+
+    fetchModuleData();
+  }, [Cookies.get("access_token")]);
 
   const phoneRegex = /^[0-9]{10}$/;
 
@@ -99,7 +140,7 @@ const EditContactPhone = ({ onClose, contact }) => {
       } else {
         // Open the first available eSign link
         const firstLink = links[0];
-        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_blank");
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`);
 
         // Optionally, you can also navigate to congratulations or stay on current page
         // navigate("/congratulations");
@@ -180,6 +221,7 @@ const EditContactPhone = ({ onClose, contact }) => {
       // Decrypt the module data
       const { decryptData } = await import("../../decode");
       const decryptedData = JSON.parse(decryptData(moduleData.data));
+
       console.log("Decrypted module data:", decryptedData);
 
       // Check contact_detail_data for is_new: true entries
@@ -355,6 +397,13 @@ const EditContactPhone = ({ onClose, contact }) => {
       if (data?.status === true) {
         setOtpError("");
         toast.success(data.message || "Phone verified successfully!");
+        console.log("webhook called", moduleSharedData);
+        triggerWebhook({
+          step: "mobile",
+          eSignCompleted: "no",
+          finalUpdateExecuted: "no",
+          userId: moduleSharedData?.clientcode || "<user-id>",
+        });
 
         try {
           setLoading(true);
@@ -407,7 +456,9 @@ const EditContactPhone = ({ onClose, contact }) => {
           <>
             <h2>Your details are safe & secure</h2>
             <div className="existing-email">
-              <span className="label mobile_label_exist">Existing mobile no</span>
+              <span className="label mobile_label_exist">
+                Existing mobile no
+              </span>
               <div className="email_val_container">
                 <span className="value email_value">
                   {contact?.mobile || "Not Available"}

@@ -10,6 +10,7 @@ import Loader from "../Loader/Loader";
 import { toast } from "react-toastify";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 
+
 import "./style1.css";
 
 const refreshAccessToken = async () => {
@@ -403,6 +404,7 @@ const Activatebank = ({ encryptedData }) => {
 
       if (formResponse?.status === true) {
         // Step 2: Get module data
+       
         const moduleResponse = await fetchWithAuthRetry(
           "https://rekyc.meon.co.in/v1/user/get_module_data",
           { page_id: "6" }
@@ -637,7 +639,7 @@ const Activatebank = ({ encryptedData }) => {
       localStorage.setItem("setuDocID", documentId);
       localStorage.setItem("setuDocReqID", docReqId);
 
-      window.open(result.url, "_blank");
+      window.open(result.url);
     } catch (error) {
       console.warn("Init request failed. Checking 401...", error);
 
@@ -903,84 +905,82 @@ const Activatebank = ({ encryptedData }) => {
 
             {/* {userModuleData?.["11"]?.document_detail_data?.[0]
               ?.document_name && ( */}
-              <div className="upload-section">
-                <label htmlFor="document">Upload Income Proof</label>
+            <div className="upload-section">
+              <label htmlFor="document">Upload Income Proof</label>
 
-                <div
-                  className="custom-select-trigger"
-                  onClick={() => setShowPopup(true)}
-                >
-                  {selectedDoc
-                    ? selectedDoc === "bank"
-                      ? "Bank statement (last 6 months)"
-                      : selectedDoc === "salary"
-                      ? "Salary slip (last month)"
-                      : "ITR acknowledgement (last FY)"
-                    : "Select document"}
-                  <span className="dropdown-icon">
-                    <img src="./Arrow---Left-2.svg" alt="" />
-                  </span>
-                </div>
-
-                <div className="upload-box">
-                  <label className="upload_doc_logo_wrapper">
-                    <input
-                      type="file"
-                      hidden
-                      onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-
-                        const allowedTypes =
-                          userModuleData?.["11"]?.document_detail_data?.[0]
-                            ?.document_file_type?.allowed_type || [];
-
-                        const fileExtension = file.name
-                          .split(".")
-                          .pop()
-                          .toLowerCase();
-                        if (!allowedTypes.includes(fileExtension)) {
-                          toast.error(
-                            `Only ${allowedTypes
-                              .join(", ")
-                              .toUpperCase()} files are allowed.`
-                          );
-                          return;
-                        }
-
-                        setUploadedFile(file);
-                        e.target
-                          .closest("label")
-                          .classList.add("file-selected");
-
-                        const token = Cookies.get("access_token");
-                        const documentId =
-                          userModuleData?.["11"]?.document_detail_data?.[0]?.id;
-                        if (!token || !documentId || !selectedDoc) return;
-
-                        const formData = new FormData();
-                        formData.append("file", file);
-                        formData.append("file_suggestion", selectedDoc);
-
-                        try {
-                          const res = await fetch(
-                            `https://rekyc.meon.co.in/v1/user/upload_user_documents/${documentId}`,
-                            {
-                              method: "POST",
-                              headers: { Authorization: `Bearer ${token}` },
-                              body: formData,
-                            }
-                          );
-                          const result = await res.json();
-                          console.log("✅ Upload result:", result);
-                        } catch (err) {
-                          console.error("❌ Upload error:", err);
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
+              <div
+                className="custom-select-trigger"
+                onClick={() => setShowPopup(true)}
+              >
+                {selectedDoc
+                  ? selectedDoc === "bank"
+                    ? "Bank statement (last 6 months)"
+                    : selectedDoc === "salary"
+                    ? "Salary slip (last month)"
+                    : "ITR acknowledgement (last FY)"
+                  : "Select document"}
+                <span className="dropdown-icon">
+                  <img src="./Arrow---Left-2.svg" alt="" />
+                </span>
               </div>
+
+              <div className="upload-box">
+                <label className="upload_doc_logo_wrapper">
+                  <input
+                    type="file"
+                    hidden
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+
+                      const allowedTypes =
+                        userModuleData?.["11"]?.document_detail_data?.[0]
+                          ?.document_file_type?.allowed_type || [];
+
+                      const fileExtension = file.name
+                        .split(".")
+                        .pop()
+                        .toLowerCase();
+                      if (!allowedTypes.includes(fileExtension)) {
+                        toast.error(
+                          `Only ${allowedTypes
+                            .join(", ")
+                            .toUpperCase()} files are allowed.`
+                        );
+                        return;
+                      }
+
+                      setUploadedFile(file);
+                      e.target.closest("label").classList.add("file-selected");
+
+                      const token = Cookies.get("access_token");
+                      const documentId =
+                        userModuleData?.["11"]?.document_detail_data?.[0]?.id;
+                      if (!token || !documentId || !selectedDoc) return;
+
+                      const formData = new FormData();
+                      formData.append("file", file);
+                      formData.append("file_suggestion", selectedDoc);
+
+                      try {
+                        const res = await fetch(
+                          `https://rekyc.meon.co.in/v1/user/upload_user_documents/${documentId}`,
+                          {
+                            method: "POST",
+                            headers: { Authorization: `Bearer ${token}` },
+                            body: formData,
+                          }
+                        );
+                        const result = await res.json();
+                        console.log("✅ Upload result:", result);
+                      } catch (err) {
+                        console.error("❌ Upload error:", err);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
             {/* )} */}
 
             <div className="upload-box">
