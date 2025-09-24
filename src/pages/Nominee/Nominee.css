@@ -73,10 +73,10 @@
 .nominee-summary {
   
   border-radius: 12px;
-  padding: 12px;
+ 
   margin-bottom: 15px;
   cursor: pointer;
-  /* border: 1px solid rgba(13, 115, 206, 1); */
+ 
 }
 
 .nominee-summary h3 {
@@ -90,9 +90,9 @@
 }
 
 .nominee-field label {
-  font-size: 14px;
-  color: gray;
-  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  color: #606060;
 }
 
 .nominee-field p {
@@ -102,14 +102,12 @@
 
 
 .nominee-summary p {
-  margin: 0;
+  margin-top: 5px;
   font-size: 14px;
   color: #666;
 }
 
-.nominee-summary:hover {
-  background: #ebebeb;
-}
+
 
 .nominee-details {
   display: flex;
@@ -117,17 +115,37 @@
   border-radius: 12px;
   gap: 20px;
   /* border: 1px solid rgba(13, 115, 206, 1); */
-  padding: 12px;
+  /* padding: 12px; */
 }
 
-.nominee-details_summary {
+/* .nominee-details_summary {
   display: flex;
   flex-direction: column;
   border-radius: 12px;
   gap: 20px;
   border: 1px solid rgba(13, 115, 206, 1);
   padding: 12px;
+} */
+
+.nominee-details_summary {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  border: 1px solid rgba(13, 115, 206, 1);
+  padding: 12px;
 }
+
+.nominee-details_summary > *:not(:last-child) {
+  border-bottom: 1px dotted rgba(13, 115, 206, 1);
+  padding-bottom: 12px; /* spacing below content */
+  margin-bottom: 4px;  /* spacing before separator */
+}
+.summary_data{
+  font-size: 12px;
+  font-weight: 500;
+  color: #202020;
+}
+
 
 .nominee-details input,
 .nominee-details select {
@@ -169,6 +187,7 @@
   font-size: 12px;
   font-weight: 500;
   color: rgba(157, 157, 157, 1);
+  margin-top: 5px;
 }
 
 .upload-label {
@@ -222,7 +241,7 @@
 }
 
 .btn-submit.active {
-  background: #1976d2;
+  background: #33A34D;
   color: #fff;
 }
 
@@ -282,9 +301,9 @@
   width: 100%;
 }
 
-.fixed-footer .add-btn:hover {
+/* .fixed-footer .add-btn:hover {
   background: #0056b3;
-}
+} */
 
 
 
@@ -315,3 +334,43 @@
 .nominee_img1{
   width: -webkit-fill-available;
 } 
+
+
+
+
+.percentage-field {
+  position: relative;
+  margin-top: 16px;
+  margin-bottom: 12px;
+}
+
+.floating-label {
+  position: absolute;
+  top: -10px;
+  left: 12px;
+  background: #fff;
+  padding: 0 6px;
+  font-size: 13px;
+  color: #666;
+}
+
+.percentage-input {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+}
+
+.percentage-input:focus {
+  border-color: #0d73ce;
+}
+
+.percentage-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #777;
+}
+
