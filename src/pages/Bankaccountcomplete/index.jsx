@@ -8,6 +8,7 @@ import Header from "../../Components/Header";
 import { toast } from "react-toastify";
 import { BANKLIST } from "../../lib/utils";
 import { triggerWebhook } from "../../helper/usewebhook";
+import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 
 const BankaccAccountComplete = () => {
   const [loading, setLoading] = useState(false);
@@ -292,6 +293,7 @@ const BankaccAccountComplete = () => {
   // New function to fetch module data and redirect to eSign link
   const fetchAndRedirectToEsignLink = async (token) => {
     try {
+      setLoading(true);
       const moduleRes = await fetch(
         "https://rekyc.meon.co.in/v1/user/get_module_data",
         {
@@ -330,7 +332,7 @@ const BankaccAccountComplete = () => {
       } else {
         // Open the first available eSign link
         const firstLink = links[0];
-        window.open(`https://rekyc.meon.co.in${firstLink.url}`);
+       window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_self");
 
         // Optionally, you can also navigate to congratulations or stay on current page
         // navigate("/congratulations");
@@ -338,13 +340,17 @@ const BankaccAccountComplete = () => {
     } catch (err) {
       console.error("Error fetching eSign data:", err);
       alert("Failed to get eSign link. Please try again.");
+    }finally {
+      setLoading(false);
     }
+
   };
 
   // Function to call user form generation API
   const callUserFormGeneration = async () => {
     try {
       const token = Cookies.get("access_token");
+      setLoading(true);
 
       if (!token) {
         alert("Authorization failed.");
@@ -378,6 +384,8 @@ const BankaccAccountComplete = () => {
     } catch (error) {
       console.error("User form generation error:", error);
       alert("Failed to generate user form. Please try again.");
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -438,6 +446,7 @@ const BankaccAccountComplete = () => {
 
   return (
     <>
+      <VerificationLoader isVisible={loading} />
       <div className="bankacc-container">
         <Header />
 

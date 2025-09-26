@@ -212,7 +212,8 @@ const BankaccAccount = () => {
             Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
-            redirect_url: "http://rekyc.univest.in/bankaccountcomplete",
+             redirect_url : `${window.location.origin}/bankaccountcomplete`,
+            // redirect_url: "https://uat.rekyc.univest.in/bankaccountcomplete",
           }),
         }
       );
@@ -388,7 +389,7 @@ const BankaccAccount = () => {
       } else {
         // Open the first available eSign link
         const firstLink = links[0];
-        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_blank");
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_self");
 
         // Optionally, you can also navigate to congratulations or stay on current page
         // navigate("/congratulations");
@@ -442,6 +443,7 @@ const BankaccAccount = () => {
   // Function to call user form generation API
   const callUserFormGeneration = async () => {
     try {
+      setLoading(true);
       const token = await getrefershtoken();
 
       if (!token) {
@@ -479,11 +481,15 @@ const BankaccAccount = () => {
       console.error("User form generation error:", error);
       toast.error("Failed to generate user form. Please try again.");
     }
+    finally{
+      setLoading(false);
+    }
   };
 
   // Separate API function for verifying bank details
   const verifyBankDetailsAPI = async (tempId) => {
     try {
+      setLoading(true);
       const token = await getrefershtoken();
 
       if (!token) {
@@ -521,6 +527,8 @@ const BankaccAccount = () => {
       console.error("Bank verification error:", error);
       setPopupMessage("Bank verification failed. Please try again.");
       setShowTimeoutPopup(true);
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -548,6 +556,7 @@ const BankaccAccount = () => {
     };
 
     try {
+      setLoading(true);
       const checkRes = await fetch(
         "https://rekyc.meon.co.in/v1/user/check_pennydrop",
         {
@@ -616,6 +625,7 @@ const BankaccAccount = () => {
       <header className="header_part">
         <div className="bankacc-header">
           <div className="bankaccacc-back-container">
+            <button className="back_btn_head" onClick={() => navigate(-1)}>
             <svg
               width="32"
               height="32"
@@ -628,7 +638,7 @@ const BankaccAccount = () => {
                 fill="#202020"
               />
             </svg>
-
+</button>
             <svg
               width="56"
               height="24"

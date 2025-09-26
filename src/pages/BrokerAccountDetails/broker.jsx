@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/api";
 import "./broker.css";
+import { alright } from "../../lib/utils";
+
 
 const BrokerDetails = () => {
   const [brokerData, setBrokerData] = useState({
@@ -24,7 +26,7 @@ const BrokerDetails = () => {
   };
 
   const handleLeaveAnyway = () => {
-    // Your navigation logic here (e.g., useNavigate or window.history.back())
+    
     window.history.back();
   };
 
@@ -144,9 +146,13 @@ const BrokerDetails = () => {
               <button className="cancel-btn" onClick={handleCancel}>
                 Cancel
               </button>
-              <button className="leave-btn" onClick={handleLeaveAnyway}>
+              {/* <button className="leave-btn" onClick={handleLeaveAnyway}>
                 Leave anyway
-              </button>
+              </button> */}
+              <button className="leave-btn" onClick={alright}>
+  Leave Anyway
+</button>
+
             </div>
           </div>
         </div>

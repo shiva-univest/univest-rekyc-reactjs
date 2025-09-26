@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import withAuthCheck from "../../hoc/withAuthCheck";
 import { decryptData } from "../../decode";
 import { useNavigate } from "react-router-dom";
+import { alright } from "../../lib/utils";
 import axios from "axios";
 import Cookies from "js-cookie";
 import "./style2.css";
@@ -18,37 +19,11 @@ const Segment = ({ encryptedData }) => {
   const token = queryParams.get("token");
   const navigate = useNavigate();
   const [esignDataStatus, setEsignDataStatus] = useState("");
-  const [isEsigned, setIsEsigned] = useState(false);
-   const [loading, setLoading] = useState(false);
-   const [moduleSharedData, setModuleSharedData] = useState(null);
+  const [isEsigned, setIsEsigned] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [moduleSharedData, setModuleSharedData] = useState(null);
 
   console.log("Token from query param:", token);
-
-  const refreshAccessToken = async () => {
-    try {
-      const refreshToken = localStorage.getItem("refresh_token"); 
-      if (!refreshToken) throw new Error("No refresh token available");
-
-      const res = await axios.post(
-        "https://rekyc.meon.co.in/v1/user/token/refresh_token",
-        { refresh: refreshToken },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      const newAccessToken = res.data.access;
-      const newRefreshToken = res.data.refresh;
-
-      // Save new tokens
-      localStorage.setItem("token", newAccessToken);
-      localStorage.setItem("refresh_token", newRefreshToken);
-
-      return newAccessToken;
-    } catch (err) {
-      console.error("Failed to refresh token:", err);
-      throw err;
-    }
-  };
-
 
   useEffect(() => {
     const fetchModuleData = async () => {
@@ -124,98 +99,29 @@ const Segment = ({ encryptedData }) => {
   );
   console.log("hasFNOSegmentisNull", hasFNOSegmentisNull);
 
-  const updatesegmentsData = async (newStates) => {
-    const segment_data = Object.entries(newStates)
-      .filter(([_, isChecked]) => isChecked)
-      .map(([key]) => {
-        const [exchange, segment] = key.split("_");
-        return { exchange, segment };
-      });
-    console.log("segment_data", segment_data);
-
+  const refreshAccessToken = async () => {
     try {
-       setLoading(true);
-      console.log("in the second segment");
-      await axios.post(
-        "https://rekyc.meon.co.in/v1/user/update_user_segments",
-        { segment_data },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const refreshToken = localStorage.getItem("refresh_token");
+      if (!refreshToken) throw new Error("No refresh token available");
+
+      const res = await axios.post(
+        "https://rekyc.meon.co.in/v1/user/token/refresh_token",
+        { refresh: refreshToken },
+        { headers: { "Content-Type": "application/json" } }
       );
-      setsegmentsData(segment_data);
-      console.log("Segment updated:", segment_data);
-    } catch (error) {
-      console.error("Error updating segments:", error);
-    }
-    finally {
-      setLoading(false); 
+
+      const newAccessToken = res.data.access;
+      const newRefreshToken = res.data.refresh;
+
+      localStorage.setItem("token", newAccessToken);
+      localStorage.setItem("refresh_token", newRefreshToken);
+
+      return newAccessToken;
+    } catch (err) {
+      console.error("Failed to refresh token:", err);
+      throw err;
     }
   };
-
-  // const handleCheckboxChange = (key) => {
-  //   const [exchange, segment] = key.split("_");
-  //   const newState = !checkedStates[key];
-  //   console.log("in the third segment");
-
-  //   const otherExchange = exchange === "NSE" ? "BSE" : "NSE";
-  //   const otherKey = `${otherExchange}_${segment}`;
-
-  //   const isOtherDisabled = segmentsData?.some(
-  //     (seg) =>
-  //       seg.exchange === otherExchange &&
-  //       seg.segment === segment &&
-  //       seg.ticked === true &&
-  //       seg.is_new === false
-  //   );
-
-  //   const updatedStates = {
-  //     ...checkedStates,
-  //     [key]: newState,
-  //     ...(isOtherDisabled ? {} : { [otherKey]: newState }),
-  //   };
-
-  //   setCheckedStates(updatedStates);
-
-  //   const segment_data = Object.entries(updatedStates)
-  //     .filter(([_, value]) => value === true)
-  //     .map(([key]) => {
-  //       const [exchange, segment] = key.split("_");
-  //       return { exchange, segment };
-  //     });
-
-  //   //{(!hasFNOSegment || hasFNOSegmentisNull) && (
-  //   console.log(
-  //     "segmentsData?.some((seg) => seg.segment ===",
-  //     segment_data,
-  //     segment_data?.some((seg) => seg.segment === "FNO")
-  //   );
-  //   console.log(
-  //     "segment_data",
-  //     segment_data,
-  //     "hasFNOSegment===>",
-  //     !hasFNOSegment,
-  //     "hasFNOSegmentisNull",
-  //     hasFNOSegmentisNull
-  //   );
-  //   setSegmentData(segment_data);
-
-  //   axios
-  //     .post(
-  //       "https://rekyc.meon.co.in/v1/user/update_user_segments",
-  //       { segment_data },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     )
-  //     .then((res) => {
-  //       console.log("Updated segments to API:", segment_data);
-  //       setSegmentData(segment_data);
-  //     })
-  //     .catch((err) => {
-  //       console.error("API update error:", err);
-  //     });
-  // };
 
   const handleCheckboxChange = async (key) => {
     const [exchange, segment] = key.split("_");
@@ -250,8 +156,9 @@ const Segment = ({ encryptedData }) => {
     setSegmentData(segment_data);
 
     try {
-       setLoading(true);
-      const token = localStorage.getItem("token");
+      setLoading(true);
+      // const token = localStorage.getItem("token");
+      const token = Cookies.get("access_token");
 
       await axios.post(
         "https://rekyc.meon.co.in/v1/user/update_user_segments",
@@ -328,12 +235,12 @@ const Segment = ({ encryptedData }) => {
     try {
       const accessToken = Cookies.get("access_token");
       await makeApiCall(accessToken);
-       triggerWebhook({
-          step: "trading segment",
-          eSignCompleted: "no",
-          finalUpdateExecuted: "no",
-          userId: moduleSharedData?.clientcode || "<user-id>"
-        });
+      triggerWebhook({
+        step: "trading segment",
+        eSignCompleted: "no",
+        finalUpdateExecuted: "no",
+        userId: moduleSharedData?.clientcode || "<user-id>",
+      });
       setSegmentData((prev) => [
         ...(prev || []),
         { exchange: "NSE", segment: "FNO", ticked: true, is_new: true },
@@ -397,10 +304,11 @@ const Segment = ({ encryptedData }) => {
   useEffect(() => {
     if (esignDataStatus.length > 0) {
       let links = esignDataStatus.filter((link) => !link.is_esigned);
+      console.log("links", links);
       if (!links || links.length === 0) {
-        setIsEsigned(false);
-      } else {
         setIsEsigned(true);
+      } else {
+        setIsEsigned(false);
       }
     }
   }, [esignDataStatus]);
@@ -410,18 +318,19 @@ const Segment = ({ encryptedData }) => {
       const moduleRes = await api.post("/user/get_module_data", {
         page_id: "6",
       });
-      console.log("get_module_data (raw) ->", moduleRes.data);
 
       let parsed;
       try {
         parsed = JSON.parse(decryptData(moduleRes.data.data));
+
+        console.log("get_module_data (parsed) ->", parsed);
+        let links = parsed?.["12"]?.links || [];
+        console.log("links", links);
+        setEsignDataStatus(links);
       } catch (err) {
         console.error("Failed to parse decrypted data:", err);
         parsed = {};
       }
-      let links = parsed?.["12"]?.links || [];
-      console.log("links", links);
-      setEsignDataStatus(links);
     } catch (err) {
       console.error("Error fetching eSign data:", err);
     } finally {
@@ -440,38 +349,54 @@ const Segment = ({ encryptedData }) => {
 
     const formatted = { segment_data: checked };
 
+    // Check if FNO exists for NSE and BSE
     const hasNSE_FNO = checked.some(
       (seg) => seg.exchange === "NSE" && seg.segment === "FNO"
     );
     const hasBSE_FNO = checked.some(
       (seg) => seg.exchange === "BSE" && seg.segment === "FNO"
     );
-    const hasBothFNO = hasNSE_FNO && hasBSE_FNO;
 
-    console.log("✅ Checked Segment Data:", formatted);
-    console.log(
-      "👉 hasNSE_FNO:",
-      hasNSE_FNO,
-      "hasBSE_FNO:",
-      hasBSE_FNO,
-      "hasBothFNO:",
-      hasBothFNO
-    );
+    let hasBothFNO = false;
+
+    // Extract parsed data for is_new check
+    const parsed = JSON.parse(decryptData(encryptedData))[13][
+      "segment_details"
+    ];
+
+    // Check if any FNO segment exists in data
+    const fnoSegment = parsed?.find((seg) => seg.segment === "FNO");
+
+    if (fnoSegment) {
+      if (fnoSegment.is_new === true || fnoSegment.is_new === null) {
+        // Case 1: is_new true -> check esignDataStatus
+        console.log("esignDataStatus", esignDataStatus);
+        if (esignDataStatus.length > 0) {
+          const pending = esignDataStatus.filter((link) => !link.is_esigned);
+          console.log("pending", pending);
+          hasBothFNO = pending.length === 0; // true only if all eSigns done
+        } else {
+          hasBothFNO = false; // no esign data means not yet complete
+        }
+      } else {
+        // Case 2: is_new false -> always true
+        hasBothFNO = true;
+      }
+    }
 
     return { ...formatted, hasBothFNO };
   };
 
   console.log("getCheckedSegments", getCheckedSegments());
-  const { hasBothFNO } = getCheckedSegments();
-  console.log("hasBothFNO, hasBothFNO", hasBothFNO, hasBothFNO);
+  var { hasBothFNO } = getCheckedSegments();
+  console.log("hasBothFNO, hasBothFNO", hasBothFNO, hasBothFNO, isEsigned);
   return (
-    
     <div>
-       {loading && <VerificationLoader isVisible={loading} />}
+      {loading && <VerificationLoader isVisible={loading} />}
       <header>
         <div className="header_div">
           <p className="trading_pre">Trading preference</p>
-          <button className="back_btn_head">
+          <button className="back_btn_head" onClick={alright}>
             <img className="back_btn1" src="./Icon_apparrow.svg" alt="" />
           </button>
         </div>
@@ -538,7 +463,7 @@ const Segment = ({ encryptedData }) => {
         </div>
 
         {/* Show Activate Banner if NOT both FNO present */}
-        {(!hasBothFNO || !isEsigned) && (
+        {(!hasBothFNO || (isEsigned == false && isEsigned != null)) && (
           <div className="card_1 card_2">
             <div className="card-title">
               <i className="same_design_seg">
@@ -568,56 +493,72 @@ const Segment = ({ encryptedData }) => {
         )}
         {/* Show Active F&O if both NSE + BSE FNO present */}
 
-        {hasBothFNO && isEsigned && (
-          <div className="card_1 card_3">
-            <div className="card-title">
-              <i className="same_design_seg">
-                <img
-                  src="./candlestick_chart_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24.svg"
-                  alt=""
-                />
-              </i>{" "}
-              Futures & Options <span className="badge">Active</span>
-            </div>
+        {hasBothFNO && (isEsigned === null || isEsigned === true) && (
+          <div>
+            <div className="card_1 card_3">
+              <div className="card-title">
+                <i className="same_design_seg">
+                  <img
+                    src="./candlestick_chart_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24.svg"
+                    alt="Candlestick Chart"
+                  />
+                </i>{" "}
+                Futures & Options <span className="badge">Active</span>
+              </div>
+              {isEsigned === true ? (
+                <div className="it_will">
+                  <span className="it_will_span">
+                    <img src="./timer_icon.svg" alt="Timer Icon" />
+                  </span>
+                  It will take up to 48 hours to update your request.
+                </div>
+              ) : (
+                <div className="main_check">
+                  {/* NSE */}
+                  <label className="custom-checkbox">
+                    <input
+                      type="checkbox"
+                      name="nse"
+                      exchange="NSE"
+                      segment="FNO"
+                      checked={checkedStates.NSE_FNO}
+                      onChange={() => {
+                        handleActivateFNO();
+                      }}
+                      disabled={segmentsData?.some(
+                        (seg) =>
+                          seg.exchange === "NSE" &&
+                          seg.segment === "FNO" &&
+                          seg.ticked === true &&
+                          seg.is_new === false
+                      )}
+                    />
+                    <span className="checkmark"></span> NSE
+                  </label>
 
-            <div className="main_check">
-              <label className="custom-checkbox">
-                <input
-                  type="checkbox"
-                  name="nse"
-                  exchange="NSE"
-                  segment="FNO"
-                  checked={checkedStates.NSE_FNO}
-                  onChange={() => handleCheckboxChange("NSE_FNO")}
-                  disabled={segmentsData?.find(
-                    (seg) =>
-                      seg.exchange === "NSE" &&
-                      seg.segment === "FNO" &&
-                      seg.ticked === true &&
-                      seg.is_new === false
-                  )}
-                />
-                <span className="checkmark"></span> NSE
-              </label>
-
-              <label className="custom-checkbox">
-                <input
-                  type="checkbox"
-                  name="bse"
-                  exchange="BSE"
-                  segment="FNO"
-                  checked={checkedStates.BSE_FNO}
-                  onChange={() => handleCheckboxChange("BSE_FNO")}
-                  disabled={segmentsData?.find(
-                    (seg) =>
-                      seg.exchange === "BSE" &&
-                      seg.segment === "FNO" &&
-                      seg.ticked === true &&
-                      seg.is_new === false
-                  )}
-                />
-                <span className="checkmark"></span> BSE
-              </label>
+                  {/* BSE */}
+                  <label className="custom-checkbox">
+                    <input
+                      type="checkbox"
+                      name="bse"
+                      exchange="BSE"
+                      segment="FNO"
+                      checked={checkedStates.BSE_FNO}
+                      onChange={() => {
+                        handleActivateFNO();
+                      }}
+                      disabled={segmentsData?.some(
+                        (seg) =>
+                          seg.exchange === "BSE" &&
+                          seg.segment === "FNO" &&
+                          seg.ticked === true &&
+                          seg.is_new === false
+                      )}
+                    />
+                    <span className="checkmark"></span> BSE
+                  </label>
+                </div>
+              )}
             </div>
           </div>
         )}

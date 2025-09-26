@@ -7,6 +7,7 @@ import withAuthCheck from "../../hoc/withAuthCheck";
 import { BANKLIST } from "../../lib/utils";
 import api from "../../api/api";
 import { triggerWebhook } from "../../helper/usewebhook";
+import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 
 const Bank = ({ encryptedData }) => {
   const [bankAccounts, setBankAccounts] = useState([]);
@@ -16,6 +17,7 @@ const Bank = ({ encryptedData }) => {
   const navigate = useNavigate();
   const accountDetailsPopupRef = useRef(null);
   const deletePopupRef = useRef(null);
+   const [loading, setLoading] = useState(false);
 
   const [makePrimaryLoading, setMakePrimaryLoading] = useState(false);
 
@@ -215,9 +217,10 @@ const Bank = ({ encryptedData }) => {
     setShowDropdown(false);
   };
 
-  // New function to fetch module data and redirect to eSign link
+ 
   const fetchAndRedirectToEsignLink = async (token) => {
     try {
+      setLoading(true);
       const moduleRes = await fetch(
         "https://rekyc.meon.co.in/v1/user/get_module_data",
         {
@@ -264,12 +267,15 @@ const Bank = ({ encryptedData }) => {
     } catch (err) {
       console.error("Error fetching eSign data:", err);
       alert("Failed to get eSign link. Please try again.");
+    }finally{
+      setLoading(false);
     }
   };
 
   // Function to call user form generation API
   const callUserFormGeneration = async () => {
     try {
+      setLoading(true);
       const token = Cookies.get("access_token");
 
       if (!token) {
@@ -310,6 +316,8 @@ const Bank = ({ encryptedData }) => {
     } catch (error) {
       console.error("User form generation error:", error);
       alert("Failed to generate user form. Please try again.");
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -469,7 +477,9 @@ const Bank = ({ encryptedData }) => {
   };
 
   return (
+    
     <div className="bank-container">
+ {loading && <VerificationLoader isVisible={loading} />}
       <header className="head_cl">
         <div className="bank-header">
           <div className="bank-back-container">

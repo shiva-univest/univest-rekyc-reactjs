@@ -98,7 +98,7 @@ const EditContactPhone = ({ onClose, contact }) => {
     }
     return token;
   };
-  // New function to fetch module data and redirect to eSign link
+
   const fetchAndRedirectToEsignLink = async (token) => {
     try {
       const moduleRes = await fetch(
@@ -118,7 +118,6 @@ const EditContactPhone = ({ onClose, contact }) => {
 
       let parsed;
       try {
-        // You'll need to import the decryptData function
         const { decryptData } = await import("../../decode");
         parsed = JSON.parse(decryptData(moduleData.data));
       } catch (err) {
@@ -126,24 +125,17 @@ const EditContactPhone = ({ onClose, contact }) => {
         parsed = {};
       }
 
-      // Get links
       let links = parsed?.["12"]?.links || [];
 
-      // Filter out signed ones
       links = links.filter((link) => !link.is_esigned);
 
       console.log("Filtered Links ->", links);
 
       if (!links || links.length === 0) {
-        // No links available, redirect to congratulations
         navigate("/congratulations");
       } else {
-        // Open the first available eSign link
         const firstLink = links[0];
-        window.open(`https://rekyc.meon.co.in${firstLink.url}`);
-
-        // Optionally, you can also navigate to congratulations or stay on current page
-        // navigate("/congratulations");
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_self");
       }
     } catch (err) {
       console.error("Error fetching eSign data:", err);
@@ -151,7 +143,6 @@ const EditContactPhone = ({ onClose, contact }) => {
     }
   };
 
-  // Function to call user form generation API
   const callUserFormGeneration = async () => {
     try {
       setLoading(true);
@@ -369,17 +360,7 @@ const EditContactPhone = ({ onClose, contact }) => {
     }
   };
 
-  const handleChangeOtp = (val, index) => {
-    if (!/^[0-9]?$/.test(val)) return;
-    const newOtp = [...otp];
-    newOtp[index] = val;
-    setOtp(newOtp);
-    setOtpError("");
 
-    if (val && index < 5) {
-      inputRefs.current[index + 1].focus();
-    }
-  };
 
   const handleVerifyOtpSubmit = async () => {
     if (otp.length !== 6) {
@@ -436,6 +417,8 @@ const EditContactPhone = ({ onClose, contact }) => {
       }
     } catch (err) {
       setOtpError("Network error");
+    } finally {
+      setVerifyingOtp(false); // Stop loading
     }
   };
   // setTimeout(() => {

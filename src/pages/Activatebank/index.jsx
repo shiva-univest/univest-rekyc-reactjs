@@ -403,7 +403,7 @@ const Activatebank = ({ encryptedData }) => {
       console.log("Form generation response:", formResponse);
 
       if (formResponse?.status === true) {
-        // Step 2: Get module data
+       
        
         const moduleResponse = await fetchWithAuthRetry(
           "https://rekyc.meon.co.in/v1/user/get_module_data",
@@ -441,31 +441,63 @@ const Activatebank = ({ encryptedData }) => {
     }
   };
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  // const handleFileUpload = async (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
 
-    if (!selectedDoc) {
-      toast.error("Please select a document type before uploading.");
-      return;
-    }
+  //   if (!selectedDoc) {
+  //     toast.error("Please select a document type before uploading.");
+  //     return;
+  //   }
+
+  //   const extension = file.name.split(".").pop().toLowerCase();
+  //   if (!allowedTypes.includes(extension)) {
+  //     toast.error(
+  //       `Only ${allowedTypes.join(", ").toUpperCase()} files allowed.`
+  //     );
+  //     return;
+  //   }
+
+  //   setUploadedFile(file);
+
+  //   if (extension === "pdf") {
+  //     const arrayBuffer = await file.arrayBuffer();
+
+  //     try {
+  //       await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  //       uploadDocument(file);
+  //     } catch (err) {
+  //       if (err?.name === "PasswordException") {
+  //         setIsPasswordRequired(true);
+  //       } else {
+  //         toast.error("Invalid PDF file.");
+  //         setUploadedFile(null);
+  //       }
+  //     }
+  //   } else {
+  //     uploadDocument(file);
+  //   }
+  // };
+const handleFileUpload = async (e) => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  if (!selectedDoc) {
+    toast.error("Please select a document type before uploading.");
+    return;
+  }
+
+  for (const file of files) {
+    setUploadedFile(file); // optional, keeps track of last uploaded file
 
     const extension = file.name.split(".").pop().toLowerCase();
-    if (!allowedTypes.includes(extension)) {
-      toast.error(
-        `Only ${allowedTypes.join(", ").toUpperCase()} files allowed.`
-      );
-      return;
-    }
-
-    setUploadedFile(file);
 
     if (extension === "pdf") {
+      // Optional PDF validation
       const arrayBuffer = await file.arrayBuffer();
-
       try {
         await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        uploadDocument(file);
+        await uploadDocument(file);
       } catch (err) {
         if (err?.name === "PasswordException") {
           setIsPasswordRequired(true);
@@ -475,9 +507,14 @@ const Activatebank = ({ encryptedData }) => {
         }
       }
     } else {
-      uploadDocument(file);
+      // Upload all other file types directly
+      await uploadDocument(file);
     }
-  };
+  }
+};
+
+
+
 
   const uploadDocument = async (file, password = "") => {
     setLoading(true);
@@ -534,7 +571,7 @@ const Activatebank = ({ encryptedData }) => {
 
         try {
           const refreshResponse = await fetch(
-            "https://rekyc.meon.co.in/v1/user/token/refresh",
+            "https://rekyc.meon.co.in/v1/user/token/refresh_token",
             {
               method: "POST",
               headers: {
@@ -591,120 +628,233 @@ const Activatebank = ({ encryptedData }) => {
   const handleConfirm = () => setShowPopup(false);
   const navigate = useNavigate();
 
-  const handleOtpVerification = async () => {
-    setLoading(true);
-    let accessToken = Cookies.get("access_token");
-    const refreshToken = Cookies.get("refresh_token");
-    const documentId = userModuleData?.["11"]?.document_detail_data?.[0]?.id;
-    console.log("Access token:", accessToken, userModuleData);
+  // const handleOtpVerification = async () => {
+  //   setLoading(true);
+  //   let accessToken = Cookies.get("access_token");
+  //   const refreshToken = Cookies.get("refresh_token");
+  //   const documentId = userModuleData?.["11"]?.document_detail_data?.[0]?.id;
+  //   console.log("Access token:", accessToken, userModuleData);
 
-    if (!accessToken || !documentId) {
-      toast.error("Missing token or document ID");
-      toast.error("accessToken", accessToken);
+  //   if (!accessToken || !documentId) {
+  //     toast.error("Missing token or document ID");
+  //     toast.error("accessToken", accessToken);
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   const fetchInit = async (token) => {
+  //     const response = await fetch(
+  //       `https://rekyc.meon.co.in/v1/user/account_aggregator_setu_init/${documentId}`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //         body: JSON.stringify({ redirect_url: window.location.href }),
+  //       }
+  //     );
+
+  //     if (!response.ok) {
+  //       throw { status: response.status, data: await response.text() };
+  //     }
+
+  //     return response.json();
+  //   };
+
+  //   try {
+      
+  //     const result = await fetchInit(accessToken);
+  //     if (!result?.success || !result?.url) {
+  //       throw new Error("Init response missing success or url");
+  //     }
+
+  //     const pathSegments = new URL(result.url).pathname.split("/");
+  //     const docReqId = pathSegments[pathSegments.length - 1];
+
+  //     localStorage.setItem("setuDocID", documentId);
+  //     localStorage.setItem("setuDocReqID", docReqId);
+
+  //   window.open(result.url, "_self");
+  //   } catch (error) {
+  //     console.warn("Init request failed. Checking 401...", error);
+
+  //     if (error.status === 401 && refreshToken) {
+  //       console.warn("Access token expired. Refreshing...");
+
+  //       try {
+  //         const refreshResponse = await fetch(
+  //           "https://rekyc.meon.co.in/v1/user/token/refresh",
+  //           {
+  //             method: "POST",
+  //             headers: {
+  //               "Content-Type": "application/json",
+  //               Authorization: `Bearer ${refreshToken}`,
+  //             },
+  //             body: JSON.stringify({}),
+  //           }
+  //         );
+
+  //         if (!refreshResponse.ok) {
+  //           throw {
+  //             status: refreshResponse.status,
+  //             data: await refreshResponse.text(),
+  //           };
+  //         }
+
+  //         const refreshData = await refreshResponse.json();
+  //         const newAccessToken = refreshData?.data?.access_token;
+
+  //         if (newAccessToken) {
+  //           Cookies.set("access_token", newAccessToken);
+  //           accessToken = newAccessToken;
+  //           console.log("🔑 Token refreshed. Retrying OTP init...");
+
+  //           const retryResult = await fetchInit(accessToken);
+
+  //           if (!retryResult?.success || !retryResult?.url) {
+  //             setLoading(false);
+  //             throw new Error("Retry init response missing success or url");
+  //           }
+
+  //           const pathSegments = new URL(retryResult.url).pathname.split("/");
+  //           const docReqId = pathSegments[pathSegments.length - 1];
+
+  //           localStorage.setItem("setuDocID", documentId);
+  //           localStorage.setItem("setuDocReqID", docReqId);
+
+  //         window.open(retryResult.url, "_self");
+  //         } else {
+  //           console.error("Refresh succeeded but no access_token returned.");
+  //           toast.error("Session expired. Please log in again.");
+  //           setLoading(false);
+  //         }
+  //       } catch (refreshError) {
+  //         console.error("❌ Refresh token request failed:", refreshError);
+  //         toast.error("Session expired. Please log in again.");
+  //         setLoading(false);
+  //       }
+  //     } else {
+  //       console.error("❌ OTP init failed:", error);
+  //       toast.error("Something went wrong.");
+  //       setLoading(false);
+  //     }
+  //   }
+  // };
+
+
+  const handleOtpVerification = async () => {
+  setLoading(true);
+  let accessToken = Cookies.get("access_token");
+  const refreshToken = Cookies.get("refresh_token");
+  const documentId = userModuleData?.["11"]?.document_detail_data?.[0]?.id;
+  console.log("Access token:", accessToken, userModuleData);
+
+  if (!accessToken || !documentId) {
+    toast.error("Missing token or document ID");
+    setLoading(false);
+    return;
+  }
+
+  const fetchInit = async (token) => {
+    const response = await fetch(
+      `https://rekyc.meon.co.in/v1/user/account_aggregator_setu_init/${documentId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ redirect_url: window.location.href }),
+      }
+    );
+
+    const data = await response.json();
+
+    // ✅ Handle case: 200 OK but success=false
+    if (!response.ok || data.success === false) {
+      throw { status: response.status, data };
+    }
+
+    return data;
+  };
+
+  try {
+    const result = await fetchInit(accessToken);
+
+    const pathSegments = new URL(result.url).pathname.split("/");
+    const docReqId = pathSegments[pathSegments.length - 1];
+
+    localStorage.setItem("setuDocID", documentId);
+    localStorage.setItem("setuDocReqID", docReqId);
+
+    window.open(result.url, "_self");
+  } catch (error) {
+    console.warn("Init request failed:", error);
+
+    // ✅ Special handling for success=false with msg
+    if (error?.data?.success === false && error?.data?.msg) {
+      toast.error(error.data.msg);
       setLoading(false);
       return;
     }
 
-    const fetchInit = async (token) => {
-      const response = await fetch(
-        `https://rekyc.meon.co.in/v1/user/account_aggregator_setu_init/${documentId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ redirect_url: window.location.href }),
+    if (error.status === 401 && refreshToken) {
+      console.warn("Access token expired. Refreshing...");
+      try {
+        const refreshResponse = await fetch(
+          "https://rekyc.meon.co.in/v1/user/token/refresh",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${refreshToken}`,
+            },
+            body: JSON.stringify({}),
+          }
+        );
+
+        if (!refreshResponse.ok) {
+          throw {
+            status: refreshResponse.status,
+            data: await refreshResponse.text(),
+          };
         }
-      );
 
-      if (!response.ok) {
-        throw { status: response.status, data: await response.text() };
-      }
+        const refreshData = await refreshResponse.json();
+        const newAccessToken = refreshData?.data?.access_token;
 
-      return response.json();
-    };
+        if (newAccessToken) {
+          Cookies.set("access_token", newAccessToken);
+          accessToken = newAccessToken;
+          console.log("🔑 Token refreshed. Retrying OTP init...");
 
-    try {
-      // 🔹 First try with current access token
-      const result = await fetchInit(accessToken);
+          const retryResult = await fetchInit(accessToken);
 
-      if (!result?.success || !result?.url) {
-        throw new Error("Init response missing success or url");
-      }
+          const pathSegments = new URL(retryResult.url).pathname.split("/");
+          const docReqId = pathSegments[pathSegments.length - 1];
 
-      const pathSegments = new URL(result.url).pathname.split("/");
-      const docReqId = pathSegments[pathSegments.length - 1];
+          localStorage.setItem("setuDocID", documentId);
+          localStorage.setItem("setuDocReqID", docReqId);
 
-      localStorage.setItem("setuDocID", documentId);
-      localStorage.setItem("setuDocReqID", docReqId);
-
-      window.open(result.url);
-    } catch (error) {
-      console.warn("Init request failed. Checking 401...", error);
-
-      if (error.status === 401 && refreshToken) {
-        console.warn("Access token expired. Refreshing...");
-
-        try {
-          const refreshResponse = await fetch(
-            "https://rekyc.meon.co.in/v1/user/token/refresh",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${refreshToken}`,
-              },
-              body: JSON.stringify({}),
-            }
-          );
-
-          if (!refreshResponse.ok) {
-            throw {
-              status: refreshResponse.status,
-              data: await refreshResponse.text(),
-            };
-          }
-
-          const refreshData = await refreshResponse.json();
-          const newAccessToken = refreshData?.data?.access_token;
-
-          if (newAccessToken) {
-            Cookies.set("access_token", newAccessToken);
-            accessToken = newAccessToken;
-            console.log("🔑 Token refreshed. Retrying OTP init...");
-
-            const retryResult = await fetchInit(accessToken);
-
-            if (!retryResult?.success || !retryResult?.url) {
-              setLoading(false);
-              throw new Error("Retry init response missing success or url");
-            }
-
-            const pathSegments = new URL(retryResult.url).pathname.split("/");
-            const docReqId = pathSegments[pathSegments.length - 1];
-
-            localStorage.setItem("setuDocID", documentId);
-            localStorage.setItem("setuDocReqID", docReqId);
-
-            window.open(retryResult.url, "_blank");
-          } else {
-            console.error("Refresh succeeded but no access_token returned.");
-            toast.error("Session expired. Please log in again.");
-            setLoading(false);
-          }
-        } catch (refreshError) {
-          console.error("❌ Refresh token request failed:", refreshError);
+          window.open(retryResult.url, "_self");
+        } else {
+          console.error("Refresh succeeded but no access_token returned.");
           toast.error("Session expired. Please log in again.");
           setLoading(false);
         }
-      } else {
-        console.error("❌ OTP init failed:", error);
-        toast.error("Something went wrong.");
+      } catch (refreshError) {
+        console.error("❌ Refresh token request failed:", refreshError);
+        toast.error("Session expired. Please log in again.");
         setLoading(false);
       }
+    } else {
+      console.error("❌ OTP init failed:", error);
+      toast.error("Something went wrong.");
+      setLoading(false);
     }
-  };
+  }
+};
 
   const getSetuDoc = async (documentId, docReqId) => {
     setLoading(true);
@@ -924,7 +1074,7 @@ const Activatebank = ({ encryptedData }) => {
                 </span>
               </div>
 
-              <div className="upload-box">
+              {/* <div className="upload-box">
                 <label className="upload_doc_logo_wrapper">
                   <input
                     type="file"
@@ -979,7 +1129,51 @@ const Activatebank = ({ encryptedData }) => {
                     }}
                   />
                 </label>
-              </div>
+              </div> */}
+
+              <div className="upload-box">
+  <label className="upload_doc_logo_wrapper">
+    <input
+      type="file"
+      hidden
+      multiple
+      onChange={async (e) => {
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+
+        const token = Cookies.get("access_token");
+        const documentId =
+          userModuleData?.["11"]?.document_detail_data?.[0]?.id;
+        if (!token || !documentId || !selectedDoc) return;
+
+        for (const file of files) {
+          setUploadedFile(file); // optional, keeps track of last uploaded file
+          e.target.closest("label").classList.add("file-selected");
+
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("file_suggestion", selectedDoc);
+
+          try {
+            const res = await fetch(
+              `https://rekyc.meon.co.in/v1/user/upload_user_documents/${documentId}`,
+              {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData,
+              }
+            );
+            const result = await res.json();
+            console.log("✅ Upload result:", result);
+          } catch (err) {
+            console.error("❌ Upload error:", err);
+          }
+        }
+      }}
+    />
+  </label>
+</div>
+
             </div>
             {/* )} */}
 

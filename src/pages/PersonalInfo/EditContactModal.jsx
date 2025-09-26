@@ -108,6 +108,7 @@ const EditContactModal = ({ onClose, contact }) => {
   // New function to fetch module data and redirect to eSign link
   const fetchAndRedirectToEsignLink = async (token) => {
     try {
+      setLoading(true);
       const moduleRes = await fetch(
         "https://rekyc.meon.co.in/v1/user/get_module_data",
         {
@@ -155,6 +156,9 @@ const EditContactModal = ({ onClose, contact }) => {
       console.error("Error fetching eSign data:", err);
       alert("Failed to get eSign link. Please try again.");
     }
+    finally {
+      setLoading(false);
+    }
   };
 
   // Function to call user form generation API
@@ -200,6 +204,79 @@ const EditContactModal = ({ onClose, contact }) => {
     }
   };
 
+  const checkEmailInModuleData = async (enteredEmail, token) => {
+  try {
+    const moduleDataResponse = await fetch(
+      "https://rekyc.meon.co.in/v1/user/get_module_data",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ page_id: "1" }),
+      }
+    );
+
+    if (!moduleDataResponse.ok) {
+      throw new Error("Failed to fetch module data");
+    }
+
+    const moduleData = await moduleDataResponse.json();
+    console.log("Module Data Response:", moduleData);
+
+    if (!moduleData?.data) {
+      return { success: false, error: "No module data received" };
+    }
+
+    // Decrypt the module data
+    const { decryptData } = await import("../../decode");
+    const decryptedData = JSON.parse(decryptData(moduleData.data));
+
+    console.log("Decrypted module data:", decryptedData);
+
+    // Check contact_detail_data for is_new: true entries
+    const contactDetailData = decryptedData["3"]?.contact_detail_data || [];
+    console.log("Contact detail data:", contactDetailData);
+
+    // Find entries where is_new is true
+    const newContacts = contactDetailData.filter(
+      (contact) => contact.is_new === true
+    );
+    console.log("New contacts (is_new: true):", newContacts);
+
+    // Check if entered email matches any new contact
+    const matchingContact = newContacts.find(
+      (contact) =>
+        contact.email?.toLowerCase() === enteredEmail.toLowerCase()
+    );
+
+    console.log("Entered email:", enteredEmail);
+    console.log("Matching contact:", matchingContact);
+
+    if (matchingContact) {
+      return {
+        success: true,
+        isValidEmail: true,
+        shouldRedirectToEsign: true,
+      };
+    } else {
+      return {
+        success: true,
+        isValidEmail: false,
+        error: "This email is already updated for another account",
+      };
+    }
+  } catch (moduleErr) {
+    console.error("Failed to fetch or process module data:", moduleErr);
+    return {
+      success: false,
+      error: "Failed to verify email details",
+    };
+  }
+};
+
+
   const callUpdateEmailAPI = async (token) => {
     return fetch("https://rekyc.meon.co.in/v1/user/updateemail", {
       method: "POST",
@@ -240,7 +317,25 @@ const EditContactModal = ({ onClose, contact }) => {
         console.log("otp value:", otp);
         setTimer(60);
       } else {
-        setError(data?.message || "Failed to send OTP. Try again.");
+        // If updatemobile returns false, call get_module_data API
+        const moduleResult = await checkEmailInModuleData(newPhone, token);
+
+        if (!moduleResult.success) {
+          setError(moduleResult.error);
+          return;
+        }
+
+        if (moduleResult.isValidEmail) {
+          // Mobile number matches existing contact with is_new: false
+          // Proceed to OTP step
+          // setStep("otp");
+          // setTimer(15);
+          await callUserFormGeneration();
+          // navigate("/esign");
+        } else {
+          // Mobile number doesn't match any existing contact
+          setError(moduleResult.error);
+        }
       }
     } catch (err) {
       setError("Network error");
@@ -287,6 +382,8 @@ const EditContactModal = ({ onClose, contact }) => {
         setOtpError("");
 
         try {
+          setLoading(true);
+
           const formRes = await fetch(
             "https://rekyc.meon.co.in/v1/user/user_form_generation",
             {
@@ -303,6 +400,9 @@ const EditContactModal = ({ onClose, contact }) => {
           console.log("user_form_generation response:", formData);
         } catch (formErr) {
           console.error("user_form_generation API failed:", formErr);
+        }
+        finally {
+          setLoading(false);
         }
 
         toast.success(data.message || "Email verified successfully!");
@@ -321,6 +421,7 @@ const EditContactModal = ({ onClose, contact }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
+       {loading && <VerificationLoader isVisible={loading} />}
       <div className="modal-content3" onClick={(e) => e.stopPropagation()}>
         {step === "email" ? (
           <>

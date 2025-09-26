@@ -4,6 +4,7 @@ import React from 'react'
 const Header = () => {
   return (
     <header className="univest-header">
+      <button className="back_btn_head" onClick={() => window.history.back()}>
       <svg
         width="32"
         height="32"
@@ -16,6 +17,7 @@ const Header = () => {
           fill="#202020"
         />
       </svg>
+      </button>
       <img src="./Frame 1171276551.svg"></img>
     </header>
   )

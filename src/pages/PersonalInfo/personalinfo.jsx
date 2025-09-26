@@ -189,6 +189,7 @@ const UserInfoCard = () => {
       null,
   };
 
+  // const address = userModuleData["5"]?.contact_detail_data?.[0] || {};
   const address = userModuleData["5"]?.contact_detail_data?.[0] || {};
   const nameData = userModuleData["38"]?.name_data?.[0] || {};
   const fatherName = userModuleData["30"]?.father_name_data?.[0]?.fathername;
@@ -198,12 +199,13 @@ const UserInfoCard = () => {
     userModuleData["34"]?.marital_status_data?.[0]?.marital_status;
 
   const fullAddress = [
-    address.address_line1,
-    address.address_line2,
-    address.address_line3,
-  ]
-    .filter(Boolean)
-    .join(", ");
+  address.address_line1,
+  address.address_line2,
+  address.address_line3,
+]
+  .filter(Boolean)
+  .map(line => line.replace(/[^a-zA-Z0-9\s,.-]/g, "")) 
+  .join(", ");
 
   return (
     <div>

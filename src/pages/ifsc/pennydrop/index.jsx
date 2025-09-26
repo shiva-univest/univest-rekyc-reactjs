@@ -1,12 +1,12 @@
-
 import React, { useState } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./style.css";
 import Overlay from "../../Overlay/Overlay";
 import { CgLaptop } from "react-icons/cg";
-import Header from '../../../Components/Header.jsx';
+import Header from "../../../Components/Header.jsx";
 import { toast } from "react-toastify";
 
 const Pennycompo = () => {
@@ -16,7 +16,8 @@ const Pennycompo = () => {
   const [bankName, setBankName] = useState("");
   const [showDepositOverlay, setShowDepositOverlay] = useState(false);
   const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
-  const [popupMessage, setPopupMessage] = useState(""); 
+  const [popupMessage, setPopupMessage] = useState("");
+  const [showConfirmAccount, setShowConfirmAccount] = useState(false);
 
   // validation error messages added karunga bhai
   const [accountError, setAccountError] = useState("");
@@ -313,7 +314,7 @@ const Pennycompo = () => {
       <Header />
       {showDepositOverlay && <Overlay />}
 
-      {/* ❌ Failure popup */}
+     
       {showTimeoutPopup && (
         <div className="bottom-sheet-overlay">
           <div className="bottom-sheet">
@@ -355,8 +356,8 @@ const Pennycompo = () => {
               id="ifscInput"
               value={ifscCode}
               onChange={(e) => {
-                setIfscCode(e.target.value.toUpperCase())
-                setIfscCodeError(null)
+                setIfscCode(e.target.value.toUpperCase());
+                setIfscCodeError(null);
               }}
               className={ifscCodeError ? "error" : ""}
               onBlur={searchIFSC}
@@ -403,8 +404,7 @@ const Pennycompo = () => {
             )}
           </div>
 
-
-          <div className="univest-input-group">
+          {/* <div className="univest-input-group">
             <input
               placeholder="Re-confirm your accout number"
               value={confirmAccountNumber}
@@ -418,10 +418,49 @@ const Pennycompo = () => {
               autoComplete="new-password"
             />
             <label htmlFor="enter-account-number" className="floating-label">
-              Re-confirm your accout number
+              Re-confirm your account number
             </label>
             {confirmAccountError && (
               <span className="univest-error-message">{confirmAccountError}</span>
+            )}
+          </div> */}
+
+          <div className="univest-input-group" style={{ position: "relative" }}>
+            <input
+              placeholder="Re-confirm your account number"
+              value={confirmAccountNumber}
+              onChange={(e) => handleConfirmAccountNumberChange(e.target.value)}
+              onPaste={(e) => e.preventDefault()}
+              type={showConfirmAccount ? "text" : "password"} 
+              inputMode="numeric"
+              maxLength="18"
+              className={confirmAccountError ? "error" : ""}
+              style={{ width: "100%", paddingRight: "40px" }} 
+              autoComplete="new-password"
+            />
+            <label htmlFor="enter-account-number" className="floating-label">
+              Re-confirm your account number
+            </label>
+
+           
+            <span
+              onClick={() => setShowConfirmAccount(!showConfirmAccount)}
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                cursor: "pointer",
+                color: "#555",
+              }}
+            >
+              {showConfirmAccount ? <FaEyeSlash /> : <FaEye />}
+            </span>
+
+            {confirmAccountError && (
+              <span className="univest-error-message">
+                {confirmAccountError}
+              </span>
             )}
           </div>
         </div>
