@@ -8,6 +8,8 @@ import Overlay from "../../Overlay/Overlay";
 import { CgLaptop } from "react-icons/cg";
 import Header from "../../../Components/Header.jsx";
 import { toast } from "react-toastify";
+import api from "../../../api/api.js";
+import VerificationLoader from "../../../Components/VerificationLoader/VerificationLoader.jsx";
 
 const Pennycompo = () => {
   const [ifscCode, setIfscCode] = useState("");
@@ -18,6 +20,7 @@ const Pennycompo = () => {
   const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
   const [showConfirmAccount, setShowConfirmAccount] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // validation error messages added karunga bhai
   const [accountError, setAccountError] = useState("");
@@ -48,8 +51,6 @@ const Pennycompo = () => {
       };
     }
 
-    // Check if it contains only numbers
-    // kon mere comments padh raha hai
     if (!/^\d+$/.test(cleanedNumber)) {
       return {
         isValid: false,
@@ -60,18 +61,14 @@ const Pennycompo = () => {
     return { isValid: true, message: "" };
   };
 
-  // Enhanced account number change handler
   const handleAccountNumberChange = (value) => {
-    // Allow only numbers and remove any non-numeric characters
     const cleanedValue = value.replace(/[^0-9]/g, "");
 
     setAccountNumber(cleanedValue);
 
-    // Validate account number
     const validation = validateAccountNumber(cleanedValue);
     setAccountError(validation.message);
 
-    // Clear confirm account error if numbers now match
     if (confirmAccountNumber && cleanedValue === confirmAccountNumber) {
       setConfirmAccountError("");
     } else if (confirmAccountNumber && cleanedValue !== confirmAccountNumber) {
@@ -86,7 +83,6 @@ const Pennycompo = () => {
 
     setConfirmAccountNumber(cleanedValue);
 
-    // Validate confirm account number
     const validation = validateAccountNumber(cleanedValue);
     if (!validation.isValid) {
       setConfirmAccountError(validation.message);
@@ -107,6 +103,7 @@ const Pennycompo = () => {
     }
 
     try {
+      setLoading(true);
       const response = await fetch(
         "https://rekyc.meon.co.in/v1/user/razorpay_IFSC_validation",
         {
@@ -127,6 +124,8 @@ const Pennycompo = () => {
       }
     } catch (error) {
       console.error("Error validating IFSC:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -151,7 +150,7 @@ const Pennycompo = () => {
 
   // ✅ Penny Drop API
   const callPennyDropAPI = async (token) => {
-    return axios.post(
+    return api.post(
       "https://rekyc.meon.co.in/v1/user/check_pennydrop",
       {
         account_number: accountNumber,
@@ -164,19 +163,7 @@ const Pennycompo = () => {
     );
   };
 
-  // ✅ Main handler
   const handlePennyDrop = async () => {
-    // if (!accountNumber || !confirmAccountNumber) {
-    //   alert("Please fill in both account number fields.");
-    //   return;
-    // }
-
-    // if (accountNumber !== confirmAccountNumber) {
-    //   alert("Account numbers do not match.");
-    //   return;
-    // }
-
-    // Validate account numbers
     const accountValidation = validateAccountNumber(accountNumber);
     const confirmAccountValidation =
       validateAccountNumber(confirmAccountNumber);
@@ -196,13 +183,13 @@ const Pennycompo = () => {
       return;
     }
 
-    // Clear any existing errors
     setAccountError("");
     setConfirmAccountError("");
 
     let token = getAccessToken();
     console.log("shrihari", token);
     try {
+      // setLoading(true);
       const response = await callPennyDropAPI(token);
       console.log("shrihariReposene", response);
       console.log("pennydrop_flag value:", response.data?.data?.pennydrop_flag);
@@ -239,16 +226,16 @@ const Pennycompo = () => {
           },
         });
       } else if (response.data?.data?.pennydrop_flag === false) {
-        // ❌ Only show popup when pennydrop_flag is explicitly false
         setPopupMessage(response.data?.message || "Bank verification failed");
         setShowTimeoutPopup(true);
       } else {
-        // Handle unexpected cases (pennydrop_flag is undefined, null, etc.)
         console.log(
           "Unexpected pennydrop_flag value:",
           response.data?.data?.pennydrop_flag
         );
-        setPopupMessage("Unexpected response. Please try again.");
+        setPopupMessage(
+          "Unexpected response || Bank already exists. Please try again."
+        );
         setShowTimeoutPopup(true);
       }
     } catch (err) {
@@ -311,10 +298,10 @@ const Pennycompo = () => {
 
   return (
     <div className="Peny-container">
+      {loading && <VerificationLoader isVisible={loading} />}
       <Header />
       {showDepositOverlay && <Overlay />}
 
-     
       {showTimeoutPopup && (
         <div className="bottom-sheet-overlay">
           <div className="bottom-sheet">
@@ -404,45 +391,23 @@ const Pennycompo = () => {
             )}
           </div>
 
-          {/* <div className="univest-input-group">
-            <input
-              placeholder="Re-confirm your accout number"
-              value={confirmAccountNumber}
-              onChange={(e) => handleConfirmAccountNumberChange(e.target.value)}
-              onPaste={(e) => e.preventDefault()}
-              type="password"
-              inputMode="numeric"
-              maxLength="18"
-              className={confirmAccountError ? "error" : ""}
-              style={{ width: "100%" }}
-              autoComplete="new-password"
-            />
-            <label htmlFor="enter-account-number" className="floating-label">
-              Re-confirm your account number
-            </label>
-            {confirmAccountError && (
-              <span className="univest-error-message">{confirmAccountError}</span>
-            )}
-          </div> */}
-
           <div className="univest-input-group" style={{ position: "relative" }}>
             <input
               placeholder="Re-confirm your account number"
               value={confirmAccountNumber}
               onChange={(e) => handleConfirmAccountNumberChange(e.target.value)}
               onPaste={(e) => e.preventDefault()}
-              type={showConfirmAccount ? "text" : "password"} 
+              type={showConfirmAccount ? "text" : "password"}
               inputMode="numeric"
               maxLength="18"
               className={confirmAccountError ? "error" : ""}
-              style={{ width: "100%", paddingRight: "40px" }} 
+              style={{ width: "100%", paddingRight: "40px" }}
               autoComplete="new-password"
             />
             <label htmlFor="enter-account-number" className="floating-label">
               Re-confirm your account number
             </label>
 
-           
             <span
               onClick={() => setShowConfirmAccount(!showConfirmAccount)}
               style={{

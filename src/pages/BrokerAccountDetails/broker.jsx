@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../api/api";
 import "./broker.css";
 import { alright } from "../../lib/utils";
+import { sendDataToMixpanel } from "../../lib/utils";
 
 
 const BrokerDetails = () => {
@@ -57,6 +58,10 @@ const BrokerDetails = () => {
     };
 
     fetchData();
+
+      sendDataToMixpanel("page_viewed", {
+    page: "rekyc_broker_details",
+  });
   }, []);
 
   const infoList = [

@@ -8,6 +8,8 @@ import { BANKLIST } from "../../lib/utils";
 import api from "../../api/api";
 import { triggerWebhook } from "../../helper/usewebhook";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
+import { sendDataToMixpanel } from "../../lib/utils";
+import { alright } from "../../lib/utils";
 
 const Bank = ({ encryptedData }) => {
   const [bankAccounts, setBankAccounts] = useState([]);
@@ -17,7 +19,7 @@ const Bank = ({ encryptedData }) => {
   const navigate = useNavigate();
   const accountDetailsPopupRef = useRef(null);
   const deletePopupRef = useRef(null);
-   const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [makePrimaryLoading, setMakePrimaryLoading] = useState(false);
 
@@ -34,10 +36,13 @@ const Bank = ({ encryptedData }) => {
 
   const parseEncryptedData = () => {
     try {
+      sendDataToMixpanel("page_viewed", {
+        page: "rekyc_managebank_home",
+      });
       if (!encryptedData) return;
       const decrypted = decryptData(encryptedData);
       const parsedData = JSON.parse(decrypted);
-      console.log("thisssssssssssssssssssssssssss", decrypted);
+      console.log("thisssssssssssss", decrypted);
       console.log("thisssssssssssssssssssssssssss2", parsedData);
 
       if (parsedData?.["7"]?.bank_detail_data) {
@@ -217,7 +222,6 @@ const Bank = ({ encryptedData }) => {
     setShowDropdown(false);
   };
 
- 
   const fetchAndRedirectToEsignLink = async (token) => {
     try {
       setLoading(true);
@@ -267,7 +271,7 @@ const Bank = ({ encryptedData }) => {
     } catch (err) {
       console.error("Error fetching eSign data:", err);
       alert("Failed to get eSign link. Please try again.");
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
@@ -282,12 +286,12 @@ const Bank = ({ encryptedData }) => {
         alert("Authorization failed.");
         return;
       }
- triggerWebhook({
-          step: "bank",
-          eSignCompleted: "no",
-          finalUpdateExecuted: "no",
-         userId: moduleSharedData?.clientcode || "<user-id>",
-        });
+      triggerWebhook({
+        step: "bank",
+        eSignCompleted: "no",
+        finalUpdateExecuted: "no",
+        userId: moduleSharedData?.clientcode || "<user-id>",
+      });
       const response = await fetch(
         "https://rekyc.meon.co.in/v1/user/user_form_generation",
         {
@@ -304,7 +308,6 @@ const Bank = ({ encryptedData }) => {
       console.log("User form generation response:", formData);
 
       if (formData?.status === true) {
-
         console.log("Form generation successful, navigating to esign");
         // Fetch module data to get eSign links
         await fetchAndRedirectToEsignLink(token);
@@ -316,7 +319,7 @@ const Bank = ({ encryptedData }) => {
     } catch (error) {
       console.error("User form generation error:", error);
       alert("Failed to generate user form. Please try again.");
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
@@ -477,13 +480,12 @@ const Bank = ({ encryptedData }) => {
   };
 
   return (
-    
     <div className="bank-container">
- {loading && <VerificationLoader isVisible={loading} />}
+      {loading && <VerificationLoader isVisible={loading} />}
       <header className="head_cl">
         <div className="bank-header">
           <div className="bank-back-container">
-            <button className="bank-back" onClick={() => navigate(-1)}>
+            <button className="bank-back" onClick={alright}>
               <svg
                 viewBox="0 0 32 32"
                 fill="none"
@@ -518,7 +520,15 @@ const Bank = ({ encryptedData }) => {
                 className={`bank-button ${
                   account.isPrimary ? "primary" : "secondary"
                 }`}
-                onClick={() => handleShowAccountDetails(account)}
+                onClick={() => {
+                  sendDataToMixpanel("cta_clicked", {
+                    page: "rekyc_managebank_home",
+                    cta_text: account.bankName,
+                    tile: account.accountNumber,
+                    is_primary: account.isPrimary ? "true" : "false",
+                  });
+                  handleShowAccountDetails(account);
+                }}
               >
                 <div className="bank-icon">
                   <img
@@ -550,6 +560,14 @@ const Bank = ({ encryptedData }) => {
                   viewBox="0 0 4 16"
                   onClick={(e) => {
                     e.stopPropagation();
+
+                    sendDataToMixpanel("cta_clicked", {
+                      page: "rekyc_managebank_home",
+                      cta_text: "3dot",
+                      tile: account.accountNumber,
+                      is_primary: account.isPrimary ? "true" : "false",
+                    });
+
                     const rect = e.currentTarget.getBoundingClientRect();
                     setDropdownPosition({
                       top: rect.bottom + window.scrollY,
@@ -578,6 +596,7 @@ const Bank = ({ encryptedData }) => {
           <button
             className="univest-actions-btn"
             onClick={() => navigate("/bankaccount")}
+            
           >
             Add bank account
           </button>
@@ -597,6 +616,12 @@ const Bank = ({ encryptedData }) => {
         >
           <span
             onClick={() => {
+
+               sendDataToMixpanel("cta_clicked", {
+      page: "rekyc_managebank_home",
+      cta_text: "info",
+    });
+
               setShowAccountDetailsPopup(true);
               setShowDropdown(false);
             }}
@@ -610,10 +635,14 @@ const Bank = ({ encryptedData }) => {
               <span
                 className="primary"
                 onClick={async () => {
+
+                  sendDataToMixpanel("cta_clicked", {
+                        page: "rekyc_managebank_home",
+                        chip_text: "make_primary",
+                      });
                   handleMakePrimary(selectedAccount.id);
                   setShowDropdown(false);
 
-           
                   await callUserFormGeneration();
                 }}
               >
@@ -788,6 +817,10 @@ const Bank = ({ encryptedData }) => {
                   <button
                     className="go-back-btn"
                     onClick={() => {
+                      sendDataToMixpanel("cta_clicked", {
+                        page: "rekyc_managebank_home",
+                        cta_text: "go_bak",
+                      });
                       setShowAccountDetailsPopup(false);
                     }}
                   >
@@ -797,6 +830,10 @@ const Bank = ({ encryptedData }) => {
                   <button
                     className="delete-btn"
                     onClick={() => {
+                      sendDataToMixpanel("cta_clicked", {
+                        page: "rekyc_managebank_home",
+                        cta_text: "delete",
+                      });
                       setShowAccountDetailsPopup(false);
                       setdeleteDetailsPopup(true);
                     }}
@@ -810,6 +847,12 @@ const Bank = ({ encryptedData }) => {
                   <button
                     className="makeprimary-btn"
                     onClick={async () => {
+
+                      sendDataToMixpanel("cta_clicked", {
+                        page: "rekyc_managebank_home",
+                        cta_text: "make_primary",
+                      });
+
                       handleMakePrimary(selectedAccount.id);
                       await callUserFormGeneration();
                     }}

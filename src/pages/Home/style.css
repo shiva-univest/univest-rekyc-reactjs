@@ -117,7 +117,8 @@ body {
 }
 
 .a_disclaimer {
-  color: #00439D;
+  /* color: #00439D; */
+  color:#414141
 }
 
 .disclaimer a {

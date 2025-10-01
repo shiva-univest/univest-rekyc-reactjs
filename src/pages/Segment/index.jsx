@@ -11,6 +11,7 @@ import { SegmentContext } from "../../context/SegmentContext";
 import api from "../../api/api";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 import { triggerWebhook } from "../../helper/usewebhook";
+import { sendDataToMixpanel } from "../../lib/utils";
 
 const Segment = ({ encryptedData }) => {
   const { segmentData, setSegmentData } = useContext(SegmentContext);
@@ -23,6 +24,7 @@ const Segment = ({ encryptedData }) => {
   const [loading, setLoading] = useState(false);
   const [moduleSharedData, setModuleSharedData] = useState(null);
 
+  
   console.log("Token from query param:", token);
 
   useEffect(() => {
@@ -390,6 +392,37 @@ const Segment = ({ encryptedData }) => {
   console.log("getCheckedSegments", getCheckedSegments());
   var { hasBothFNO } = getCheckedSegments();
   console.log("hasBothFNO, hasBothFNO", hasBothFNO, hasBothFNO, isEsigned);
+
+  const getActiveSegments = (segmentsData) => {
+    if (!segmentsData || segmentsData.length === 0) return "none";
+    const hasEquity = segmentsData.some(
+      (seg) => seg.segment === "CASH" && seg.ticked === true
+    );
+    const hasFNO = segmentsData.some(
+      (seg) => seg.segment === "FNO" && seg.ticked === true
+    );
+    if (hasEquity && hasFNO) return "equity+f&o";
+    if (hasEquity) return "equity";
+    if (hasFNO) return "f&o";
+    return "none";
+  };
+
+  useEffect(() => {
+    if (!encryptedData) return;
+    const parsed = JSON.parse(decryptData(encryptedData))[13][
+      "segment_details"
+    ];
+    console.log("setSegmentData", parsed);
+    setSegmentData(parsed);
+
+    const isSegmentActive = getActiveSegments(parsed);
+
+    sendDataToMixpanel("page_viewed", {
+      page: "rekyc_segment_activation",
+      is_segment_active: isSegmentActive,
+    });
+  }, [encryptedData]);
+
   return (
     <div>
       {loading && <VerificationLoader isVisible={loading} />}
@@ -479,6 +512,12 @@ const Segment = ({ encryptedData }) => {
                 className="banner_img_btn"
                 onClick={() => {
                   console.log("Banner image clicked");
+
+                  sendDataToMixpanel("cta_clicked", {
+                    page: "rekyc_segment_activation",
+                    cta_clicked: "activate_fno",
+                  });
+
                   handleActivateFNO();
                 }}
               >

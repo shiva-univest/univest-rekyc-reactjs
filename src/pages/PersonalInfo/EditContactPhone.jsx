@@ -186,6 +186,7 @@ const EditContactPhone = ({ onClose, contact }) => {
 
   const checkMobileInModuleData = async (enteredMobile, token) => {
     try {
+      setLoading(true);
       const moduleDataResponse = await fetch(
         "https://rekyc.meon.co.in/v1/user/get_module_data",
         {
@@ -255,6 +256,8 @@ const EditContactPhone = ({ onClose, contact }) => {
         success: false,
         error: "Failed to verify mobile number details",
       };
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -359,8 +362,6 @@ const EditContactPhone = ({ onClose, contact }) => {
       setLoading(false);
     }
   };
-
-
 
   const handleVerifyOtpSubmit = async () => {
     if (otp.length !== 6) {
@@ -556,7 +557,7 @@ const EditContactPhone = ({ onClose, contact }) => {
 
             <div className="bottom_verfiy">
               {timer > 0 ? (
-                <p style={{ fontWeight: "bold" }}>
+                <p style={{  fontSize: "16px" }}>
                   Resend OTP in <span style={{ color: "green" }}>{timer}s</span>
                 </p>
               ) : (
@@ -565,6 +566,8 @@ const EditContactPhone = ({ onClose, contact }) => {
                     fontWeight: "bold",
                     color: "green",
                     cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "center",
                   }}
                   onClick={async () => {
                     try {

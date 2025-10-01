@@ -8,6 +8,7 @@ import { decryptData } from "../../decode";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import withAuthCheck from "../../hoc/withAuthCheck";
+import { sendDataToMixpanel } from "../../lib/utils";
 
 const Section = ({ title, onEdit = null, children }) => (
   <div className="section-wrapper">
@@ -42,11 +43,19 @@ const UserInfoCard = () => {
   const handleEditContact = () => {
     console.log("Editing contact information");
     setShowModal(true);
+
+    sendDataToMixpanel("rekyc _email_updated", {
+    rekyc_email_updated: "email update",
+  });
   };
 
   const handleEditPhone = () => {
     console.log("Editing contact information");
     setShowModalPhone(true);
+
+    sendDataToMixpanel("rekyc_phone_updated", {
+    rekyc_phone_updated: "phone update",
+  });
   };
 
   useEffect(() => {
@@ -184,8 +193,8 @@ const UserInfoCard = () => {
       userModuleData["1"]?.contact_detail_data?.[0]?.email ||
       null,
     mobile:
-      userModuleData["1"]?.contact_detail_data?.[1]?.mobile ||
       userModuleData["1"]?.contact_detail_data?.[0]?.mobile ||
+      userModuleData["1"]?.contact_detail_data?.[1]?.mobile ||
       null,
   };
 

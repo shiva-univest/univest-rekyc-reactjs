@@ -12,6 +12,7 @@ import api from "../../api/api";
 import { isMobile } from "react-device-detect";
 import { triggerWebhook } from "../../helper/usewebhook";
 
+
 const BankaccAccount = () => {
   const ref = useRef();
   const count = useRef();
@@ -24,6 +25,7 @@ const BankaccAccount = () => {
   const [popupMessage, setPopupMessage] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [userFormloading, setUserFormLoading] = useState(false);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(false);
 
@@ -58,6 +60,7 @@ const BankaccAccount = () => {
   useEffect(() => {
     const fetchModuleData = async () => {
       try {
+         setLoading(true);
         const moduleDataResponse = await fetch(
           "https://rekyc.meon.co.in/v1/user/get_module_data",
           {
@@ -90,6 +93,8 @@ const BankaccAccount = () => {
           success: false,
           error: "Failed to verify mobile number details",
         };
+      }finally{
+        setLoading(false);
       }
     };
 
@@ -350,6 +355,7 @@ const BankaccAccount = () => {
   };
 
   const fetchAndRedirectToEsignLink = async (token) => {
+setUserFormLoading(true);
     try {
       const moduleRes = await fetch(
         "https://rekyc.meon.co.in/v1/user/get_module_data",
@@ -368,6 +374,7 @@ const BankaccAccount = () => {
 
       let parsed;
       try {
+        
         // You'll need to import the decryptData function
         parsed = JSON.parse(decryptData(moduleData.data));
       } catch (err) {
@@ -384,63 +391,26 @@ const BankaccAccount = () => {
       console.log("Filtered Links ->", links);
 
       if (!links || links.length === 0) {
-        // No links available, redirect to congratulations
+       
         navigate("/congratulations");
       } else {
-        // Open the first available eSign link
+        setUserFormLoading(true);
+       
         const firstLink = links[0];
         window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_self");
 
-        // Optionally, you can also navigate to congratulations or stay on current page
-        // navigate("/congratulations");
+        
       }
     } catch (err) {
       console.error("Error fetching eSign data:", err);
       alert("Failed to get eSign link. Please try again.");
+      setUserFormLoading(false);
     }
   };
 
-  // Function to call user form generation API
-  // const callUserFormGeneration = async () => {
-  //   try {
-  //     const token = await getrefershtoken();
+ 
 
-  //     if (!token) {
-  //       alert("Authorization failed.");
-  //       return;
-  //     }
-
-  //     const response = await fetch(
-  //       "https://rekyc.meon.co.in/v1/user/user_form_generation",
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //         body: JSON.stringify({ re_esign: false }),
-  //       }
-  //     );
-
-  //     const formData = await response.json();
-  //     console.log("User form generation response:", formData);
-
-  //     if (formData?.status === true) {
-  //       console.log("Form generation successful, navigating to esign");
-  //       // Fetch module data to get eSign links
-  //       await fetchAndRedirectToEsignLink(token);
-  //     } else {
-  //       alert(
-  //         formData?.message || "Failed to generate user form. Please try again."
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("User form generation error:", error);
-  //     alert("Failed to generate user form. Please try again.");
-  //   }
-  // };
-
-  // Function to call user form generation API
+ 
   const callUserFormGeneration = async () => {
     try {
       setLoading(true);
@@ -486,7 +456,7 @@ const BankaccAccount = () => {
     }
   };
 
-  // Separate API function for verifying bank details
+  
   const verifyBankDetailsAPI = async (tempId) => {
     try {
       setLoading(true);
@@ -621,7 +591,10 @@ const BankaccAccount = () => {
 
   return (
     <div className="bankacc-container">
-      {loading && <VerificationLoader isVisible={loading} />}
+      {/* {loading && <VerificationLoader isVisible={loading} />} */}
+       {(loading || userFormloading) && (
+        <VerificationLoader isVisible={loading || userFormloading} />
+      )}
       <header className="header_part">
         <div className="bankacc-header">
           <div className="bankaccacc-back-container">

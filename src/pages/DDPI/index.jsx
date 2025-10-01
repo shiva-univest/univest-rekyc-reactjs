@@ -5,6 +5,9 @@ import api from "../../api/api";
 import "./style.css";
 import Cookies from "js-cookie";
 import { triggerWebhook } from "../../helper/usewebhook";
+import { sendDataToMixpanel } from "../../lib/utils";
+import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
+import { alright } from "../../lib/utils";
 
 const ActivateDDPI = () => {
   const [expanded, setExpanded] = useState(false);
@@ -12,8 +15,9 @@ const ActivateDDPI = () => {
   const [loading, setLoading] = useState(true);
   const [ddpiActive, setDdpiActive] = useState(false);
   const [esignDataStatus, setEsignDataStatus] = useState("");
-  const [isEsigned, setIsEsigned] = useState(false);  
+  const [isEsigned, setIsEsigned] = useState(false);
   const [moduleSharedData, setModuleSharedData] = useState(null);
+  
   const navigate = useNavigate();
 
   const [checkboxes, setCheckboxes] = useState({
@@ -67,21 +71,22 @@ const ActivateDDPI = () => {
     };
 
     fetchModuleData();
+    sendDataToMixpanel("page_viewed", {
+      page: "rekyc_ddpi_home",
+    });
   }, [Cookies.get("access_token")]);
 
   useEffect(() => {
-    if(esignDataStatus.length > 0)
-    {
+    if (esignDataStatus.length > 0) {
       let links = esignDataStatus.filter((link) => !link.is_esigned);
       if (!links || links.length === 0) {
-        setIsEsigned(false)
-      }
-      else{
-        setIsEsigned(true)
+        setIsEsigned(false);
+      } else {
+        setIsEsigned(true);
       }
     }
   }, [esignDataStatus]);
-  
+
   const fetchEsignStatus = async () => {
     try {
       const moduleRes = await api.post("/user/get_module_data", {
@@ -97,15 +102,13 @@ const ActivateDDPI = () => {
         parsed = {};
       }
       let links = parsed?.["12"]?.links || [];
-      console.log("links", links)
+      console.log("links", links);
       setEsignDataStatus(links);
-
     } catch (err) {
       console.error("Error fetching eSign data:", err);
     } finally {
     }
   };
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -131,19 +134,24 @@ const ActivateDDPI = () => {
               console.log("Parsed decrypted data:", parsed);
               setModuleData(parsed);
 
-
-              if (parsed?.["21"]?.ddpi === true || parsed?.["21"]?.bo_poa === true) {
-                if((esignDataStatus.length > 0 && isEsigned) || esignDataStatus.length == 0)
-                {
+              if (
+                parsed?.["21"]?.ddpi === true ||
+                parsed?.["21"]?.bo_poa === true
+              ) {
+                if (
+                  (esignDataStatus.length > 0 && isEsigned) ||
+                  esignDataStatus.length == 0
+                ) {
                   setDdpiActive(true);
+                  sendDataToMixpanel("rekyc_ddpi_success", {
+                  });
                 }
-                if(esignDataStatus.length > 0 && !isEsigned){
+                if (esignDataStatus.length > 0 && !isEsigned) {
                   setDdpiActive(false);
                 }
               } else {
                 setDdpiActive(false);
               }
-
             } catch {
               setModuleData(decrypted);
             }
@@ -170,7 +178,7 @@ const ActivateDDPI = () => {
 
       // Send your checkboxes state to API
       const payload = {
-        ddpi: checkboxes.main,       // true/false
+        ddpi: checkboxes.main, // true/false
         ddpi_for_security: checkboxes.transfer,
         ddpi_for_pledge: checkboxes.pledging,
         ddpi_for_mtf: checkboxes.mutualFund,
@@ -197,27 +205,37 @@ const ActivateDDPI = () => {
 
       const result = await response.json();
       console.log("DDPI save response:", result);
-      if(result?.status)
-      {
-         triggerWebhook({
+
+      sendDataToMixpanel("cta_clicked", {
+        page: "rekyc_ddpi_home",
+        cta_text: "proceed_esign",
+        error: null,
+      });
+
+      if (result?.status) {
+        triggerWebhook({
           step: "ddpi",
           eSignCompleted: "no",
           finalUpdateExecuted: "no",
-         userId: moduleSharedData?.clientcode || "<user-id>",
+          userId: moduleSharedData?.clientcode || "<user-id>",
         });
-        callUserFormGeneration(accessToken)
+        callUserFormGeneration(accessToken);
       }
-
     } catch (error) {
       console.error("Save error:", error);
       setError(error.message);
+
+      sendDataToMixpanel("cta_clicked", {
+        page: "rekyc_ddpi_home",
+        cta_text: "proceed_esign",
+        error: error.message || "Unknown error",
+      });
     }
   };
 
-
   const callUserFormGeneration = async (accessToken) => {
     try {
-
+      setLoading(true);
       if (!accessToken) {
         alert("Authorization failed.");
         return;
@@ -238,9 +256,8 @@ const ActivateDDPI = () => {
       const formData = await response.json();
       console.log("User form generation response:", formData);
       if (formData?.status === true) {
-        
         console.log("Form generation successful, navigating to esign");
-        fetchAndRedirectToEsignLink(accessToken)
+        fetchAndRedirectToEsignLink(accessToken);
       } else {
         alert(
           formData?.message || "Failed to generate user form. Please try again."
@@ -249,11 +266,13 @@ const ActivateDDPI = () => {
     } catch (error) {
       console.error("User form generation error:", error);
       alert("Failed to generate user form. Please try again.");
+      setLoading(false);
     }
   };
 
-   const fetchAndRedirectToEsignLink = async (accessToken) => {
+  const fetchAndRedirectToEsignLink = async (accessToken) => {
     try {
+      setLoading(true);
       const moduleRes = await fetch(
         "https://rekyc.meon.co.in/v1/user/get_module_data",
         {
@@ -288,13 +307,20 @@ const ActivateDDPI = () => {
       } else {
         const firstLink = links[0];
         window.open(`https://rekyc.meon.co.in${firstLink.url}`);
+
+        sendDataToMixpanel("page_viewed", {
+          page: "rekyc_ddpi_success",
+        });
       }
     } catch (err) {
       console.error("Error fetching eSign data:", err);
       alert("Failed to get eSign link. Please try again.");
+      sendDataToMixpanel("page_viewed", {
+        page: "rekyc_ddpi_failed",
+      });
+      setLoading(false);
     }
   };
-
 
   if (loading) return <div>Loading...</div>;
 
@@ -327,6 +353,7 @@ const ActivateDDPI = () => {
 
   return (
     <div>
+      {loading && <VerificationLoader isVisible={loading} />}
       <header>
         <div className="a_header_main">
           <button className="a_btn_header">
@@ -358,15 +385,15 @@ const ActivateDDPI = () => {
 
           <button
             className="alright-btn_ddpi"
-            onClick={() => {
-              window.location.href = "/dashboard";
-            }}
+            // onClick={() => {
+            //   window.location.href = "/dashboard";
+            // }}
+            onClick={alright}
           >
             Alright!
           </button>
         </div>
       ) : (
-
         <div className="ddpi-container_ddpi">
           <h2 className="title">Activate DDPI</h2>
           <p className="subtitle">

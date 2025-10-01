@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { nativeBACK } from "../lib/utils";
+import api from "../api/api";
 
 const getToken = () => {
   return localStorage.getItem("token") || Cookies.get("access_token");
@@ -59,58 +60,80 @@ const withAuthCheck = (WrappedComponent) => {
       checkToken();
     }, [location.search]);
 
-    const fetchTokenAndModuleData = async (token) => {
-      const refreshToken = Cookies.get("refresh_token");
-      console.log("refreshTokennnnnnn", token, Cookies.get("refresh_token"));
-      if (!refreshToken) {
-        console.warn("No refresh token found.");
-        return;
-      }
+//     const fetchTokenAndModuleData = async (token) => {
+//       const refreshToken = Cookies.get("refresh_token");
+//       console.log("refreshTokennnnnnn", token, Cookies.get("refresh_token"));
+//       if (!refreshToken) {
+//         console.warn("No refresh token found.");
+//         return;
+//       }
 
-      try {
-        const tokenRes = await axios.post(
-          "https://rekyc.meon.co.in/v1/user/token/refresh",
-          { refresh: refreshToken }
-        );
-        const { access, refresh } = tokenRes.data;
-        console.log("tokenRes", tokenRes, access, refresh);
+//       try {
+//         const tokenRes = await api.post(
+//           "https://rekyc.meon.co.in/v1/user/token/refresh",
+//           { refresh: refreshToken }
+//         );
+//         const { access, refresh } = tokenRes.data;
+//         console.log("tokenRes", tokenRes, access, refresh);
 
-        Cookies.remove("access_token");
-        Cookies.remove("refresh_token");
+//         Cookies.remove("access_token");
+//         Cookies.remove("refresh_token");
 
-        Cookies.set("access_token", access);
-        Cookies.set("refresh_token", refresh);
+//         Cookies.set("access_token", access);
+//         Cookies.set("refresh_token", refresh);
 
-        console.log("Tokens set in cookies:", {
-          accessToken: Cookies.get("access_token"),
-          refreshToken: Cookies.get("refresh_token"),
-        });
+//         console.log("Tokens set in cookies:", {
+//           accessToken: Cookies.get("access_token"),
+//           refreshToken: Cookies.get("refresh_token"),
+//         });
 
-        const pageId = getPageIdFromPath(location.pathname);
+//         const pageId = getPageIdFromPath(location.pathname);
 
-        const moduleRes = await axios.post(
-          "https://rekyc.meon.co.in/v1/user/get_module_data",
-          { page_id: pageId },
-          {
-            headers: {
-              Authorization: `Bearer ${Cookies.get("access_token")}`,
-            },
-          }
-        );
-        console.log("Module Data Response:", moduleRes.data);
-        const data = moduleRes.data?.data;
-        if (data) {
-          setEncryptedData(data);
-        } else {
-          console.warn("No data found in module response.");
-        }
-      } catch (err) {
-        console.error(
-          "Error fetching data:",
-          err.response?.data || err.message
-        );
-      }
-    };
+//         // const moduleRes = await axios.post(
+//         //   "https://rekyc.meon.co.in/v1/user/get_module_data",
+//         //   { page_id: pageId },
+//         //   {
+//         //     headers: {
+//         //       Authorization: `Bearer ${Cookies.get("access_token")}`,
+//         //     },
+//         //   }
+//         // );
+//  const moduleRes = await api.post("/user/get_module_data", { page_id: pageId });
+
+//         console.log("Module Data Response:", moduleRes.data);
+//         const data = moduleRes.data?.data;
+//         if (data) {
+//           setEncryptedData(data);
+//         } else {
+//           console.warn("No data found in module response.");
+//         }
+//       } catch (err) {
+//         console.error(
+//           "Error fetching data:",
+//           err.response?.data || err.message
+//         );
+//       }
+//     };
+
+
+const fetchTokenAndModuleData = async () => {
+  try {
+    const pageId = getPageIdFromPath(location.pathname);
+
+   
+    const moduleRes = await api.post("/user/get_module_data", { page_id: pageId });
+
+    console.log("Module Data Response:", moduleRes.data);
+    const data = moduleRes.data?.data;
+    if (data) {
+      setEncryptedData(data);
+    } else {
+      console.warn("No data found in module response.");
+    }
+  } catch (err) {
+    console.error("Error fetching data:", err.response?.data || err.message);
+  }
+};
 
     const handleBack = () => {
       if (window.history.length > 0) {

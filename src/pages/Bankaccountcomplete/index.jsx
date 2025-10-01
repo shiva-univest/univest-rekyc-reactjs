@@ -5,7 +5,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "./style.css";
 import axios from "axios";
 import Header from "../../Components/Header";
-import { toast } from "react-toastify";
 import { BANKLIST } from "../../lib/utils";
 import { triggerWebhook } from "../../helper/usewebhook";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
@@ -51,7 +50,7 @@ const BankaccAccountComplete = () => {
       return; // Don't run the other API logic
     }
 
-    // Fall back to existing logic if no passed data
+    
     if (tempIdFromURL) {
       setBankTempId(tempIdFromURL);
     }
@@ -191,15 +190,15 @@ const BankaccAccountComplete = () => {
     } catch (err) {
       console.error("Error in callReversePennydropAPISuccess:", err);
       setError(err.message);
-    } finally {
       setLoading(false);
-    }
+    } 
   };
 
   const callReverseResponseAPI = async (transId, retryCount = 0) => {
     console.log("Calling Setu response API...");
 
     try {
+      setLoading(true);
       let token = Cookies.get("access_token");
 
       const response = await fetch(
@@ -256,39 +255,13 @@ const BankaccAccountComplete = () => {
       }
     } catch (err) {
       console.error("Error in callReverseResponseAPI:", err);
+      
+    }finally {
+      setLoading(false);
     }
   };
 
-  // Function to call user form generation API
-  // const callUserFormGeneration = async () => {
-  //   try {
-  //     const token = Cookies.get("access_token");
-
-  //     const response = await axios.post(
-  //       "https://rekyc.meon.co.in/v1/user/user_form_generation",
-  //       { re_esign: false },
-  //       {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       }
-  //     );
-
-  //     if (response.data?.status === true) {
-  //       console.log("navigateion to esign page");
-  //       navigate("/esign");
-  //     } else {
-  //       alert(
-  //         response.data?.message ||
-  //         "Failed to generate user form. Please try again."
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("User form generation error:", error);
-  //     alert(
-  //       error.response?.data?.message ||
-  //       "Failed to generate user form. Please try again."
-  //     );
-  //   }
-  // };
+  
 
   // New function to fetch module data and redirect to eSign link
   const fetchAndRedirectToEsignLink = async (token) => {
@@ -340,7 +313,6 @@ const BankaccAccountComplete = () => {
     } catch (err) {
       console.error("Error fetching eSign data:", err);
       alert("Failed to get eSign link. Please try again.");
-    }finally {
       setLoading(false);
     }
 
@@ -384,7 +356,6 @@ const BankaccAccountComplete = () => {
     } catch (error) {
       console.error("User form generation error:", error);
       alert("Failed to generate user form. Please try again.");
-    }finally {
       setLoading(false);
     }
   };
@@ -392,6 +363,7 @@ const BankaccAccountComplete = () => {
   const verifyBankDetails = async () => {
     console.log("button press");
     try {
+      setLoading(true);
       const token = Cookies.get("access_token");
 
       const response = await fetch(
@@ -441,6 +413,7 @@ const BankaccAccountComplete = () => {
       console.log("Bank verification result:", result);
     } catch (err) {
       console.error("Error in verifyBankDetails:", err);
+      setLoading(false);
     }
   };
 

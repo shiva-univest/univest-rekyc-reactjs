@@ -1,5 +1,14 @@
 
-
+export const sendDataToMixpanel = async (eventName, eventData) => {
+    try {
+        window.flutter_inappwebview.callHandler(
+            "SENDANALYTICEVENTS",
+            JSON.stringify({ eventName: eventName, eventData: eventData })
+        );
+    } catch (error) {
+        console.log(eventName, eventData, error);
+    }
+};
 
 export const openLink = (url) => {
     try {

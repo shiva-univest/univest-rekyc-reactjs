@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
 import "./style.css";
+import { sendDataToMixpanel } from "../../lib/utils";
 
 const REFRESH_URL = "https://rekyc.meon.co.in/v1/user/token/refresh";
 const UPDATE_SEGMENTS_URL =
@@ -58,6 +59,10 @@ const Home = () => {
   };
 
   const handleGoBack = async () => {
+     sendDataToMixpanel("cta_clicked", {
+    page: "rekyc_activate_fno_info", 
+    cta_text: "go_back",
+  });
     try {
       let token = await getValidToken();
 
@@ -104,6 +109,10 @@ const Home = () => {
   };
 
   const handleProceed = () => {
+    sendDataToMixpanel("cta_clicked", {
+    page: "rekyc_activate_fno_info",
+    cta_text: "proceed",
+  });
     // navigate("/activatebank");
     navigate("/activatebank", { state: { segmentData } });
   };
@@ -112,7 +121,7 @@ const Home = () => {
     <div>
       <header className="head_main_cls">
         <div className="a_header_main">
-          <button className="a_btn_header">
+          <button className="a_btn_header"onClick={() => navigate(-1)} >
             <img src="./Icon_app.svg" alt="" />
           </button>
           <button className="a_btn_header">
@@ -159,14 +168,7 @@ const Home = () => {
           </button>
 
           <p className="disclaimer">
-            <strong className="a_disclaimer">Disclaimer:</strong> This is for
-            general information and educational purposes only. The securities
-            quoted are for illustration only and are not recommendation. It can
-            not be construed as an investment advice and PMS/basket
-            recommendation. Investments in the securities market are subject to
-            market risks. Read all the related documents carefully before
-            investing. For further disclosures, visit{" "}
-            <a href="#">https://univest.in</a> or Univest App.
+            <strong className="a_disclaimer">Source:</strong> SEBI study dates January 25,2023 on "Analysis of Profit and Loss of Individual traders dealing in equity Futures and Options (F&O) Segment",where in Aggregate Level findings are based on annual Profit/Loss incurred by individual traders in equity F&O  during FY 2021-22.
           </p>
 
           <div className="action-buttons">

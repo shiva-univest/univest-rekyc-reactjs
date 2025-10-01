@@ -155,8 +155,7 @@ const EditContactModal = ({ onClose, contact }) => {
     } catch (err) {
       console.error("Error fetching eSign data:", err);
       alert("Failed to get eSign link. Please try again.");
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -192,7 +191,7 @@ const EditContactModal = ({ onClose, contact }) => {
 
         await fetchAndRedirectToEsignLink(token);
       } else {
-        alert(
+        toast.error(
           formData?.message || "Failed to generate user form. Please try again."
         );
       }
@@ -205,77 +204,78 @@ const EditContactModal = ({ onClose, contact }) => {
   };
 
   const checkEmailInModuleData = async (enteredEmail, token) => {
-  try {
-    const moduleDataResponse = await fetch(
-      "https://rekyc.meon.co.in/v1/user/get_module_data",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ page_id: "1" }),
+    try {
+      setLoading(true);
+      const moduleDataResponse = await fetch(
+        "https://rekyc.meon.co.in/v1/user/get_module_data",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ page_id: "1" }),
+        }
+      );
+
+      if (!moduleDataResponse.ok) {
+        throw new Error("Failed to fetch module data");
       }
-    );
 
-    if (!moduleDataResponse.ok) {
-      throw new Error("Failed to fetch module data");
-    }
+      const moduleData = await moduleDataResponse.json();
+      console.log("Module Data Response:", moduleData);
 
-    const moduleData = await moduleDataResponse.json();
-    console.log("Module Data Response:", moduleData);
+      if (!moduleData?.data) {
+        return { success: false, error: "No module data received" };
+      }
 
-    if (!moduleData?.data) {
-      return { success: false, error: "No module data received" };
-    }
+      // Decrypt the module data
+      const { decryptData } = await import("../../decode");
+      const decryptedData = JSON.parse(decryptData(moduleData.data));
 
-    // Decrypt the module data
-    const { decryptData } = await import("../../decode");
-    const decryptedData = JSON.parse(decryptData(moduleData.data));
+      console.log("Decrypted module data:", decryptedData);
 
-    console.log("Decrypted module data:", decryptedData);
+      // Check contact_detail_data for is_new: true entries
+      const contactDetailData = decryptedData["3"]?.contact_detail_data || [];
+      console.log("Contact detail data:", contactDetailData);
 
-    // Check contact_detail_data for is_new: true entries
-    const contactDetailData = decryptedData["3"]?.contact_detail_data || [];
-    console.log("Contact detail data:", contactDetailData);
+      // Find entries where is_new is true
+      const newContacts = contactDetailData.filter(
+        (contact) => contact.is_new === true
+      );
+      console.log("New contacts (is_new: true):", newContacts);
 
-    // Find entries where is_new is true
-    const newContacts = contactDetailData.filter(
-      (contact) => contact.is_new === true
-    );
-    console.log("New contacts (is_new: true):", newContacts);
+      // Check if entered email matches any new contact
+      const matchingContact = newContacts.find(
+        (contact) => contact.email?.toLowerCase() === enteredEmail.toLowerCase()
+      );
 
-    // Check if entered email matches any new contact
-    const matchingContact = newContacts.find(
-      (contact) =>
-        contact.email?.toLowerCase() === enteredEmail.toLowerCase()
-    );
+      console.log("Entered email:", enteredEmail);
+      console.log("Matching contact:", matchingContact);
 
-    console.log("Entered email:", enteredEmail);
-    console.log("Matching contact:", matchingContact);
-
-    if (matchingContact) {
+      if (matchingContact) {
+        return {
+          success: true,
+          isValidEmail: true,
+          shouldRedirectToEsign: true,
+        };
+      } else {
+        return {
+          success: true,
+          isValidEmail: false,
+          error: "This email is already updated for another account",
+        };
+      }
+    } catch (moduleErr) {
+      console.error("Failed to fetch or process module data:", moduleErr);
       return {
-        success: true,
-        isValidEmail: true,
-        shouldRedirectToEsign: true,
+        success: false,
+        error: "Failed to verify email details",
       };
-    } else {
-      return {
-        success: true,
-        isValidEmail: false,
-        error: "This email is already updated for another account",
-      };
+    } finally {
+      setLoading(false);
     }
-  } catch (moduleErr) {
-    console.error("Failed to fetch or process module data:", moduleErr);
-    return {
-      success: false,
-      error: "Failed to verify email details",
-    };
-  }
-};
-
+  };
 
   const callUpdateEmailAPI = async (token) => {
     return fetch("https://rekyc.meon.co.in/v1/user/updateemail", {
@@ -308,6 +308,7 @@ const EditContactModal = ({ onClose, contact }) => {
     setLoading(true);
 
     try {
+      console.log("Calling handleVerifyOTP API with: ");
       const token = Cookies.get("access_token");
       const response = await callUpdateEmailAPI(token);
       const data = await response.json();
@@ -318,7 +319,9 @@ const EditContactModal = ({ onClose, contact }) => {
         setTimer(60);
       } else {
         // If updatemobile returns false, call get_module_data API
-        const moduleResult = await checkEmailInModuleData(newPhone, token);
+        console.log("fhdhfhd");
+        console.log("fdsjffjdspss", token);
+        const moduleResult = await checkEmailInModuleData(newEmail, token);
 
         if (!moduleResult.success) {
           setError(moduleResult.error);
@@ -338,6 +341,7 @@ const EditContactModal = ({ onClose, contact }) => {
         }
       }
     } catch (err) {
+      console.error("Error in handleVerifyOTP:", err);
       setError("Network error");
     } finally {
       setLoading(false);
@@ -400,8 +404,7 @@ const EditContactModal = ({ onClose, contact }) => {
           console.log("user_form_generation response:", formData);
         } catch (formErr) {
           console.error("user_form_generation API failed:", formErr);
-        }
-        finally {
+        } finally {
           setLoading(false);
         }
 
@@ -421,7 +424,7 @@ const EditContactModal = ({ onClose, contact }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-       {loading && <VerificationLoader isVisible={loading} />}
+      {loading && <VerificationLoader isVisible={loading} />}
       <div className="modal-content3" onClick={(e) => e.stopPropagation()}>
         {step === "email" ? (
           <>
@@ -437,10 +440,26 @@ const EditContactModal = ({ onClose, contact }) => {
             </div>
 
             <div className="input-group">
-              <input
+              {/* <input
                 type="email"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
+                
+                placeholder="Enter new email"
+                required
+              /> */}
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => {
+                  setNewEmail(e.target.value);
+                  if (error && e.target.value.trim() === "") {
+                    setError("");
+                  }
+                  if (error && e.target.value.trim() !== "") {
+                    setError("");
+                  }
+                }}
                 placeholder="Enter new email"
                 required
               />
@@ -539,7 +558,7 @@ const EditContactModal = ({ onClose, contact }) => {
 
             <div className="bottom_verfiy">
               {timer > 0 ? (
-                <p style={{ fontWeight: "bold" }}>
+                <p style={{  fontSize: "16px" }}>
                   Resend OTP in <span style={{ color: "green" }}>{timer}s</span>
                 </p>
               ) : (
@@ -548,6 +567,8 @@ const EditContactModal = ({ onClose, contact }) => {
                     fontWeight: "bold",
                     color: "green",
                     cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "center",
                   }}
                   onClick={async () => {
                     try {
