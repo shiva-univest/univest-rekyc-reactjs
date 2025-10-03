@@ -187,16 +187,31 @@ const UserInfoCard = () => {
 
   const shared = userModuleData.shared_data || {};
 
+  // const contact = {
+  //   email:
+  //     userModuleData["1"]?.contact_detail_data?.[1]?.email ||
+  //     userModuleData["1"]?.contact_detail_data?.[0]?.email ||
+  //     null,
+  //   mobile:
+  //     userModuleData["1"]?.contact_detail_data?.[1]?.mobile ||
+  //     userModuleData["1"]?.contact_detail_data?.[0]?.mobile ||
+  //     null,
+  // };
+
   const contact = {
-    email:
-      userModuleData["1"]?.contact_detail_data?.[1]?.email ||
-      userModuleData["1"]?.contact_detail_data?.[0]?.email ||
-      null,
-    mobile:
-      userModuleData["1"]?.contact_detail_data?.[0]?.mobile ||
-      userModuleData["1"]?.contact_detail_data?.[1]?.mobile ||
-      null,
-  };
+  email:
+    userModuleData["1"]?.contact_detail_data?.find(c => c.is_new === false)?.email ||
+    userModuleData["1"]?.contact_detail_data?.[1]?.email ||
+    userModuleData["1"]?.contact_detail_data?.[0]?.email ||
+    null,
+
+  mobile:
+    userModuleData["1"]?.contact_detail_data?.find(c => c.is_new === false)?.mobile ||
+    userModuleData["1"]?.contact_detail_data?.[1]?.mobile ||
+    userModuleData["1"]?.contact_detail_data?.[0]?.mobile ||
+    null,
+};
+
 
   // const address = userModuleData["5"]?.contact_detail_data?.[0] || {};
   const address = userModuleData["5"]?.contact_detail_data?.[0] || {};

@@ -12,7 +12,6 @@ import api from "../../api/api";
 import { isMobile } from "react-device-detect";
 import { triggerWebhook } from "../../helper/usewebhook";
 
-
 const BankaccAccount = () => {
   const ref = useRef();
   const count = useRef();
@@ -56,11 +55,10 @@ const BankaccAccount = () => {
     };
   }, []);
 
-
   useEffect(() => {
     const fetchModuleData = async () => {
       try {
-         setLoading(true);
+        setLoading(true);
         const moduleDataResponse = await fetch(
           "https://rekyc.meon.co.in/v1/user/get_module_data",
           {
@@ -93,26 +91,18 @@ const BankaccAccount = () => {
           success: false,
           error: "Failed to verify mobile number details",
         };
-      }finally{
+      } finally {
         setLoading(false);
       }
     };
 
     fetchModuleData();
+    sendDataToMixpanel("page_viewed", {
+      page: "rekyc_add_bank",
+    });
   }, [Cookies.get("access_token")]);
 
-  // useEffect(() => {
-  //   if (dataFromOCR) {
-  //     const { account, branch, ifsc } = bankDetails;
-
-  //     if (!account?.trim() || !branch?.trim() || !ifsc?.trim()) {
-  //       toggleBottomSheet();
-  //     }
-
-  //     setDataFromOCR(false);
-  //   }
-  // }, [dataFromOCR, bankDetails]);
-
+  
   useEffect(() => {
     if (dataFromOCR) {
       const { account, branch, ifsc } = bankDetails;
@@ -184,7 +174,7 @@ const BankaccAccount = () => {
     decrypted = JSON.parse(decrypted);
 
     const status = decrypted?.response?.active_status?.status;
-    
+
     if (status.includes("SUCCESS")) {
       window.location.href = `/bankaccountcomplete?success=true`;
       setLoading(false);
@@ -217,7 +207,7 @@ const BankaccAccount = () => {
             Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
-             redirect_url : `${window.location.origin}/bankaccountcomplete`,
+            redirect_url: `${window.location.origin}/bankaccountcomplete`,
             // redirect_url: "https://uat.rekyc.univest.in/bankaccountcomplete",
           }),
         }
@@ -355,7 +345,7 @@ const BankaccAccount = () => {
   };
 
   const fetchAndRedirectToEsignLink = async (token) => {
-setUserFormLoading(true);
+    setUserFormLoading(true);
     try {
       const moduleRes = await fetch(
         "https://rekyc.meon.co.in/v1/user/get_module_data",
@@ -374,7 +364,6 @@ setUserFormLoading(true);
 
       let parsed;
       try {
-        
         // You'll need to import the decryptData function
         parsed = JSON.parse(decryptData(moduleData.data));
       } catch (err) {
@@ -391,15 +380,12 @@ setUserFormLoading(true);
       console.log("Filtered Links ->", links);
 
       if (!links || links.length === 0) {
-       
         navigate("/congratulations");
       } else {
         setUserFormLoading(true);
-       
+
         const firstLink = links[0];
         window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_self");
-
-        
       }
     } catch (err) {
       console.error("Error fetching eSign data:", err);
@@ -408,9 +394,6 @@ setUserFormLoading(true);
     }
   };
 
- 
-
- 
   const callUserFormGeneration = async () => {
     try {
       setLoading(true);
@@ -437,7 +420,6 @@ setUserFormLoading(true);
       console.log("User form generation response:", formData);
 
       if (formData?.status === true) {
-        
         console.log("Form generation successful, navigating to esign");
         await fetchAndRedirectToEsignLink(token);
 
@@ -450,13 +432,11 @@ setUserFormLoading(true);
     } catch (error) {
       console.error("User form generation error:", error);
       toast.error("Failed to generate user form. Please try again.");
-    }
-    finally{
+    } finally {
       setLoading(false);
     }
   };
 
-  
   const verifyBankDetailsAPI = async (tempId) => {
     try {
       setLoading(true);
@@ -482,7 +462,7 @@ setUserFormLoading(true);
         console.log(
           "Bank verification successful, calling user form generation"
         );
-         triggerWebhook({
+        triggerWebhook({
           step: "bank",
           eSignCompleted: "no",
           finalUpdateExecuted: "no",
@@ -497,7 +477,7 @@ setUserFormLoading(true);
       console.error("Bank verification error:", error);
       setPopupMessage("Bank verification failed. Please try again.");
       setShowTimeoutPopup(true);
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
@@ -558,12 +538,12 @@ setUserFormLoading(true);
           console.log("tempId", tempId);
           await verifyBankDetailsAPI(tempId);
         } else {
-           triggerWebhook({
-          step: "bank",
-          eSignCompleted: "no",
-          finalUpdateExecuted: "no",
-          userId: moduleSharedData?.clientcode || "<user-id>",
-        });
+          triggerWebhook({
+            step: "bank",
+            eSignCompleted: "no",
+            finalUpdateExecuted: "no",
+            userId: moduleSharedData?.clientcode || "<user-id>",
+          });
           await callUserFormGeneration();
         }
         return;
@@ -592,26 +572,26 @@ setUserFormLoading(true);
   return (
     <div className="bankacc-container">
       {/* {loading && <VerificationLoader isVisible={loading} />} */}
-       {(loading || userFormloading) && (
+      {(loading || userFormloading) && (
         <VerificationLoader isVisible={loading || userFormloading} />
       )}
       <header className="header_part">
         <div className="bankacc-header">
           <div className="bankaccacc-back-container">
             <button className="back_btn_head" onClick={() => navigate(-1)}>
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 32 32"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M9.23077 24L8 22.7692L14.7692 16L8 9.23077L9.23077 8L16 14.7692L22.7692 8L24 9.23077L17.2308 16L24 22.7692L22.7692 24L16 17.2308L9.23077 24Z"
-                fill="#202020"
-              />
-            </svg>
-</button>
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 32 32"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9.23077 24L8 22.7692L14.7692 16L8 9.23077L9.23077 8L16 14.7692L22.7692 8L24 9.23077L17.2308 16L24 22.7692L22.7692 24L16 17.2308L9.23077 24Z"
+                  fill="#202020"
+                />
+              </svg>
+            </button>
             <svg
               width="56"
               height="24"

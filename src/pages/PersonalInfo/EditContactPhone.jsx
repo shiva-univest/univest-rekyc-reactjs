@@ -261,6 +261,36 @@ const EditContactPhone = ({ onClose, contact }) => {
     }
   };
 
+  const callCheckUserExistAPI = async (phone, email = null) => {
+    try {
+      const params = new URLSearchParams({
+        key: "Univest123",
+        phone: phone,
+      });
+
+      // Add email parameter if provided
+      if (email) {
+        params.append("email", email);
+      }
+
+      const response = await fetch(
+        `https://api.univest.in/api/kra/check-if-user-exist?${params.toString()}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+      return { response, data };
+    } catch (error) {
+      console.error("Error checking user existence:", error);
+      throw error;
+    }
+  };
+
   const callUpdatePhoneAPI = async (token) => {
     const response = await fetch(
       "https://rekyc.meon.co.in/v1/user/updatemobile",
@@ -327,41 +357,111 @@ const EditContactPhone = ({ onClose, contact }) => {
     setLoading(true);
 
     try {
-      const token = await getValidToken();
-      const response = await callUpdatePhoneAPI(token);
-      const data = await response.json();
+      // First, check if user exists with the new phone number
+      const checkUserResult = await callCheckUserExistAPI(newPhone);
 
-      if (response.ok && data?.status) {
-        // If updatemobile is successful, proceed to OTP step directly
-        setStep("otp");
-        setTimer(60);
-      } else {
-        // If updatemobile returns false, call get_module_data API
-        const moduleResult = await checkMobileInModuleData(newPhone, token);
+      if (!checkUserResult.response.ok) {
+        setError("Failed to verify phone number. Please try again.");
+        return;
+      }
 
-        if (!moduleResult.success) {
-          setError(moduleResult.error);
-          return;
-        }
+      if (!checkUserResult.data.success) {
+        setError(
+          checkUserResult.data.message || "Phone number verification failed."
+        );
+        return;
+      }
 
-        if (moduleResult.isValidMobile) {
-          // Mobile number matches existing contact with is_new: false
-          // Proceed to OTP step
-          // setStep("otp");
-          // setTimer(15);
-          await callUserFormGeneration();
-          // navigate("/esign");
+      // Only proceed if user does NOT exist (data.data === false)
+      if (checkUserResult.data.data === false) {
+        const token = await getValidToken();
+        const response = await callUpdatePhoneAPI(token);
+        const data = await response.json();
+
+        if (response.ok && data?.status) {
+          // If updatemobile is successful, proceed to OTP step directly
+          setStep("otp");
+          setTimer(60);
         } else {
-          // Mobile number doesn't match any existing contact
-          setError(moduleResult.error);
+          // If updatemobile returns false, call get_module_data API
+          const moduleResult = await checkMobileInModuleData(newPhone, token);
+
+          if (!moduleResult.success) {
+            setError(moduleResult.error);
+            return;
+          }
+
+          if (moduleResult.isValidMobile) {
+            // Mobile number matches existing contact with is_new: false
+            // Proceed to OTP step
+            // setStep("otp");
+            // setTimer(15);
+            await callUserFormGeneration();
+            // navigate("/esign");
+          } else {
+            // Mobile number doesn't match any existing contact
+            setError(moduleResult.error);
+          }
         }
+      } else {
+        // User already exists with this phone number
+        setError(
+          "This phone number is already registered with another account."
+        );
       }
     } catch (err) {
-      setError("Network error", err);
+      console.error("Error in handleVerifyPhone:", err);
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+  // const handleVerifyPhone = async () => {
+  //   if (!phoneRegex.test(newPhone)) {
+  //     setError("Enter a valid 10-digit phone number");
+  //     return;
+  //   }
+  //   setError("");
+  //   setLoading(true);
+
+  //   try {
+  //     // First, check if user exists with the new phone number
+  //     const checkUserResult = await callCheckUserExistAPI(newPhone);
+  //     const token = await getValidToken();
+  //     const response = await callUpdatePhoneAPI(token);
+  //     const data = await response.json();
+
+  //     if (response.ok && data?.status) {
+  //       // If updatemobile is successful, proceed to OTP step directly
+  //       setStep("otp");
+  //       setTimer(60);
+  //     } else {
+  //       // If updatemobile returns false, call get_module_data API
+  //       const moduleResult = await checkMobileInModuleData(newPhone, token);
+
+  //       if (!moduleResult.success) {
+  //         setError(moduleResult.error);
+  //         return;
+  //       }
+
+  //       if (moduleResult.isValidMobile) {
+  //         // Mobile number matches existing contact with is_new: false
+  //         // Proceed to OTP step
+  //         // setStep("otp");
+  //         // setTimer(15);
+  //         await callUserFormGeneration();
+  //         // navigate("/esign");
+  //       } else {
+  //         // Mobile number doesn't match any existing contact
+  //         setError(moduleResult.error);
+  //       }
+  //     }
+  //   } catch (err) {
+  //     setError("Network error", err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleVerifyOtpSubmit = async () => {
     if (otp.length !== 6) {
@@ -557,7 +657,7 @@ const EditContactPhone = ({ onClose, contact }) => {
 
             <div className="bottom_verfiy">
               {timer > 0 ? (
-                <p style={{  fontSize: "16px" }}>
+                <p style={{ fontSize: "16px" }}>
                   Resend OTP in <span style={{ color: "green" }}>{timer}s</span>
                 </p>
               ) : (

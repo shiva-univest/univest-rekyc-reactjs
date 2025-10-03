@@ -160,6 +160,36 @@ const EditContactModal = ({ onClose, contact }) => {
     }
   };
 
+  const callCheckUserExistAPI = async (email, phone = null) => {
+    try {
+      const params = new URLSearchParams({
+        key: "Univest123",
+        email: email,
+      });
+
+      // Add phone parameter if provided
+      // if (phone) {
+      //   params.append("phone", phone);
+      // }
+
+      const response = await fetch(
+        `https://api.univest.in/api/kra/check-if-user-exist?${params.toString()}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+      return { response, data };
+    } catch (error) {
+      console.error("Error checking user existence:", error);
+      throw error;
+    }
+  };
+
   // Function to call user form generation API
   const callUserFormGeneration = async () => {
     try {
@@ -308,41 +338,61 @@ const EditContactModal = ({ onClose, contact }) => {
     setLoading(true);
 
     try {
-      console.log("Calling handleVerifyOTP API with: ");
-      const token = Cookies.get("access_token");
-      const response = await callUpdateEmailAPI(token);
-      const data = await response.json();
+      // First, check if user exists with the new email
+      const checkUserResult = await callCheckUserExistAPI(newEmail);
 
-      if (response.ok && data?.status) {
-        setStep("otp");
-        console.log("otp value:", otp);
-        setTimer(60);
-      } else {
-        // If updatemobile returns false, call get_module_data API
-        console.log("fhdhfhd");
-        console.log("fdsjffjdspss", token);
-        const moduleResult = await checkEmailInModuleData(newEmail, token);
+      if (!checkUserResult.response.ok) {
+        setError("Failed to verify email address. Please try again.");
+        return;
+      }
 
-        if (!moduleResult.success) {
-          setError(moduleResult.error);
-          return;
-        }
+      if (!checkUserResult.data.success) {
+        setError(
+          checkUserResult.data.message || "Email address verification failed."
+        );
+        return;
+      }
 
-        if (moduleResult.isValidEmail) {
-          // Mobile number matches existing contact with is_new: false
-          // Proceed to OTP step
-          // setStep("otp");
-          // setTimer(15);
-          await callUserFormGeneration();
-          // navigate("/esign");
+      // Only proceed if user does NOT exist (data.data === false)
+      if (checkUserResult.data.data === false) {
+        const token = await getValidToken();
+        const response = await callUpdateEmailAPI(token);
+        const data = await response.json();
+
+        if (response.ok && data?.status) {
+          // If updateemail is successful, proceed to OTP step directly
+          setStep("otp");
+          setTimer(60);
         } else {
-          // Mobile number doesn't match any existing contact
-          setError(moduleResult.error);
+          // If updateemail returns false, call get_module_data API
+          const moduleResult = await checkEmailInModuleData(newEmail, token);
+
+          if (!moduleResult.success) {
+            setError(moduleResult.error);
+            return;
+          }
+
+          if (moduleResult.isValidEmail) {
+            // Email address matches existing contact with is_new: false
+            // Proceed to OTP step
+            // setStep("otp");
+            // setTimer(15);
+            await callUserFormGeneration();
+            // navigate("/esign");
+          } else {
+            // Email address doesn't match any existing contact
+            setError(moduleResult.error);
+          }
         }
+      } else {
+        // User already exists with this email address
+        setError(
+          "This email address is already registered with another account."
+        );
       }
     } catch (err) {
       console.error("Error in handleVerifyOTP:", err);
-      setError("Network error");
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -558,7 +608,7 @@ const EditContactModal = ({ onClose, contact }) => {
 
             <div className="bottom_verfiy">
               {timer > 0 ? (
-                <p style={{  fontSize: "16px" }}>
+                <p style={{ fontSize: "16px" }}>
                   Resend OTP in <span style={{ color: "green" }}>{timer}s</span>
                 </p>
               ) : (
