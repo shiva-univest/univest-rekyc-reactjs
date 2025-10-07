@@ -41,6 +41,8 @@ const refreshAccessToken = async () => {
   }
 };
 
+
+
 const fetchWithAuth = async (url, options, retry = true) => {
   let token = Cookies.get("access_token");
   options.headers = {
@@ -183,6 +185,14 @@ const Activatebank = ({ encryptedData }) => {
 
     fetchPageModuleMapping();
   }, []);
+
+  useEffect(() => {
+    if (showPopup) {
+      sendDataToMixpanel("page_viewed ", {
+        page: "rekyc_fno_doc_option_bf",
+      });
+    }
+  }, [showPopup]);
 
   useEffect(() => {
     if (encryptedData) {
@@ -423,21 +433,39 @@ const Activatebank = ({ encryptedData }) => {
           const esignLink = parsed?.["12"]?.links?.[0];
 
           if (esignLink?.is_esigned === true) {
+          sendDataToMixpanel("rekyc_fno_activated", {
+            page: "rekyc_fno_doc_option_bf",
+          });
             navigate("/congratulations");
           } else if (esignLink?.url) {
+              sendDataToMixpanel("page_viewed", {
+            page: "rekyc_fno_success",
+          });
             window.location.href = `https://rekyc.meon.co.in${esignLink.url}`;
           } else {
             toast.error("Missing esign URL.");
+            sendDataToMixpanel("rekyc_fno_failed", {
+            error: "Missing esign URL.",
+          });
           }
         } else {
           toast.error("Failed to get module data.");
+           sendDataToMixpanel("rekyc_fno_failed", {
+          error: "Failed to get module data.",
+        });
         }
       } else {
         toast.error("Something went wrong. Please try again.");
+        sendDataToMixpanel("rekyc_fno_failed", {
+        error: "Form generation failed.",
+      });
       }
     } catch (error) {
       console.error("❌ Error during full proceed flow:", error);
       toast.error("Request failed. Please try again.");
+       sendDataToMixpanel("rekyc_fno_failed", {
+      error: error?.message || JSON.stringify(error),
+    });
       setLoading(false);
     } finally {
       setUserFormLoading(false);
@@ -1023,63 +1051,6 @@ const Activatebank = ({ encryptedData }) => {
                 </span>
               </div>
 
-              {/* <div className="upload-box">
-                <label className="upload_doc_logo_wrapper">
-                  <input
-                    type="file"
-                    hidden
-                    onChange={async (e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-
-                      const allowedTypes =
-                        userModuleData?.["11"]?.document_detail_data?.[0]
-                          ?.document_file_type?.allowed_type || [];
-
-                      const fileExtension = file.name
-                        .split(".")
-                        .pop()
-                        .toLowerCase();
-                      if (!allowedTypes.includes(fileExtension)) {
-                        toast.error(
-                          `Only ${allowedTypes
-                            .join(", ")
-                            .toUpperCase()} files are allowed.`
-                        );
-                        return;
-                      }
-
-                      setUploadedFile(file);
-                      e.target.closest("label").classList.add("file-selected");
-
-                      const token = Cookies.get("access_token");
-                      const documentId =
-                        userModuleData?.["11"]?.document_detail_data?.[0]?.id;
-                      if (!token || !documentId || !selectedDoc) return;
-
-                      const formData = new FormData();
-                      formData.append("file", file);
-                      formData.append("file_suggestion", selectedDoc);
-
-                      try {
-                        const res = await fetch(
-                          `https://rekyc.meon.co.in/v1/user/upload_user_documents/${documentId}`,
-                          {
-                            method: "POST",
-                            headers: { Authorization: `Bearer ${token}` },
-                            body: formData,
-                          }
-                        );
-                        const result = await res.json();
-                        console.log("✅ Upload result:", result);
-                      } catch (err) {
-                        console.error("❌ Upload error:", err);
-                      }
-                    }}
-                  />
-                </label>
-              </div> */}
-
               <div className="upload-box">
                 <label className="upload_doc_logo_wrapper">
                   <input
@@ -1248,7 +1219,17 @@ const Activatebank = ({ encryptedData }) => {
                 ITR acknowledgement (last FY)
               </li>
             </ul>
-            <button className="confirm-btn" onClick={handleConfirm}>
+            <button className="confirm-btn" onClick={() => {
+         
+          sendDataToMixpanel("cta_clicked", {
+            page: "rekyc_fno_doc_option_bf",
+            cta_text: "confirm",
+            selected_doc: selectedDoc || null, 
+          });
+
+          
+          handleConfirm();
+        }}>
               Confirm
             </button>
           </div>

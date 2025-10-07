@@ -67,6 +67,14 @@ const Bank = ({ encryptedData }) => {
   };
 
   useEffect(() => {
+      if (showAccountDetailsPopup && selectedAccount ) {
+        sendDataToMixpanel("page_viewed", {
+          page: "rekyc_managebank_info_bf",
+        });
+      }
+    }, [showAccountDetailsPopup && selectedAccount ]);
+
+  useEffect(() => {
     const fetchModuleData = async () => {
       try {
         const moduleDataResponse = await fetch(
@@ -595,8 +603,14 @@ const Bank = ({ encryptedData }) => {
           <p>Note: You can add up to 3 bank accounts</p>
           <button
             className="univest-actions-btn"
-            onClick={() => navigate("/bankaccount")}
             
+            onClick={() => {
+                sendDataToMixpanel("cta_clicked", {
+                page: "demat_manage_bank",
+                cta_clicked: "add_bank_account",
+              });
+                navigate("/bankaccount");
+              }}  
           >
             Add bank account
           </button>
@@ -636,8 +650,8 @@ const Bank = ({ encryptedData }) => {
                 className="primary"
                 onClick={async () => {
 
-                  sendDataToMixpanel("cta_clicked", {
-                        page: "rekyc_managebank_home",
+                  sendDataToMixpanel("chip_clicked", {
+                        page: "rekyc_managebank_info_bf",
                         chip_text: "make_primary",
                       });
                   handleMakePrimary(selectedAccount.id);
@@ -811,8 +825,7 @@ const Bank = ({ encryptedData }) => {
               </div>
 
               <div className="popup-actions-btn">
-                {/* show the alright button only if account is  primary and remove the delete button */}
-                {/* look if the bank is primary then dont show the delelte option instead show go-back button */}
+               
                 {selectedAccount.isPrimary ? (
                   <button
                     className="go-back-btn"
@@ -820,6 +833,7 @@ const Bank = ({ encryptedData }) => {
                       sendDataToMixpanel("cta_clicked", {
                         page: "rekyc_managebank_home",
                         cta_text: "go_bak",
+                        is_primary:"true",
                       });
                       setShowAccountDetailsPopup(false);
                     }}

@@ -11,6 +11,7 @@ import VerificationLoader from "../../Components/VerificationLoader/Verification
 import api from "../../api/api";
 import { isMobile } from "react-device-detect";
 import { triggerWebhook } from "../../helper/usewebhook";
+import { sendDataToMixpanel } from "../../lib/utils";
 
 const BankaccAccount = () => {
   const ref = useRef();
@@ -56,20 +57,44 @@ const BankaccAccount = () => {
   }, []);
 
   useEffect(() => {
+    if (showOCRPopup && bankDetails) {
+      sendDataToMixpanel("page_viewed ", {
+        page: "rekyc_confim_bank_bf",
+      });
+    }
+  }, [showOCRPopup, bankDetails]);
+
+  useEffect(() => {
+    if (showTimeoutPopup) {
+      sendDataToMixpanel("page_viewed", {
+        page: "rekyc_bank_fetched_failed_bf",
+      });
+    }
+  }, [showTimeoutPopup]);
+
+  useEffect(() => {
     const fetchModuleData = async () => {
       try {
+        sendDataToMixpanel("page_viewed", {
+          page: "rekyc_add_bank",
+        });
         setLoading(true);
-        const moduleDataResponse = await fetch(
-          "https://rekyc.meon.co.in/v1/user/get_module_data",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${Cookies.get("access_token")}`,
-            },
-            body: JSON.stringify({ page_id: "2" }),
-          }
-        );
+        // const moduleDataResponse = await fetch(
+        //   "https://rekyc.meon.co.in/v1/user/get_module_data",
+        //   {
+        //     method: "POST",
+        //     headers: {
+        //       "Content-Type": "application/json",
+        //       Authorization: `Bearer ${Cookies.get("access_token")}`,
+        //     },
+        //     body: JSON.stringify({ page_id: "2" }),
+        //   }
+        // );
+        const moduleDataResponse = await api.post("user/get_module_data", {
+          page_id: "2",
+        });
+
+        console.log(moduleDataResponse.data);
 
         if (!moduleDataResponse.ok) {
           throw new Error("Failed to fetch module data");
@@ -102,7 +127,6 @@ const BankaccAccount = () => {
     });
   }, [Cookies.get("access_token")]);
 
-  
   useEffect(() => {
     if (dataFromOCR) {
       const { account, branch, ifsc } = bankDetails;
@@ -380,6 +404,9 @@ const BankaccAccount = () => {
       console.log("Filtered Links ->", links);
 
       if (!links || links.length === 0) {
+        sendDataToMixpanel("rekyc_bank_success", {
+          page: "",
+        });
         navigate("/congratulations");
       } else {
         setUserFormLoading(true);
@@ -529,7 +556,7 @@ const BankaccAccount = () => {
         return;
       }
 
-      // If pennydrop_flag is true, proceed with verification flow
+      // If pennydrop_flag is true, proceed to verify bank details
       if (checkData?.data?.pennydrop_flag === true) {
         console.log("Pennydrop successful, proceeding to verify bank details");
 
@@ -679,6 +706,11 @@ const BankaccAccount = () => {
               id="steps"
               rel=""
               onClick={(e) => {
+                sendDataToMixpanel("cta_clicked", {
+                  page: "rekyc_managebank_home",
+                  cta_text: "steps_to_link",
+                });
+
                 e.preventDefault();
                 setShowStepsPopup(true);
               }}
@@ -691,7 +723,14 @@ const BankaccAccount = () => {
         <div className="bankacc-body-b3">
           <button
             className="bankacc-button bankacc-button1"
-            onClick={() => callReversePennydropAPI("phonepe://")}
+            onClick={() => {
+              sendDataToMixpanel("cta_clicked", {
+                page: "rekyc_add_bank",
+                cta_text: "phonepe",
+                widget: "select_upi_app",
+              });
+              callReversePennydropAPI("phonepe://");
+            }}
           >
             <img src="./phonepay.png" alt="bank icon" />
             <div className="bank-details bank-details1">
@@ -727,7 +766,15 @@ const BankaccAccount = () => {
 
           <button
             className="bankacc-button bankacc-button2"
-            onClick={() => callReversePennydropAPI("tez://")}
+            onClick={() => {
+              sendDataToMixpanel("cta_clicked", {
+                page: "rekyc_add_bank",
+                cta_text: "googlepay",
+                widget: "select_upi_app",
+              });
+
+              callReversePennydropAPI("tez://");
+            }}
           >
             <img src="./gpay.png" alt="bank icon" />
             <div className="bank-details bank-details1">
@@ -763,7 +810,15 @@ const BankaccAccount = () => {
 
           <button
             className="bankacc-button bankacc-button3"
-            onClick={() => callReversePennydropAPI("upi://")}
+            onClick={() => {
+              sendDataToMixpanel("cta_clicked", {
+                page: "rekyc_add_bank",
+                cta_text: "others copy",
+                widget: "select_upi_app",
+              });
+
+              callReversePennydropAPI("upi://");
+            }}
           >
             <img src="./otherpay.png" alt="bank icon" />
             <div className="bank-details bank-details1">
@@ -834,7 +889,14 @@ const BankaccAccount = () => {
 
           <button
             className="final-btns ifsc-btn"
-            onClick={() => navigate("/pennydrop")}
+            onClick={() => {
+              sendDataToMixpanel("cta_clicked", {
+                page: "rekyc_add_bank",
+                cta_text: "link_ifsc",
+              });
+
+              navigate("/pennydrop");
+            }}
           >
             <svg
               width="24"
@@ -909,7 +971,14 @@ const BankaccAccount = () => {
 
           <label className="final-btns cancel-cheque-btn">
             <input
-              onClick={() => fileInputRef.current.click()}
+              // onClick={() => fileInputRef.current.click()}
+              onClick={() => {
+                sendDataToMixpanel("cta_clicked", {
+                  page: "rekyc_add_bank",
+                  cta_text: "link_cheque",
+                });
+                fileInputRef.current.click();
+              }}
               type="file"
               accept="image/*,.pdf"
               ref={fileInputRef}
@@ -952,9 +1021,14 @@ const BankaccAccount = () => {
 
                 <button
                   className="btn-primary"
-                  onClick={() =>
-                    fileInputRef.current && fileInputRef.current.click()
-                  }
+                  onClick={() => {
+                    sendDataToMixpanel("cta_clicked", {
+                      page: "rekyc_bank_fetched_failed_bf",
+                      cta_text: "re_upload_document",
+                    });
+
+                    fileInputRef.current && fileInputRef.current.click();
+                  }}
                 >
                   Re-upload Document
                 </button>
@@ -1050,6 +1124,10 @@ const BankaccAccount = () => {
                   <button
                     className="proceed-btn"
                     onClick={() => {
+                      sendDataToMixpanel("cta_clicked", {
+                        page: "rekyc_confim_bank_bf",
+                        cta_text: "proceed",
+                      });
                       setShowOCRPopup(false);
                       checkAndVerifyBankDetails();
                     }}
@@ -1157,30 +1235,6 @@ const BankaccAccount = () => {
         </div>
       )}
 
-      {/* {showTimeoutPopup && (
-        <div className="bottom-sheet-overlay">
-          <div className="bottom-sheet">
-            <div className="popup-icon">
-              <img src="./exclamation_icon.svg" alt="bank icon" />
-            </div>
-            <h2>Your bank details couldn’t be read</h2>
-            <p>
-              Document uploaded might not be clear or the text
-              <br />
-              is not readable enough for details fetching..
-            </p>
-            <button
-              className="bottom-sheet-button"
-              onClick={() => {
-                setShowTimeoutPopup(false);
-                // navigate("/bankaccount"); // ✅ redirect
-              }}
-            >
-              Continue with another account
-            </button>
-          </div>
-        </div>
-      )} */}
 
       {showTimeoutPopup && (
         <div className="bottom-sheet-overlay">
@@ -1199,6 +1253,10 @@ const BankaccAccount = () => {
             <button
               className="bottom-sheet-button"
               onClick={() => {
+                sendDataToMixpanel("cta_clicked", {
+                      page: "rekyc_bank_fetched_failed_bf",
+                      cta_text: "re_upload_cheque",
+                    });
                 setShowTimeoutPopup(false);
                 // navigate("/bankaccount");
               }}

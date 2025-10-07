@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import Header from "../../../Components/Header.jsx";
 import { toast } from "react-toastify";
 import api from "../../../api/api.js";
 import VerificationLoader from "../../../Components/VerificationLoader/VerificationLoader.jsx";
+import { sendDataToMixpanel } from "../../../lib/utils.js";
 
 const Pennycompo = () => {
   const [ifscCode, setIfscCode] = useState("");
@@ -27,7 +28,14 @@ const Pennycompo = () => {
   const [confirmAccountError, setConfirmAccountError] = useState("");
   const [ifscCodeError, setIfscCodeError] = useState("");
 
-  // Add validation function
+  useEffect(() => {
+    sendDataToMixpanel("page_viewed", {
+      page: "rekyc_link_bank_ifsc",
+    });
+  }, []);
+
+  
+
   const validateAccountNumber = (accountNum) => {
     // Remove any spaces or special characters
     const cleanedNumber = accountNum.replace(/[^0-9]/g, "");
@@ -168,18 +176,41 @@ const Pennycompo = () => {
     const confirmAccountValidation =
       validateAccountNumber(confirmAccountNumber);
 
-    if (!accountValidation.isValid) {
-      setAccountError(accountValidation.message);
-      return;
-    }
+    let errorMessage = "";
+    if (!accountValidation.isValid) errorMessage = accountValidation.message;
+    else if (!confirmAccountValidation.isValid)
+      errorMessage = confirmAccountValidation.message;
+    else if (accountNumber !== confirmAccountNumber)
+      errorMessage = "Account numbers do not match";
 
-    if (!confirmAccountValidation.isValid) {
-      setConfirmAccountError(confirmAccountValidation.message);
-      return;
-    }
+    sendDataToMixpanel("cta_clicked", {
+      page: "rekyc_add_bank",
+      cta_text: "Proceed",
+      error: errorMessage || null,
+    });
 
-    if (accountNumber !== confirmAccountNumber) {
-      setConfirmAccountError("Account numbers do not match");
+    // if (!accountValidation.isValid) {
+    //   setAccountError(accountValidation.message);
+    //   return;
+    // }
+
+    // if (!confirmAccountValidation.isValid) {
+    //   setConfirmAccountError(confirmAccountValidation.message);
+    //   return;
+    // }
+
+    // if (accountNumber !== confirmAccountNumber) {
+    //   setConfirmAccountError("Account numbers do not match");
+    //   return;
+    // }
+
+    if (errorMessage) {
+      if (!accountValidation.isValid)
+        setAccountError(accountValidation.message);
+      if (!confirmAccountValidation.isValid)
+        setConfirmAccountError(confirmAccountValidation.message);
+      if (accountNumber !== confirmAccountNumber)
+        setConfirmAccountError("Account numbers do not match");
       return;
     }
 
@@ -198,13 +229,13 @@ const Pennycompo = () => {
         typeof response.data?.data?.pennydrop_flag
       );
 
-      // ✅ More specific check - only show popup when pennydrop_flag is explicitly false
       if (response.data?.data?.pennydrop_flag === true) {
-        // ✅ Success → navigate with data
+        sendDataToMixpanel("bank_pd_success", {
+          page: "rekyc_add_bank",
+        });
         navigate("/bankaccountcomplete", {
           state: {
             bankData: {
-              // Account details
               accountHolderName: response.data.data.response.name,
               accountNumber: response.data.data.response.account_number,
               ifscCode: response.data.data.response.ifsc,
@@ -212,7 +243,6 @@ const Pennycompo = () => {
               branchName: response.data.data.response.branch_name,
               accountType: response.data.data.response.account_type,
 
-              // Verification details
               utr: response.data.data.response.utr,
               nameMatch: response.data.data.name_match,
               verificationStatus: response.data.data.response.verification,
@@ -220,12 +250,15 @@ const Pennycompo = () => {
               verifiedAt:
                 response.data.data.response.active_status.data.verifiedAt,
 
-              // Bank temp ID for future reference
               bankTempId: response.data.data.bank_temp_id,
             },
           },
         });
       } else if (response.data?.data?.pennydrop_flag === false) {
+        sendDataToMixpanel("bank_pd_failed", {
+          page: "rekyc_add_bank",
+          reason: response.data?.message || "Bank verification failed",
+        });
         setPopupMessage(response.data?.message || "Bank verification failed");
         setShowTimeoutPopup(true);
       } else {

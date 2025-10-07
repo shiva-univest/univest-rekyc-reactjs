@@ -32,7 +32,7 @@ export const alright = () => {
     try {
         window.flutter_inappwebview.callHandler("BACK", "BACK");
     } catch (e) {
-        window.open("https://univest.page.link/APPHOME", "_self")
+        window.open("https://univest.in/dl/APPHOME", "_self")
     }
 }
 

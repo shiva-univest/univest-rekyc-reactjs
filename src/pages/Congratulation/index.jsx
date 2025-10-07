@@ -1,43 +1,4 @@
-// import React from "react";
-// import { useLocation } from "react-router-dom"; // ✅ import useLocation
-// import "./styles.css";
-// import { alright } from "../../lib/utils";
-// import { triggerWebhook } from "../../helper/usewebhook";
-// import { decryptData } from "../../decode";
-// import api from "../../api/api";
-// import Cookies from "js-cookie";
 
-// triggerWebhook({
-//       step: "bank",
-//       eSignCompleted: "yes",
-//       finalUpdateExecuted: "no",
-//       userId: clientcode,
-//     });
-
-// const Congratulation = () => {
-//   const location = useLocation();
-//   const fromPersonalInfo = location.state?.from === "personalInfo"; // check state
-
-//   return (
-//     <div>
-//       <div className="upper_main">
-//         <img src="./91001-success 1.svg" alt="success" />
-//         <p className="c_congratulations">Congratulations!</p>
-//         <p className="c_request">
-//           {fromPersonalInfo
-//             ? "Details updated successfully"
-//             : "Request submitted successfully"}
-//         </p>
-//       </div>
-//       <footer className="conFooter">
-
-//         <button className="univest-actions-btn c_alright" onClick={alright} >Alright</button>
-//       </footer>
-//     </div>
-//   );
-// };
-
-// export default Congratulation;
 
 import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
@@ -48,6 +9,7 @@ import { decryptData } from "../../decode";
 import api from "../../api/api";
 import { ServerCog } from "lucide-react";
 import Cookies from "js-cookie";
+
 
 const Congratulation = () => {
   const location = useLocation();
@@ -135,6 +97,7 @@ const Congratulation = () => {
             finalUpdateExecuted: "no",
             userId: clientcode,
           });
+         
         }
       } catch (err) {
         console.error(" Error in Congratulation API chain:", err);

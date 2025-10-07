@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 import { triggerWebhook } from "../../helper/usewebhook";
 
+
 import "./personal.css";
 import { decryptData } from "../../decode";
 

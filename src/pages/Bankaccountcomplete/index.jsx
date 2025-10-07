@@ -8,6 +8,7 @@ import Header from "../../Components/Header";
 import { BANKLIST } from "../../lib/utils";
 import { triggerWebhook } from "../../helper/usewebhook";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
+import { sendDataToMixpanel } from "../../lib/utils";
 
 const BankaccAccountComplete = () => {
   const [loading, setLoading] = useState(false);
@@ -34,6 +35,13 @@ const BankaccAccountComplete = () => {
     const token = Cookies.get("access_token");
     return `${window.location.href}?token=${token}`;
   };
+  useEffect(() => {
+  if (showTimeoutPopup) {
+    sendDataToMixpanel("page_viewed ", {
+      page: "rekyc_bank_failed",
+    });
+  }
+}, [showTimeoutPopup]);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
@@ -50,7 +58,6 @@ const BankaccAccountComplete = () => {
       return; // Don't run the other API logic
     }
 
-    
     if (tempIdFromURL) {
       setBankTempId(tempIdFromURL);
     }
@@ -66,7 +73,6 @@ const BankaccAccountComplete = () => {
     // const cleanUrl = `${window.location.origin}${window.location.pathname}`;
     // window.history.replaceState(null, "", cleanUrl);
   }, [passedBankData]); // Add dependency
-
 
   useEffect(() => {
     const fetchModuleData = async () => {
@@ -108,6 +114,8 @@ const BankaccAccountComplete = () => {
 
     fetchModuleData();
   }, [Cookies.get("access_token")]);
+
+ 
 
   const getrefreshtoken = async () => {
     try {
@@ -191,13 +199,16 @@ const BankaccAccountComplete = () => {
       console.error("Error in callReversePennydropAPISuccess:", err);
       setError(err.message);
       setLoading(false);
-    } 
+    }
   };
 
   const callReverseResponseAPI = async (transId, retryCount = 0) => {
     console.log("Calling Setu response API...");
 
     try {
+      sendDataToMixpanel("bank_rpd_success", {
+        page: "rekyc_add_bank",
+      });
       setLoading(true);
       let token = Cookies.get("access_token");
 
@@ -255,13 +266,10 @@ const BankaccAccountComplete = () => {
       }
     } catch (err) {
       console.error("Error in callReverseResponseAPI:", err);
-      
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
-
-  
 
   // New function to fetch module data and redirect to eSign link
   const fetchAndRedirectToEsignLink = async (token) => {
@@ -291,31 +299,28 @@ const BankaccAccountComplete = () => {
         parsed = {};
       }
 
-      // Get links
       let links = parsed?.["12"]?.links || [];
 
-      // Filter out signed ones
       links = links.filter((link) => !link.is_esigned);
 
       console.log("Filtered Links ->", links);
 
       if (!links || links.length === 0) {
-        // No links available, redirect to congratulations
+         sendDataToMixpanel("rekyc_bank_success", {
+    page: "",
+  });
         navigate("/congratulations");
       } else {
-        // Open the first available eSign link
         const firstLink = links[0];
-       window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_self");
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_self");
 
-        // Optionally, you can also navigate to congratulations or stay on current page
-        // navigate("/congratulations");
+
       }
     } catch (err) {
       console.error("Error fetching eSign data:", err);
       alert("Failed to get eSign link. Please try again.");
       setLoading(false);
     }
-
   };
 
   // Function to call user form generation API
@@ -396,11 +401,11 @@ const BankaccAccountComplete = () => {
       if (result.status === true) {
         // call the api user_form_generation api here and based on the status of that api we will navigate to teh esign
         console.log("calling the user from generation ap1111111111i");
-         triggerWebhook({
+        triggerWebhook({
           step: "bank",
           eSignCompleted: "no",
           finalUpdateExecuted: "no",
-         userId: moduleSharedData?.clientcode || "<user-id>",
+          userId: moduleSharedData?.clientcode || "<user-id>",
         });
         await callUserFormGeneration();
         console.log("user form generation success");
@@ -433,7 +438,17 @@ const BankaccAccountComplete = () => {
               <section className="Completed-sections-maincontainer">
                 <div className="bank-card">
                   <div className="bank-icon">
-                    <img alt={bankDetails.bank_name} className="bank_icon_cls" src={BANKLIST?.filter(f => bankDetails.bank_name?.toLowerCase()?.includes(f.name?.toLowerCase()))?.[0]?.url ?? "./bank5.png"}></img>
+                    <img
+                      alt={bankDetails.bank_name}
+                      className="bank_icon_cls"
+                      src={
+                        BANKLIST?.filter((f) =>
+                          bankDetails.bank_name
+                            ?.toLowerCase()
+                            ?.includes(f.name?.toLowerCase())
+                        )?.[0]?.url ?? "./bank5.png"
+                      }
+                    ></img>
                   </div>
                   <div className="bank-details">
                     <h6 className="account-name">{bankDetails.bank_name}</h6>
@@ -481,6 +496,10 @@ const BankaccAccountComplete = () => {
                     <button
                       className="bottom-sheet-button"
                       onClick={() => {
+                        sendDataToMixpanel("cta_clicked", {
+                      page: "rekyc_bank_failed",
+                      cta_text: "go_back",
+                    });
                         setShowTimeoutPopup(false);
                         navigate("/bankaccount");
                       }}
@@ -490,15 +509,20 @@ const BankaccAccountComplete = () => {
                   </div>
                 </div>
               )}
-            </div>
 
+            </div>
           </div>
         </div>
       </div>
       <button
         className="univest-actions-btn univest-footer"
-        onClick={() => verifyBankDetails(bankTempId)}
-      // disabled={!bankTempId}
+        onClick={() =>{
+           sendDataToMixpanel("cta_clicked", {
+      page: "rekyc_bank_success",
+      cta_text: "Continue",
+    });
+          verifyBankDetails(bankTempId)}}
+        // disabled={!bankTempId}
       >
         Continue
       </button>
