@@ -113,7 +113,7 @@ const Pennycompo = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        "https://rekyc.meon.co.in/v1/user/razorpay_IFSC_validation",
+        "https://rekycuat.meon.co.in/v1/user/razorpay_IFSC_validation",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -144,7 +144,7 @@ const Pennycompo = () => {
   const refreshAccessToken = async () => {
     try {
       const response = await axios.post(
-        "https://rekyc.meon.co.in/v1/user/refresh_token",
+        "https://rekycuat.meon.co.in/v1/user/refresh_token",
         { refresh_token: getRefreshToken() }
       );
       const newToken = response.data.access_token;
@@ -159,7 +159,7 @@ const Pennycompo = () => {
   // ✅ Penny Drop API
   const callPennyDropAPI = async (token) => {
     return api.post(
-      "https://rekyc.meon.co.in/v1/user/check_pennydrop",
+      "https://rekycuat.meon.co.in/v1/user/check_pennydrop",
       {
         account_number: accountNumber,
         ifsc: ifscCode,

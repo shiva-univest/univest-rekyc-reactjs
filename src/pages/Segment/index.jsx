@@ -31,7 +31,7 @@ const Segment = ({ encryptedData }) => {
     const fetchModuleData = async () => {
       try {
         const moduleDataResponse = await fetch(
-          "https://rekyc.meon.co.in/v1/user/get_module_data",
+          "https://rekycuat.meon.co.in/v1/user/get_module_data",
           {
             method: "POST",
             headers: {
@@ -107,7 +107,7 @@ const Segment = ({ encryptedData }) => {
       if (!refreshToken) throw new Error("No refresh token available");
 
       const res = await axios.post(
-        "https://rekyc.meon.co.in/v1/user/token/refresh_token",
+        "https://rekycuat.meon.co.in/v1/user/token/refresh_token",
         { refresh: refreshToken },
         { headers: { "Content-Type": "application/json" } }
       );
@@ -163,7 +163,7 @@ const Segment = ({ encryptedData }) => {
       const token = Cookies.get("access_token");
 
       await axios.post(
-        "https://rekyc.meon.co.in/v1/user/update_user_segments",
+        "https://rekycuat.meon.co.in/v1/user/update_user_segments",
         { segment_data },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -177,7 +177,7 @@ const Segment = ({ encryptedData }) => {
 
           // retry request with new token
           await axios.post(
-            "https://rekyc.meon.co.in/v1/user/update_user_segments",
+            "https://rekycuat.meon.co.in/v1/user/update_user_segments",
             { segment_data },
             { headers: { Authorization: `Bearer ${newToken}` } }
           );
@@ -212,7 +212,7 @@ const Segment = ({ encryptedData }) => {
     ]);
     const makeApiCall = async (accessToken) => {
       return axios.post(
-        "https://rekyc.meon.co.in/v1/user/update_user_segments",
+        "https://rekycuat.meon.co.in/v1/user/update_user_segments",
         {
           segment_data: [
             ...(getCheckedSegments()?.segment_data || []),
@@ -260,7 +260,7 @@ const Segment = ({ encryptedData }) => {
 
         try {
           const res = await axios.post(
-            "https://rekyc.meon.co.in/v1/user/token/refresh_token",
+            "https://rekycuat.meon.co.in/v1/user/token/refresh_token",
             {
               refresh: refreshToken,
             }

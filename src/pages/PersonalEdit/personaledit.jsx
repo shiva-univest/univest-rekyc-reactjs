@@ -84,21 +84,21 @@ const PersonalInfoForm = () => {
     try {
       if (father !== initialData.father) {
         await callApi(
-          "https://rekyc.meon.co.in/v1/user/update_father_name",
+          "https://rekycuat.meon.co.in/v1/user/update_father_name",
           "PATCH",
           { fathername: father }
         );
       }
 
       if (dobDate !== initialData.dobDate) {
-        await callApi("https://rekyc.meon.co.in/v1/user/update_dob", "PATCH", {
+        await callApi("https://rekycuat.meon.co.in/v1/user/update_dob", "PATCH", {
           dob: dobDate,
         });
       }
 
       if (gender !== initialData.gender) {
         await callApi(
-          "https://rekyc.meon.co.in/v1/user/update_gender",
+          "https://rekycuat.meon.co.in/v1/user/update_gender",
           "PATCH",
           { gender }
         );
@@ -106,7 +106,7 @@ const PersonalInfoForm = () => {
 
       if (maritalStatus !== initialData.maritalStatus) {
         await callApi(
-          "https://rekyc.meon.co.in/v1/user/update_maritalStatus",
+          "https://rekycuat.meon.co.in/v1/user/update_maritalStatus",
           "PATCH",
           { maritalStatus }
         );
@@ -114,14 +114,14 @@ const PersonalInfoForm = () => {
 
       if (fullName !== initialData.fullName) {
         const panRes = await callApi(
-          "https://rekyc.meon.co.in/v1/user/pan_api",
+          "https://rekycuat.meon.co.in/v1/user/pan_api",
           "POST",
           { name: fullName }
         );
 
         if (panRes?.status === "success") {
           await callApi(
-            "https://rekyc.meon.co.in/v1/user/name_update",
+            "https://rekycuat.meon.co.in/v1/user/name_update",
             "POST",
             {
               name: fullName,

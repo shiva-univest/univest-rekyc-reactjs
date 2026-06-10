@@ -80,7 +80,7 @@ const BankaccAccount = () => {
         });
         setLoading(true);
         // const moduleDataResponse = await fetch(
-        //   "https://rekyc.meon.co.in/v1/user/get_module_data",
+        //   "https://rekycuat.meon.co.in/v1/user/get_module_data",
         //   {
         //     method: "POST",
         //     headers: {
@@ -160,7 +160,7 @@ const BankaccAccount = () => {
       }
 
       const refreshResponse = await fetch(
-        "https://rekyc.meon.co.in/v1/user/token/refresh",
+        "https://rekycuat.meon.co.in/v1/user/token/refresh",
         {
           method: "POST",
           headers: {
@@ -222,7 +222,7 @@ const BankaccAccount = () => {
       }
 
       const response = await fetch(
-        "https://rekyc.meon.co.in/v1/user/reverse_pennydrop_api_setu",
+        "https://rekycuat.meon.co.in/v1/user/reverse_pennydrop_api_setu",
 
         {
           method: "POST",
@@ -372,7 +372,7 @@ const BankaccAccount = () => {
     setUserFormLoading(true);
     try {
       const moduleRes = await fetch(
-        "https://rekyc.meon.co.in/v1/user/get_module_data",
+        "https://rekycuat.meon.co.in/v1/user/get_module_data",
         {
           method: "POST",
           headers: {
@@ -412,7 +412,7 @@ const BankaccAccount = () => {
         setUserFormLoading(true);
 
         const firstLink = links[0];
-        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_self");
+        window.open(`https://rekycuat.meon.co.in${firstLink.url}`, "_self");
       }
     } catch (err) {
       console.error("Error fetching eSign data:", err);
@@ -432,7 +432,7 @@ const BankaccAccount = () => {
       }
 
       const response = await fetch(
-        "https://rekyc.meon.co.in/v1/user/user_form_generation",
+        "https://rekycuat.meon.co.in/v1/user/user_form_generation",
         {
           method: "POST",
           headers: {
@@ -475,7 +475,7 @@ const BankaccAccount = () => {
       }
 
       const verifyRes = await fetch(
-        `https://rekyc.meon.co.in/v1/user/verify_bank_details/${tempId}`,
+        `https://rekycuat.meon.co.in/v1/user/verify_bank_details/${tempId}`,
         {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
@@ -535,7 +535,7 @@ const BankaccAccount = () => {
     try {
       setLoading(true);
       const checkRes = await fetch(
-        "https://rekyc.meon.co.in/v1/user/check_pennydrop",
+        "https://rekycuat.meon.co.in/v1/user/check_pennydrop",
         {
           method: "POST",
           headers: {

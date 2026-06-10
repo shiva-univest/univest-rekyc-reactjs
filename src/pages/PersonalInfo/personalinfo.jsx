@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import "./personal.css";
-import { Pencil, Copy } from "lucide-react";
+import { Pencil } from "lucide-react";
 import EditContactModal from "./EditContactModal";
 import EditContactPhone from "./EditContactPhone";
 import Cookies from "js-cookie";
 import { decryptData } from "../../decode";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import withAuthCheck from "../../hoc/withAuthCheck";
 import { sendDataToMixpanel } from "../../lib/utils";
+
+const API_BASE_URL = "https://rekycuat.meon.co.in/v1/user";
 
 const Section = ({ title, onEdit = null, children }) => (
   <div className="section-wrapper">
@@ -27,11 +28,109 @@ const Section = ({ title, onEdit = null, children }) => (
 
 const UserInfoCard = () => {
   const [userModuleData, setUserModuleData] = useState(null);
-
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showModalPhone, setShowModalPhone] = useState(false);
+  const [showDigilockerModal, setShowDigilockerModal] = useState(false);
+  const [digilockerLoading, setDigilockerLoading] = useState(false);
   const navigate = useNavigate();
+
+  const refreshAccessToken = async () => {
+    const refreshToken = Cookies.get("refresh_token");
+
+    if (!refreshToken) {
+      throw new Error("Refresh token not found");
+    }
+
+    const refreshResponse = await fetch(`${API_BASE_URL}/token/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${refreshToken}`,
+      },
+      body: JSON.stringify({}),
+    });
+
+    if (!refreshResponse.ok) {
+      throw new Error("Failed to refresh access token");
+    }
+
+    const refreshData = await refreshResponse.json();
+    const newAccessToken = refreshData?.data?.access_token;
+
+    if (!newAccessToken) {
+      throw new Error("Refresh succeeded, but no access token returned");
+    }
+
+    Cookies.set("access_token", newAccessToken);
+    return newAccessToken;
+  };
+
+  const fetchWithAuth = async (url, options = {}, retry = true) => {
+    let token = Cookies.get("access_token");
+    let response = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.status === 401 && retry) {
+      token = await refreshAccessToken();
+      response = await fetch(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+
+    return response;
+  };
+
+  const connectDigilocker = async () => {
+    try {
+      setDigilockerLoading(true);
+      const response = await fetchWithAuth(`${API_BASE_URL}/get_digilocker_url`, {
+        method: "POST",
+        body: JSON.stringify({
+          redirect_url: `${window.location.origin}${window.location.pathname}`,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.msg || "Unable to connect to Digilocker");
+      }
+
+      const digiData = result?.data
+        ? JSON.parse(decryptData(result.data))
+        : null;
+
+      if (!digiData?.url) {
+        throw new Error("Digilocker URL missing in response");
+      }
+
+      if (digiData?.state) {
+        sessionStorage.setItem("state", digiData.state);
+      }
+
+      if (digiData?.client_token) {
+        sessionStorage.setItem("client_token", digiData.client_token);
+      }
+
+      window.location.href = digiData.url;
+    } catch (error) {
+      console.error("Digilocker connect failed:", error);
+    } finally {
+      setDigilockerLoading(false);
+    }
+  };
 
   const handleEditPersonal = () => {
     console.log("Editing personal information");
@@ -60,103 +159,56 @@ const UserInfoCard = () => {
 
   useEffect(() => {
     const fetchModuleData = async () => {
-      let accessToken = Cookies.get("access_token");
-      const refreshToken = Cookies.get("refresh_token");
-
-      console.log("Access Token:", accessToken);
-      console.log("Refresh Token:", refreshToken);
-
-      const fetchData = async (token) => {
-        console.log("Calling get_module_data API with token:", token);
-
-        const response = await fetch(
-          "https://rekyc.meon.co.in/v1/user/get_module_data",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ page_id: "1" }),
-          }
-        );
+      try {
+        const response = await fetchWithAuth(`${API_BASE_URL}/get_module_data`, {
+          method: "POST",
+          body: JSON.stringify({ page_id: "1" }),
+        });
 
         if (!response.ok) {
-          throw { status: response.status, data: await response.text() };
+          throw new Error("Failed to fetch module data");
         }
-        return response.json();
-      };
 
-      try {
-        const response = await fetchData(accessToken);
-        console.log("API Raw Response:", response);
+        const result = await response.json();
+        console.log("API Raw Response:", result);
 
-        if (!response?.data) {
+        if (!result?.data) {
           console.error("No 'data' field found in response");
           return;
         }
 
         try {
-          const decrypted = decryptData(response.data);
+          const decrypted = decryptData(result.data);
+          const parsedModuleData = JSON.parse(decrypted);
           console.log("Decrypted data:", decrypted);
-          console.log("Decrypted data:", JSON.parse(decrypted));
-          setUserModuleData(JSON.parse(decrypted));
+          console.log("Decrypted data:", parsedModuleData);
+          setUserModuleData(parsedModuleData);
+
+          const digilockerResponse = await fetchWithAuth(
+            `${API_BASE_URL}/check_digilocker_required`,
+            {
+              method: "GET",
+            }
+          );
+
+          if (!digilockerResponse.ok) {
+            throw new Error("Failed to check Digilocker requirement");
+          }
+
+          const digilockerResult = await digilockerResponse.json();
+          const digilockerRequired =
+            digilockerResult?.data?.digilocker_required === true;
+          const isDigilockerLinked =
+            parsedModuleData?.["5"]?.is_digilocker === true;
+
+          if (digilockerRequired && !isDigilockerLinked) {
+            setShowDigilockerModal(true);
+          }
         } catch (decryptErr) {
           console.error("Decryption failed:", decryptErr);
         }
       } catch (error) {
-        console.warn("API failed. Checking for 401 error...", error);
-
-        if (error.status === 401 && refreshToken) {
-          console.warn("Access token expired. Trying to refresh...");
-
-          try {
-            const refreshResponse = await fetch(
-              "https://rekyc.meon.co.in/v1/user/token/refresh",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${refreshToken}`,
-                },
-                body: JSON.stringify({}),
-              }
-            );
-
-            if (!refreshResponse.ok) {
-              throw {
-                status: refreshResponse.status,
-                data: await refreshResponse.text(),
-              };
-            }
-
-            const refreshData = await refreshResponse.json();
-            const newAccessToken = refreshData?.data?.access_token;
-
-            if (newAccessToken) {
-              console.log("New access token received:", newAccessToken);
-              Cookies.set("access_token", newAccessToken);
-              accessToken = newAccessToken;
-
-              const retryResponse = await fetchData(accessToken);
-              console.log("Retry Raw Response:", retryResponse);
-
-              try {
-                const decrypted = decryptData(retryResponse.data);
-                console.log("Decrypted data after refresh:", decrypted);
-                setUserModuleData(decrypted);
-              } catch (decryptErr) {
-                console.error("Decryption failed after refresh:", decryptErr);
-              }
-            } else {
-              console.error("Refresh succeeded, but no access_token returned.");
-            }
-          } catch (refreshError) {
-            console.error("Refresh token request failed:", refreshError);
-          }
-        } else {
-          console.error("Fetch failed and not due to token expiration:", error);
-        }
+        console.error("Failed to load personal info data:", error);
       }
     };
 
@@ -319,6 +371,71 @@ const UserInfoCard = () => {
               <button className="leave-btn" onClick={handleLeaveAnyway}>
                 Leave anyway
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDigilockerModal && (
+        <div
+          id="aadhar_inactive"
+          className="digilocker-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="aadhar_inactive_title"
+          onClick={() => setShowDigilockerModal(false)}
+        >
+          <div
+            id="edit"
+            className="digilocker-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="container p-0">
+              <div className="row">
+                <div className="col-sm-12 col-md-12 form-right signup_emaildiv">
+                  <h2 className="blue" id="aadhar_inactive_title">
+                    Share Aadhaar details from Digilocker
+                  </h2>
+                  <div className="divider_blue" />
+                  <p>
+                    Do not worry if you have never registered with Digilocker.
+                    Click on the button "Connect To Digilocker". Digilocker
+                    will open as a pop-up on your screen where provide your
+                    Aadhaar number and authenticate with OTP. You will then be
+                    required to set your PIN and give your consent to provide
+                    your Aadhaar document to us for KYC. Your 12 digit Aadhaar
+                    number is never fetched, stored, revealed or collected. The
+                    Aadhaar and the PAN <span id="pan_no"></span> should belong
+                    to you.
+                  </p>
+                  <div className="text-center">
+                    <button
+                      id="inactivedigilocker"
+                      className="btn btn-primary digilocker-connect-btn"
+                      onClick={connectDigilocker}
+                      disabled={digilockerLoading}
+                    >
+                      {digilockerLoading
+                        ? "Connecting..."
+                        : "Connect to Digilocker"}
+                    </button>
+                  </div>
+                  <p
+                    className="digi_text"
+                    data-content='I/We hereby submit voluntarily at my/our own discretion, the physical copy of Aadhaar card/physical e- Aadhaar / masked Aadhaar / offline electronic Aadhaar xml as issued by UIDAI (Aadhaar) to Meon Technologies Pvt. Ltd. for the purpose of establishing my/our identity / address proof and voluntarily give my/our consent to open account / process instructions for the said purpose in my/our name/s individual capacity/ies using my/our Aadhaar or as an authorized signatory in non-individual accounts. The consent and purpose of collecting Aadhaar has been explained to me/us in local language. Meon Technologies Pvt. Ltd. has informed me/us that my/our Aadhaar submitted here with shall not be used for any purpose other than mentioned above, or as per requirements of law. Meon Technologies Pvt. Ltd. has informed me/us that this consent and my/our Aadhaar will be stored along with my/our account details within the firm. I/We hereby declare that all the information voluntarily furnished by me/us is true, correct and complete. I/We will not hold Meon Technologies Pvt. Ltd. or any of its officials responsible in case of any incorrect information provided by me/us.'
+                  >
+                    By clicking the above button, I agree that I have read the
+                    Aadhaar user consent document and voluntarily consent to
+                    share my Aadhaar information with{" "}
+                    <span className="CompanyName">
+                      Meon Technologies Pvt. Ltd.
+                    </span>{" "}
+                    for conducting KYC for opening a trading and Demat account
+                    adhering to KRA regulations (2011) and PMLA guidelines
+                    (2002).
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

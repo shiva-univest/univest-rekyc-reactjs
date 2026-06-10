@@ -21,7 +21,7 @@ const refreshAccessToken = async () => {
   }
 
   const response = await fetch(
-    "https://rekyc.meon.co.in/v1/user/refresh_token",
+    "https://rekycuat.meon.co.in/v1/user/refresh_token",
     {
       method: "POST",
       headers: {
@@ -87,7 +87,7 @@ const Activatebank = ({ encryptedData }) => {
 
       const fetchData = async (token) => {
         const response = await fetch(
-          "https://rekyc.meon.co.in/v1/user/page_module_mapping",
+          "https://rekycuat.meon.co.in/v1/user/page_module_mapping",
           {
             method: "POST",
             headers: {
@@ -127,7 +127,7 @@ const Activatebank = ({ encryptedData }) => {
 
           try {
             const refreshResponse = await fetch(
-              "https://rekyc.meon.co.in/v1/user/token/refresh",
+              "https://rekycuat.meon.co.in/v1/user/token/refresh",
               {
                 method: "POST",
                 headers: {
@@ -214,7 +214,7 @@ const Activatebank = ({ encryptedData }) => {
 
           const uploadDocument = async (token) => {
             const response = await fetch(
-              `https://rekyc.meon.co.in/v1/user/upload_user_documents/${documentId}`,
+              `https://rekycuat.meon.co.in/v1/user/upload_user_documents/${documentId}`,
               {
                 method: "POST",
                 headers: {
@@ -245,7 +245,7 @@ const Activatebank = ({ encryptedData }) => {
 
                 try {
                   const refreshResponse = await fetch(
-                    "https://rekyc.meon.co.in/v1/user/token/refresh",
+                    "https://rekycuat.meon.co.in/v1/user/token/refresh",
                     {
                       method: "POST",
                       headers: {
@@ -365,7 +365,7 @@ const Activatebank = ({ encryptedData }) => {
 
           try {
             const refreshResponse = await fetch(
-              "https://rekyc.meon.co.in/v1/user/token/refresh",
+              "https://rekycuat.meon.co.in/v1/user/token/refresh",
               {
                 method: "POST",
                 headers: {
@@ -411,7 +411,7 @@ const Activatebank = ({ encryptedData }) => {
     try {
       setUserFormLoading(true);
       const formResponse = await fetchWithAuthRetry(
-        "https://rekyc.meon.co.in/v1/user/user_form_generation",
+        "https://rekycuat.meon.co.in/v1/user/user_form_generation",
         { re_esign: false }
       );
 
@@ -419,7 +419,7 @@ const Activatebank = ({ encryptedData }) => {
 
       if (formResponse?.status === true) {
         const moduleResponse = await fetchWithAuthRetry(
-          "https://rekyc.meon.co.in/v1/user/get_module_data",
+          "https://rekycuat.meon.co.in/v1/user/get_module_data",
           { page_id: "6" }
         );
 
@@ -441,7 +441,7 @@ const Activatebank = ({ encryptedData }) => {
               sendDataToMixpanel("page_viewed", {
             page: "rekyc_fno_success",
           });
-            window.location.href = `https://rekyc.meon.co.in${esignLink.url}`;
+            window.location.href = `https://rekycuat.meon.co.in${esignLink.url}`;
           } else {
             toast.error("Missing esign URL.");
             sendDataToMixpanel("rekyc_fno_failed", {
@@ -563,7 +563,7 @@ const Activatebank = ({ encryptedData }) => {
 
     const upload = async (token) => {
       const res = await fetch(
-        `https://rekyc.meon.co.in/v1/user/upload_user_documents/${documentId}`,
+        `https://rekycuat.meon.co.in/v1/user/upload_user_documents/${documentId}`,
         {
           method: "POST",
           headers: {
@@ -599,7 +599,7 @@ const Activatebank = ({ encryptedData }) => {
 
         try {
           const refreshResponse = await fetch(
-            "https://rekyc.meon.co.in/v1/user/token/refresh_token",
+            "https://rekycuat.meon.co.in/v1/user/token/refresh_token",
             {
               method: "POST",
               headers: {
@@ -685,7 +685,7 @@ const Activatebank = ({ encryptedData }) => {
 
     const fetchInit = async (token) => {
       const response = await fetch(
-        `https://rekyc.meon.co.in/v1/user/account_aggregator_setu_init/${documentId}`,
+        `https://rekycuat.meon.co.in/v1/user/account_aggregator_setu_init/${documentId}`,
         {
           method: "POST",
           headers: {
@@ -730,7 +730,7 @@ const Activatebank = ({ encryptedData }) => {
         console.warn("Access token expired. Refreshing...");
         try {
           const refreshResponse = await fetch(
-            "https://rekyc.meon.co.in/v1/user/token/refresh",
+            "https://rekycuat.meon.co.in/v1/user/token/refresh",
             {
               method: "POST",
               headers: {
@@ -790,7 +790,7 @@ const Activatebank = ({ encryptedData }) => {
 
     // const fetchSetuDoc = async (token) => {
     //   const response = await fetch(
-    //     `https://rekyc.meon.co.in/v1/user/get_setu_doc/${documentId}/${docReqId}`,
+    //     `https://rekycuat.meon.co.in/v1/user/get_setu_doc/${documentId}/${docReqId}`,
     //     {
     //       method: "GET",
     //       headers: {
@@ -813,7 +813,7 @@ const Activatebank = ({ encryptedData }) => {
     const fetchSetuDoc = async (token, retry = false) => {
       setUserFormLoading(true);
       const response = await fetch(
-        `https://rekyc.meon.co.in/v1/user/get_setu_doc/${documentId}/${docReqId}`,
+        `https://rekycuat.meon.co.in/v1/user/get_setu_doc/${documentId}/${docReqId}`,
         {
           method: "GET",
           headers: {
@@ -859,7 +859,7 @@ const Activatebank = ({ encryptedData }) => {
 
         try {
           const refreshResponse = await fetch(
-            "https://rekyc.meon.co.in/v1/user/token/refresh",
+            "https://rekycuat.meon.co.in/v1/user/token/refresh",
             {
               method: "POST",
               headers: {
@@ -920,7 +920,7 @@ const Activatebank = ({ encryptedData }) => {
     const payload = { segment_data: filteredData };
 
     const callApi = async (accessToken) => {
-      return fetch("https://rekyc.meon.co.in/v1/user/update_user_segments", {
+      return fetch("https://rekycuat.meon.co.in/v1/user/update_user_segments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1078,7 +1078,7 @@ const Activatebank = ({ encryptedData }) => {
 
                         try {
                           const res = await fetch(
-                            `https://rekyc.meon.co.in/v1/user/upload_user_documents/${documentId}`,
+                            `https://rekycuat.meon.co.in/v1/user/upload_user_documents/${documentId}`,
                             {
                               method: "POST",
                               headers: { Authorization: `Bearer ${token}` },

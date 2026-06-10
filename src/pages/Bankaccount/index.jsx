@@ -78,7 +78,7 @@ const Bank = ({ encryptedData }) => {
     const fetchModuleData = async () => {
       try {
         const moduleDataResponse = await fetch(
-          "https://rekyc.meon.co.in/v1/user/get_module_data",
+          "https://rekycuat.meon.co.in/v1/user/get_module_data",
           {
             method: "POST",
             headers: {
@@ -121,7 +121,7 @@ const Bank = ({ encryptedData }) => {
       const accessToken = Cookies.get("access_token");
 
       const response = await fetch(
-        "https://rekyc.meon.co.in/v1/user/get_module_data",
+        "https://rekycuat.meon.co.in/v1/user/get_module_data",
         {
           method: "POST",
           headers: {
@@ -169,7 +169,7 @@ const Bank = ({ encryptedData }) => {
       const accessToken = Cookies.get("access_token");
 
       const response = await fetch(
-        `https://rekyc.meon.co.in/v1/user/delete_bank_details/${accountId}`,
+        `https://rekycuat.meon.co.in/v1/user/delete_bank_details/${accountId}`,
         {
           method: "DELETE",
           headers: {
@@ -199,7 +199,7 @@ const Bank = ({ encryptedData }) => {
       const accessToken = Cookies.get("access_token");
 
       const response = await fetch(
-        `https://rekyc.meon.co.in/v1/user/make_default_bank/${accountId}`,
+        `https://rekycuat.meon.co.in/v1/user/make_default_bank/${accountId}`,
         {
           method: "GET",
           headers: {
@@ -234,7 +234,7 @@ const Bank = ({ encryptedData }) => {
     try {
       setLoading(true);
       const moduleRes = await fetch(
-        "https://rekyc.meon.co.in/v1/user/get_module_data",
+        "https://rekycuat.meon.co.in/v1/user/get_module_data",
         {
           method: "POST",
           headers: {
@@ -271,7 +271,7 @@ const Bank = ({ encryptedData }) => {
       } else {
         // Open the first available eSign link
         const firstLink = links[0];
-        window.location.href = `https://rekyc.meon.co.in${firstLink.url}`;
+        window.location.href = `https://rekycuat.meon.co.in${firstLink.url}`;
 
         // Optionally, you can also navigate to congratulations or stay on current page
         // navigate("/congratulations");
@@ -301,7 +301,7 @@ const Bank = ({ encryptedData }) => {
         userId: moduleSharedData?.clientcode || "<user-id>",
       });
       const response = await fetch(
-        "https://rekyc.meon.co.in/v1/user/user_form_generation",
+        "https://rekycuat.meon.co.in/v1/user/user_form_generation",
         {
           method: "POST",
           headers: {
@@ -343,7 +343,7 @@ const Bank = ({ encryptedData }) => {
   //     }
 
   //     const response = await fetch(
-  //       "https://rekyc.meon.co.in/v1/user/user_form_generation",
+  //       "https://rekycuat.meon.co.in/v1/user/user_form_generation",
   //       {
   //         method: "POST",
   //         headers: {

@@ -78,7 +78,7 @@ const BankaccAccountComplete = () => {
     const fetchModuleData = async () => {
       try {
         const moduleDataResponse = await fetch(
-          "https://rekyc.meon.co.in/v1/user/get_module_data",
+          "https://rekycuat.meon.co.in/v1/user/get_module_data",
           {
             method: "POST",
             headers: {
@@ -126,7 +126,7 @@ const BankaccAccountComplete = () => {
       }
 
       const response = await fetch(
-        "https://rekyc.meon.co.in/v1/user/token/refresh",
+        "https://rekycuat.meon.co.in/v1/user/token/refresh",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -162,7 +162,7 @@ const BankaccAccountComplete = () => {
       }
 
       const response = await fetch(
-        "https://rekyc.meon.co.in/v1/user/reverse_pennydrop_api_setu_response",
+        "https://rekycuat.meon.co.in/v1/user/reverse_pennydrop_api_setu_response",
         {
           method: "POST",
           headers: {
@@ -213,7 +213,7 @@ const BankaccAccountComplete = () => {
       let token = Cookies.get("access_token");
 
       const response = await fetch(
-        "https://rekyc.meon.co.in/v1/user/reverse_pennydrop_api_setu_response",
+        "https://rekycuat.meon.co.in/v1/user/reverse_pennydrop_api_setu_response",
         {
           method: "POST",
           headers: {
@@ -276,7 +276,7 @@ const BankaccAccountComplete = () => {
     try {
       setLoading(true);
       const moduleRes = await fetch(
-        "https://rekyc.meon.co.in/v1/user/get_module_data",
+        "https://rekycuat.meon.co.in/v1/user/get_module_data",
         {
           method: "POST",
           headers: {
@@ -312,7 +312,7 @@ const BankaccAccountComplete = () => {
         navigate("/congratulations");
       } else {
         const firstLink = links[0];
-        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_self");
+        window.open(`https://rekycuat.meon.co.in${firstLink.url}`, "_self");
 
 
       }
@@ -335,7 +335,7 @@ const BankaccAccountComplete = () => {
       }
 
       const response = await fetch(
-        "https://rekyc.meon.co.in/v1/user/user_form_generation",
+        "https://rekycuat.meon.co.in/v1/user/user_form_generation",
         {
           method: "POST",
           headers: {
@@ -372,7 +372,7 @@ const BankaccAccountComplete = () => {
       const token = Cookies.get("access_token");
 
       const response = await fetch(
-        `https://rekyc.meon.co.in/v1/user/verify_bank_details/${bankDetails?.bank_temp_id}`,
+        `https://rekycuat.meon.co.in/v1/user/verify_bank_details/${bankDetails?.bank_temp_id}`,
         {
           method: "GET",
           headers: {
