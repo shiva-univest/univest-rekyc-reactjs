@@ -36,7 +36,7 @@ const ActivateDDPI = () => {
     const fetchModuleData = async () => {
       try {
         const moduleDataResponse = await fetch(
-          "https://rekycuat.meon.co.in/v1/user/get_module_data",
+          "https://rekyc.meon.co.in/v1/user/get_module_data",
           {
             method: "POST",
             headers: {
@@ -188,7 +188,7 @@ const ActivateDDPI = () => {
       console.log("DDPI Payload being sent:", payload);
 
       const response = await fetch(
-        `https://rekycuat.meon.co.in/v1/user/other_details`,
+        `https://rekyc.meon.co.in/v1/user/other_details`,
         {
           method: "POST",
           headers: {
@@ -242,7 +242,7 @@ const ActivateDDPI = () => {
       }
 
       const response = await fetch(
-        "https://rekycuat.meon.co.in/v1/user/user_form_generation",
+        "https://rekyc.meon.co.in/v1/user/user_form_generation",
         {
           method: "POST",
           headers: {
@@ -274,7 +274,7 @@ const ActivateDDPI = () => {
     try {
       setLoading(true);
       const moduleRes = await fetch(
-        "https://rekycuat.meon.co.in/v1/user/get_module_data",
+        "https://rekyc.meon.co.in/v1/user/get_module_data",
         {
           method: "POST",
           headers: {
@@ -306,7 +306,7 @@ const ActivateDDPI = () => {
         navigate("/congratulations");
       } else {
         const firstLink = links[0];
-        window.open(`https://rekycuat.meon.co.in${firstLink.url}`);
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`);
 
         sendDataToMixpanel("page_viewed", {
           page: "rekyc_ddpi_success",

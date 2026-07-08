@@ -3,7 +3,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const api = axios.create({
-  baseURL: "https://rekycuat.meon.co.in/v1/",
+  baseURL: "https://rekyc.meon.co.in/v1/",
 });
 
 // 🔹 Auth initializer (runs once before app starts)
@@ -15,7 +15,7 @@ export async function initAuth() {
     try {
       // Always refresh using URL token if present
       const res = await axios.post(
-        "https://rekycuat.meon.co.in/v1/user/token/refresh",
+        "https://rekyc.meon.co.in/v1/user/token/refresh",
         { refresh: tokenFromUrl }
       );
 
@@ -78,7 +78,7 @@ api.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          "https://rekycuat.meon.co.in/v1/user/token/refresh",
+          "https://rekyc.meon.co.in/v1/user/token/refresh",
           { refresh: refreshToken }
         );
 

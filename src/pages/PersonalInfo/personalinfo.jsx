@@ -9,7 +9,9 @@ import { useNavigate } from "react-router-dom";
 import withAuthCheck from "../../hoc/withAuthCheck";
 import { sendDataToMixpanel } from "../../lib/utils";
 
-const API_BASE_URL = "https://rekycuat.meon.co.in/v1/user";
+const API_BASE_URL = "https://rekyc.meon.co.in/v1/user";
+const PUBLIC_API_BASE_URL = "https://api.univest.in/api/broker/public";
+const normalizeClientCode = (clientCode = "") => clientCode.replace(/^UN0/i, "");
 
 const Section = ({ title, onEdit = null, children }) => (
   <div className="section-wrapper">
@@ -183,29 +185,46 @@ const UserInfoCard = () => {
           console.log("Decrypted data:", decrypted);
           console.log("Decrypted data:", parsedModuleData);
           setUserModuleData(parsedModuleData);
-
-          const digilockerResponse = await fetchWithAuth(
-            `${API_BASE_URL}/check_digilocker_required`,
-            {
-              method: "GET",
-            }
-          );
-
-          if (!digilockerResponse.ok) {
-            throw new Error("Failed to check Digilocker requirement");
-          }
-
-          const digilockerResult = await digilockerResponse.json();
-          const digilockerRequired =
-            digilockerResult?.data?.digilocker_required === true;
+          const sharedData = parsedModuleData?.shared_data || {};
+          const clientCode =
+            sharedData?.clientcode ||
+            sharedData?.client_code ||
+            sharedData?.clientCode;
+          const normalizedClientCode = normalizeClientCode(clientCode);
           const isDigilockerLinked =
             parsedModuleData?.["5"]?.is_digilocker === true;
 
-          if (digilockerRequired && !isDigilockerLinked) {
+          if (!normalizedClientCode) {
+            console.warn(
+              "Client code not found in shared_data, skipping KRA type check"
+            );
+            return;
+          }
+
+          const kraResponse = await fetch(
+            `${PUBLIC_API_BASE_URL}/kra-type?userId=${encodeURIComponent(
+              normalizedClientCode
+            )}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (!kraResponse.ok) {
+            throw new Error("Failed to fetch KRA type");
+          }
+
+          const kraResult = await kraResponse.json();
+          const isCvlKra = kraResult?.isCvlKra === true;
+
+          if (!isCvlKra && !isDigilockerLinked) {
             setShowDigilockerModal(true);
           }
         } catch (decryptErr) {
-          console.error("Decryption failed:", decryptErr);
+          console.error("Failed to process personal info module data:", decryptErr);
         }
       } catch (error) {
         console.error("Failed to load personal info data:", error);

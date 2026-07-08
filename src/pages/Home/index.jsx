@@ -6,9 +6,9 @@ import axios from "axios";
 import "./style.css";
 import { sendDataToMixpanel } from "../../lib/utils";
 
-const REFRESH_URL = "https://rekycuat.meon.co.in/v1/user/token/refresh";
+const REFRESH_URL = "https://rekyc.meon.co.in/v1/user/token/refresh";
 const UPDATE_SEGMENTS_URL =
-  "https://rekycuat.meon.co.in/v1/user/update_user_segments";
+  "https://rekyc.meon.co.in/v1/user/update_user_segments";
 
 const Home = () => {
   const navigate = useNavigate();

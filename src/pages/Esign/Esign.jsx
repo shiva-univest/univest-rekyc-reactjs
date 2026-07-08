@@ -114,7 +114,7 @@ const Esign = () => {
                   key={idx}
                   className="url-btn"
                   onClick={() =>
-                    window.open(`https://rekycuat.meon.co.in${link.url}`)
+                    window.open(`https://rekyc.meon.co.in${link.url}`)
                   }
                 >
                   {formatButtonName(link.descriptive_name)}

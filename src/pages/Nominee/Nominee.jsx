@@ -9,6 +9,7 @@ import VerificationLoader from "../../Components/VerificationLoader/Verification
 import "./Nominee.css";
 
 const EMPTY_NOMINEE = {
+  fullName: "",
   firstname: "",
   lastname: "",
   dob: "",
@@ -58,6 +59,10 @@ const sanitizeName = (value = "") =>
 
 const sanitizeDigits = (value = "", maxLength) =>
   value.replace(/\D/g, "").slice(0, maxLength);
+const sanitizeAlphaNumeric = (value = "", maxLength) =>
+  value.replace(/[^A-Za-z0-9]/g, "").slice(0, maxLength);
+const sanitizePan = (value = "") =>
+  sanitizeAlphaNumeric(value, 10).toUpperCase();
 
 const sanitizeState = (value = "") =>
   value.replace(/[^A-Za-z\s.'-]/g, "").replace(/\s{2,}/g, " ");
@@ -65,6 +70,55 @@ const sanitizeState = (value = "") =>
 const sanitizeEmail = (value = "") => value.replace(/\s/g, "");
 const sanitizeAddress = (value = "") =>
   value.replace(/[^A-Za-z0-9\s,./'-]/g, "").replace(/\s{2,}/g, " ").trim();
+const getMaskedProofNumber = (documentType, value = "") => {
+  if (!value) return "";
+
+  if (documentType !== "AADHAAR") {
+    return value;
+  }
+
+  if (value.includes("*")) {
+    return value.replace(/\*/g, "X");
+  }
+
+  if (value.length <= 4) {
+    return value;
+  }
+
+  return `${"X".repeat(value.length - 4)}${value.slice(-4)}`;
+};
+
+const isMaskedProofNumber = (documentType, value) => {
+  const normalizedValue = typeof value === "string" ? value.trim() : value;
+
+  if (!normalizedValue) return false;
+
+  if (documentType === "AADHAAR") {
+    return /^[X*]{8}\d{4}$/.test(normalizedValue);
+  }
+
+  return false;
+};
+
+const isValidProofNumber = (documentType, value) => {
+  const normalizedValue = typeof value === "string" ? value.trim() : value;
+
+  if (!normalizedValue) return false;
+
+  if (isMaskedProofNumber(documentType, normalizedValue)) {
+    return true;
+  }
+
+  if (documentType === "AADHAAR") {
+    return /^\d{12}$/.test(normalizedValue);
+  }
+
+  if (documentType === "PAN") {
+    return /^[A-Z]{5}[0-9]{4}[A-Z]$/.test(normalizedValue);
+  }
+
+  return true;
+};
 
 const splitFullName = (fullName = "") => {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
@@ -123,6 +177,8 @@ const normalizeFieldValue = (field, value) => {
     case "email":
     case "guardian_email":
       return sanitizeEmail(value).toLowerCase();
+    case "pan":
+      return sanitizePan(value);
     default:
       return value;
   }
@@ -162,6 +218,22 @@ const getFieldError = (field, value) => {
     default:
       return "";
   }
+};
+
+const getProofNumberError = (documentType, value) => {
+  const normalizedValue = typeof value === "string" ? value.trim() : value;
+
+  if (!normalizedValue) return "";
+
+  if (documentType === "AADHAAR" && !isValidProofNumber(documentType, value)) {
+    return "Aadhaar number must be exactly 12 digits.";
+  }
+
+  if (documentType === "PAN" && !isValidProofNumber(documentType, value)) {
+    return "PAN must be 10 characters in format ABCDE1234F.";
+  }
+
+  return "";
 };
 
 const FloatingInput = ({
@@ -223,7 +295,9 @@ const Nominee = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [apiLoading, setApiLoading] = useState(false);
-  const [statementPreference, setStatementPreference] = useState("");
+  const [statementPreference, setStatementPreference] =
+    useState("nominee_status");
+  const [activeProofInput, setActiveProofInput] = useState(null);
   const navigate = useNavigate();
 
   const checkMinor = (dob) => {
@@ -271,6 +345,9 @@ const Nominee = () => {
     return {
       ...EMPTY_NOMINEE,
       ...nominee,
+      fullName: [nominee.firstname, nominee.middlename, nominee.lastname]
+        .filter(Boolean)
+        .join(" "),
       id: nominee.id || index + 1,
       document_type: documentType,
       poi_number: proofNumber,
@@ -314,7 +391,8 @@ const Nominee = () => {
       isValidFieldValue("mobile", nominee.mobile, true),
       isValidFieldValue("pincode", nominee.pincode, true),
       isValidFieldValue("state", nominee.state, true),
-      isValidFieldValue("email", nominee.email, false),
+      isValidFieldValue("email", nominee.email, true),
+      isValidProofNumber(nominee.document_type, nominee.poi_number),
     ];
 
     if (baseFieldChecks.some((isValid) => !isValid)) return false;
@@ -334,7 +412,7 @@ const Nominee = () => {
       isValidFieldValue("guardian_mobile", nominee.guardian_mobile, true) &&
       isValidFieldValue("guardian_pincode", nominee.guardian_pincode, true) &&
       isValidFieldValue("guardian_state", nominee.guardian_state, true) &&
-      isValidFieldValue("guardian_email", nominee.guardian_email, false)
+      isValidFieldValue("guardian_email", nominee.guardian_email, true)
     );
   };
 
@@ -370,9 +448,28 @@ const Nominee = () => {
   const handleChange = (index, field, value) => {
     updateNominees((currentNominees) => {
       const updated = [...currentNominees];
+      const currentNominee = updated[index];
+      let normalizedValue = normalizeFieldValue(field, value);
+
+      if (
+        field === "poi_number" &&
+        currentNominee?.document_type === "AADHAAR" &&
+        !normalizedValue.includes("*")
+      ) {
+        normalizedValue = sanitizeDigits(normalizedValue, 12);
+      }
+
+      if (
+        field === "poi_number" &&
+        currentNominee?.document_type === "PAN" &&
+        !normalizedValue.includes("*")
+      ) {
+        normalizedValue = sanitizePan(normalizedValue);
+      }
+
       const nominee = {
-        ...updated[index],
-        [field]: normalizeFieldValue(field, value),
+        ...currentNominee,
+        [field]: normalizedValue,
       };
 
       if (field === "dob") {
@@ -397,7 +494,35 @@ const Nominee = () => {
         nominee.isAutoFilled = false;
       }
 
+      if (field === "document_type" && value === "AADHAAR") {
+        nominee.poi_number = nominee.poi_number.includes("*")
+          ? nominee.poi_number
+          : sanitizeDigits(nominee.poi_number, 12);
+      }
+
+      if (field === "document_type" && value === "PAN") {
+        nominee.poi_number = nominee.poi_number.includes("*")
+          ? nominee.poi_number
+          : sanitizePan(nominee.poi_number);
+      }
+
       updated[index] = nominee;
+      return updated;
+    });
+  };
+
+  const handleNomineeNameChange = (index, value) => {
+    const fullName = sanitizeName(value);
+    const parsedName = splitFullName(fullName);
+
+    updateNominees((currentNominees) => {
+      const updated = [...currentNominees];
+      updated[index] = {
+        ...updated[index],
+        fullName,
+        firstname: parsedName.firstname,
+        lastname: parsedName.lastname,
+      };
       return updated;
     });
   };
@@ -541,7 +666,7 @@ const Nominee = () => {
 
     try {
       const response = await api.post(
-        "https://rekycuat.meon.co.in/v1/user/nominee_amc_option",
+        "https://rekyc.meon.co.in/v1/user/nominee_amc_option",
         payload
       );
 
@@ -565,6 +690,10 @@ const Nominee = () => {
       setApiLoading(false);
     }
   };
+
+  useEffect(() => {
+    handleStatementPreferenceChange("nominee_status");
+  }, []);
 
   const handleProceed = async () => {
     setApiLoading(true);
@@ -607,7 +736,7 @@ const Nominee = () => {
         if (error.status === 401 && refreshToken) {
           try {
             const refreshResponse = await fetch(
-              "https://rekycuat.meon.co.in/v1/user/token/refresh",
+              "https://rekyc.meon.co.in/v1/user/token/refresh",
               {
                 method: "POST",
                 headers: {
@@ -650,13 +779,13 @@ const Nominee = () => {
     try {
       setLoading(true);
       const formResponse = await fetchWithAuthRetry(
-        "https://rekycuat.meon.co.in/v1/user/user_form_generation",
+        "https://rekyc.meon.co.in/v1/user/user_form_generation",
         { re_esign: false }
       );
 
       if (formResponse?.status === true) {
         const moduleResponse = await fetchWithAuthRetry(
-          "https://rekycuat.meon.co.in/v1/user/get_module_data",
+          "https://rekyc.meon.co.in/v1/user/get_module_data",
           { page_id: "6" }
         );
 
@@ -664,6 +793,7 @@ const Nominee = () => {
           const decrypted = decryptData(moduleResponse.data);
           const parsed =
             typeof decrypted === "string" ? JSON.parse(decrypted) : decrypted;
+          console.log("Decrypted module data:", parsed);
 
           const esignLink = parsed?.["12"]?.links?.[0];
 
@@ -679,7 +809,7 @@ const Nominee = () => {
             sendDataToMixpanel("page_viewed", {
               page: "rekyc_fno_success",
             });
-            window.location.href = `https://rekycuat.meon.co.in${esignLink.url}`;
+            window.location.href = `https://rekyc.meon.co.in${esignLink.url}`;
             return;
           }
 
@@ -722,6 +852,7 @@ const Nominee = () => {
         });
 
         const nomineeParsed = JSON.parse(decryptData(nomineeRes.data.data));
+        console.log("Decrypted nominee data:", nomineeParsed);
 
         const shared = nomineeParsed?.shared_data || {};
         setSharedData(shared);
@@ -827,7 +958,7 @@ const Nominee = () => {
       />
 
       <FloatingInput
-        label="Guardian's email id (optional)"
+        label="Guardian's email id"
         type="email"
         value={nominee.guardian_email}
         onChange={(e) => handleChange(index, "guardian_email", e.target.value)}
@@ -848,16 +979,8 @@ const Nominee = () => {
       <div className="nominee-details">
         <FloatingInput
           label="Nominee's full name"
-          value={`${nominee.firstname || ""} ${nominee.lastname || ""}`.trim()}
-          onChange={(e) => {
-            const cleanedValue = sanitizeName(e.target.value);
-            const parts = cleanedValue.trim().split(/\s+/).filter(Boolean);
-            const first = parts.shift() || "";
-            const last = parts.join(" ");
-
-            handleChange(index, "firstname", first);
-            handleChange(index, "lastname", last);
-          }}
+          value={nominee.fullName ?? ""}
+          onChange={(e) => handleNomineeNameChange(index, e.target.value)}
           maxLength={60}
           error={getFieldError(
             "firstname",
@@ -1002,7 +1125,7 @@ const Nominee = () => {
               />
 
               <FloatingInput
-                label="Nominee's email id (optional)"
+                label="Nominee's email id"
                 type="email"
                 value={nominee.email}
                 onChange={(e) => handleChange(index, "email", e.target.value)}
@@ -1025,8 +1148,36 @@ const Nominee = () => {
 
               <FloatingInput
                 label="Enter proof no."
-                value={nominee.poi_number}
+                value={
+                  activeProofInput === index
+                    ? nominee.poi_number.includes("*")
+                      ? getMaskedProofNumber(
+                          nominee.document_type,
+                          nominee.poi_number
+                        )
+                      : nominee.poi_number
+                    : getMaskedProofNumber(
+                        nominee.document_type,
+                        nominee.poi_number
+                      )
+                }
                 onChange={(e) => handleChange(index, "poi_number", e.target.value)}
+                onFocus={() => setActiveProofInput(index)}
+                onBlur={() => setActiveProofInput(null)}
+                inputMode={
+                  nominee.document_type === "AADHAAR" ? "numeric" : undefined
+                }
+                maxLength={
+                  nominee.document_type === "AADHAAR"
+                    ? 12
+                    : nominee.document_type === "PAN"
+                      ? 10
+                      : undefined
+                }
+                error={getProofNumberError(
+                  nominee.document_type,
+                  nominee.poi_number
+                )}
               />
 
               <button
@@ -1072,7 +1223,8 @@ const Nominee = () => {
 
     const nomineedata = nominees.flatMap((nominee, index) => {
       const nomineeName = splitFullName(
-        `${nominee.firstname || ""} ${nominee.lastname || ""}`.trim()
+        nominee.fullName ||
+          `${nominee.firstname || ""} ${nominee.lastname || ""}`.trim()
       );
 
       const nomineePayload = {
@@ -1139,7 +1291,7 @@ const Nominee = () => {
 
     try {
       const response = await api.post(
-        "https://rekycuat.meon.co.in/v1/user/nomineedata",
+        "https://rekyc.meon.co.in/v1/user/nomineedata",
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

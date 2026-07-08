@@ -70,7 +70,7 @@ const withAuthCheck = (WrappedComponent) => {
 
 //       try {
 //         const tokenRes = await api.post(
-//           "https://rekycuat.meon.co.in/v1/user/token/refresh",
+//           "https://rekyc.meon.co.in/v1/user/token/refresh",
 //           { refresh: refreshToken }
 //         );
 //         const { access, refresh } = tokenRes.data;
@@ -90,7 +90,7 @@ const withAuthCheck = (WrappedComponent) => {
 //         const pageId = getPageIdFromPath(location.pathname);
 
 //         // const moduleRes = await axios.post(
-//         //   "https://rekycuat.meon.co.in/v1/user/get_module_data",
+//         //   "https://rekyc.meon.co.in/v1/user/get_module_data",
 //         //   { page_id: pageId },
 //         //   {
 //         //     headers: {

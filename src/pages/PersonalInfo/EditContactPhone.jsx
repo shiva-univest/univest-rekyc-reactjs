@@ -34,7 +34,7 @@ const EditContactPhone = ({ onClose, contact }) => {
     const fetchModuleData = async () => {
       try {
         const moduleDataResponse = await fetch(
-          "https://rekycuat.meon.co.in/v1/user/get_module_data",
+          "https://rekyc.meon.co.in/v1/user/get_module_data",
           {
             method: "POST",
             headers: {
@@ -85,7 +85,7 @@ const EditContactPhone = ({ onClose, contact }) => {
     const refreshToken = Cookies.get("refresh_token");
 
     if (!token && refreshToken) {
-      const resp = await fetch("https://rekycuat.meon.co.in/v1/user/refresh", {
+      const resp = await fetch("https://rekyc.meon.co.in/v1/user/refresh", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token: refreshToken }),
@@ -103,7 +103,7 @@ const EditContactPhone = ({ onClose, contact }) => {
   const fetchAndRedirectToEsignLink = async (token) => {
     try {
       const moduleRes = await fetch(
-        "https://rekycuat.meon.co.in/v1/user/get_module_data",
+        "https://rekyc.meon.co.in/v1/user/get_module_data",
         {
           method: "POST",
           headers: {
@@ -136,7 +136,7 @@ const EditContactPhone = ({ onClose, contact }) => {
         navigate("/congratulations");
       } else {
         const firstLink = links[0];
-        window.open(`https://rekycuat.meon.co.in${firstLink.url}`, "_self");
+        window.open(`https://rekyc.meon.co.in${firstLink.url}`, "_self");
       }
     } catch (err) {
       console.error("Error fetching eSign data:", err);
@@ -155,7 +155,7 @@ const EditContactPhone = ({ onClose, contact }) => {
       }
 
       const response = await fetch(
-        "https://rekycuat.meon.co.in/v1/user/user_form_generation",
+        "https://rekyc.meon.co.in/v1/user/user_form_generation",
         {
           method: "POST",
           headers: {
@@ -189,7 +189,7 @@ const EditContactPhone = ({ onClose, contact }) => {
     try {
       setLoading(true);
       const moduleDataResponse = await fetch(
-        "https://rekycuat.meon.co.in/v1/user/get_module_data",
+        "https://rekyc.meon.co.in/v1/user/get_module_data",
         {
           method: "POST",
           headers: {
@@ -294,7 +294,7 @@ const EditContactPhone = ({ onClose, contact }) => {
 
   const callUpdatePhoneAPI = async (token) => {
     const response = await fetch(
-      "https://rekycuat.meon.co.in/v1/user/updatemobile",
+      "https://rekyc.meon.co.in/v1/user/updatemobile",
       {
         method: "POST",
         headers: {
@@ -309,7 +309,7 @@ const EditContactPhone = ({ onClose, contact }) => {
 
   const callVerifyOtpAPI = async (otpValue, token) => {
     const response = await fetch(
-      "https://rekycuat.meon.co.in/v1/user/verifymobile",
+      "https://rekyc.meon.co.in/v1/user/verifymobile",
       {
         method: "POST",
         headers: {
@@ -491,7 +491,7 @@ const EditContactPhone = ({ onClose, contact }) => {
         try {
           setLoading(true);
           const formRes = await fetch(
-            "https://rekycuat.meon.co.in/v1/user/user_form_generation",
+            "https://rekyc.meon.co.in/v1/user/user_form_generation",
             {
               method: "POST",
               headers: {
