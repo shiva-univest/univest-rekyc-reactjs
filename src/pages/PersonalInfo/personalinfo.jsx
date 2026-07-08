@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./personal.css";
 import { Pencil } from "lucide-react";
 import EditContactModal from "./EditContactModal";
@@ -35,7 +35,25 @@ const UserInfoCard = () => {
   const [showModalPhone, setShowModalPhone] = useState(false);
   const [showDigilockerModal, setShowDigilockerModal] = useState(false);
   const [digilockerLoading, setDigilockerLoading] = useState(false);
+  const [digilockerCardOpen, setDigilockerCardOpen] = useState(false);
+  const [digilockerCardLoading, setDigilockerCardLoading] = useState(false);
+  const [digilockerCardError, setDigilockerCardError] = useState("");
+  const [digilockerVerifyLoading, setDigilockerVerifyLoading] = useState(false);
+  const [digilockerCardData, setDigilockerCardData] = useState(null);
+  const [digilockerVerifyMessage, setDigilockerVerifyMessage] = useState("");
   const navigate = useNavigate();
+
+  const removeStateFromUrlAndReload = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("state");
+    window.location.href = url.toString();
+  };
+
+  const buildDigilockerPayload = (stateFromUrl = "") => ({
+    address_change: sessionStorage.getItem("address_change") || "no",
+    state: stateFromUrl || sessionStorage.getItem("state") || "",
+    client_token: sessionStorage.getItem("client_token") || "",
+  });
 
   const refreshAccessToken = async () => {
     const refreshToken = Cookies.get("refresh_token");
@@ -131,6 +149,87 @@ const UserInfoCard = () => {
       console.error("Digilocker connect failed:", error);
     } finally {
       setDigilockerLoading(false);
+    }
+  };
+
+  const getaadhardata = async (stateFromUrl = "") => {
+    const payload = buildDigilockerPayload(stateFromUrl);
+
+    if (!payload.state) {
+      setDigilockerCardError("Digilocker state was not found in the URL.");
+      return;
+    }
+
+    try {
+      setDigilockerCardLoading(true);
+      setDigilockerCardError("");
+      setDigilockerVerifyMessage("");
+      setDigilockerCardOpen(true);
+
+      const response = await fetchWithAuth(`${API_BASE_URL}/verify_digilocker`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      console.log("getaadhardata response:", result);
+
+      if (!response.ok || result?.status === false) {
+        throw new Error(result?.message || "Failed to fetch Aadhaar details.");
+      }
+
+      setDigilockerCardData(result?.data || null);
+    } catch (error) {
+      console.error("getaadhardata failed:", error);
+      setDigilockerCardError(
+        error?.message || "Unable to fetch Aadhaar details from Digilocker."
+      );
+    } finally {
+      setDigilockerCardLoading(false);
+    }
+  };
+
+  const verify_card = async () => {
+    const payload = buildDigilockerPayload();
+
+    if (!payload.state) {
+      setDigilockerCardError("Digilocker state was not found in the URL.");
+      return;
+    }
+
+    try {
+      setDigilockerVerifyLoading(true);
+      setDigilockerCardError("");
+      setDigilockerVerifyMessage("");
+
+      const response = await fetchWithAuth(`${API_BASE_URL}/getaadhardata`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      console.log("verify_card response:", result);
+
+      if (!response.ok || result?.status !== true) {
+        throw new Error(result?.message || "Aadhaar verification failed.");
+      }
+
+      setDigilockerVerifyMessage(
+        result?.message || "Aadhaar details verified successfully."
+      );
+      sessionStorage.setItem("digiloker", "yes");
+      setShowDigilockerModal(false);
+
+      setTimeout(() => {
+        removeStateFromUrlAndReload();
+      }, 800);
+    } catch (error) {
+      console.error("verify_card failed:", error);
+      setDigilockerCardError(
+        error?.message || "Unable to verify Aadhaar details."
+      );
+    } finally {
+      setDigilockerVerifyLoading(false);
     }
   };
 
@@ -234,6 +333,16 @@ const UserInfoCard = () => {
     fetchModuleData();
   }, []);
 
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const stateFromUrl = url.searchParams.get("state");
+
+    if (!stateFromUrl) return;
+
+    sessionStorage.setItem("state", stateFromUrl);
+    getaadhardata(stateFromUrl);
+  }, []);
+
   const closeModal = () => setShowModal(false);
   const closeModalPhone = () => setShowModalPhone(false);
 
@@ -301,6 +410,21 @@ const UserInfoCard = () => {
   .filter(Boolean)
   .map(line => line.replace(/[^a-zA-Z0-9\s,.-]/g, "")) 
   .join(", ");
+
+  const digilockerPreview = digilockerCardData?.data || {};
+  const digilockerImage = digilockerCardData?.adharimg || "";
+  const digilockerName =
+    digilockerPreview?.name || digilockerCardData?.name || "Not Available";
+  const digilockerFatherName = digilockerPreview?.fathername || "Not Available";
+  const digilockerDob = digilockerPreview?.dob || "Not Available";
+  const digilockerGender = digilockerPreview?.gender || "Not Available";
+  const digilockerAddress =
+    digilockerPreview?.aadhar_address ||
+    digilockerCardData?.aadhar_address ||
+    "Not Available";
+  const hasStateInUrl = Boolean(
+    new URLSearchParams(window.location.search).get("state")
+  );
 
   return (
     <div>
@@ -395,7 +519,7 @@ const UserInfoCard = () => {
         </div>
       )}
 
-      {showDigilockerModal && (
+      {showDigilockerModal && !hasStateInUrl && (
         <div
           id="aadhar_inactive"
           className="digilocker-modal-overlay"
@@ -455,6 +579,94 @@ const UserInfoCard = () => {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {digilockerCardOpen && (
+        <div
+          className="digilocker-preview-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="digilocker_preview_title"
+        >
+          <div
+            className="digilocker-preview-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="digilocker_preview_title">Aadhaar Preview</h2>
+
+            {digilockerCardLoading ? (
+              <p className="digilocker-preview-status">
+                Fetching Aadhaar details...
+              </p>
+            ) : (
+              <>
+                {digilockerImage ? (
+                  <img
+                    className="digilocker-preview-image"
+                    src={digilockerImage}
+                    alt="Aadhaar preview"
+                  />
+                ) : null}
+
+                <div className="digilocker-preview-details">
+                  <div className="digilocker-preview-row">
+                    <span>Name</span>
+                    <strong>{digilockerName}</strong>
+                  </div>
+                  <div className="digilocker-preview-row">
+                    <span>Father's Name</span>
+                    <strong>{digilockerFatherName}</strong>
+                  </div>
+                  <div className="digilocker-preview-row">
+                    <span>Date of Birth</span>
+                    <strong>{digilockerDob}</strong>
+                  </div>
+                  <div className="digilocker-preview-row">
+                    <span>Gender</span>
+                    <strong>{digilockerGender}</strong>
+                  </div>
+                  <div className="digilocker-preview-row digilocker-preview-row-address">
+                    <span>Address</span>
+                    <strong>{digilockerAddress}</strong>
+                  </div>
+                </div>
+
+                {digilockerCardData?.message ? (
+                  <p className="digilocker-preview-status">
+                    {digilockerCardData.message}
+                  </p>
+                ) : null}
+              </>
+            )}
+
+            {digilockerCardError ? (
+              <p className="digilocker-preview-error">{digilockerCardError}</p>
+            ) : null}
+
+            {digilockerVerifyMessage ? (
+              <p className="digilocker-preview-success">
+                {digilockerVerifyMessage}
+              </p>
+            ) : null}
+
+            <div className="digilocker-preview-actions">
+              <button
+                className="digilocker-preview-btn digilocker-preview-btn-primary"
+                onClick={verify_card}
+                disabled={digilockerCardLoading || digilockerVerifyLoading}
+              >
+                {digilockerVerifyLoading ? "Verifying..." : "Verify"}
+              </button>
+              <button
+                className="digilocker-preview-btn digilocker-preview-btn-secondary"
+                onClick={removeStateFromUrlAndReload}
+                disabled={digilockerVerifyLoading}
+              >
+                {digilockerVerifyMessage ? "Close" : "Cancel"}
+              </button>
             </div>
           </div>
         </div>
