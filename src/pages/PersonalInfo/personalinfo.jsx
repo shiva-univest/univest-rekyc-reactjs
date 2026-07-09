@@ -11,7 +11,8 @@ import { sendDataToMixpanel } from "../../lib/utils";
 
 const API_BASE_URL = "https://rekyc.meon.co.in/v1/user";
 const PUBLIC_API_BASE_URL = "https://api.univest.in/api/broker/public";
-const normalizeClientCode = (clientCode = "") => clientCode.replace(/^UN0/i, "");
+const normalizeClientCode = (clientCode = "") =>
+  clientCode.length > 3 ? clientCode.slice(3) : "";
 
 const Section = ({ title, onEdit = null, children }) => (
   <div className="section-wrapper">
