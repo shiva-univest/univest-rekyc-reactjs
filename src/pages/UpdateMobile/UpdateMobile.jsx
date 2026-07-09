@@ -331,7 +331,7 @@ const UpdateMobileNumber = () => {
       console.error("User form generation error:", error);
       toast.error("Failed to generate user form. Please try again.");
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 

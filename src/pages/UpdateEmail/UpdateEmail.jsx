@@ -19,19 +19,12 @@ const maskEmail = (email) => {
   return `${username.slice(0, 2)}${"*".repeat(6)}@${domain}`;
 };
 
-const getEmailVerificationStatus = (contact = {}) => {
-  if (
-    contact?.is_verified === true ||
-    contact?.verified === true ||
-    contact?.is_email_verified === true ||
-    contact?.email_verified === true ||
-    String(contact?.verification_status || "").toLowerCase() === "verified" ||
-    String(contact?.status || "").toLowerCase() === "verified"
-  ) {
-    return "verified";
+const getEmailVerificationStatus = (contact = null) => {
+  if (!contact?.email) {
+    return "not_verified";
   }
 
-  return "not_verified";
+  return "verified";
 };
 
 const ExistingDetailsCard = ({
