@@ -22,6 +22,8 @@ import Esign from "./pages/Esign/Esign";
 import Nominee from "./pages/Nominee/Nominee";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import UpdateMobileNumber from "./pages/UpdateMobile/UpdateMobile";
+import UpdateEmailAddress from "./pages/UpdateEmail/UpdateEmail";
 
 const ProtectedSegment = withAuthCheck(Segment);
 
@@ -90,6 +92,14 @@ const App = () => {
     {
       path: "/editpersonalemailphone",
       element: <EditContactPhone />,
+    },
+     {
+      path: "/update-mobile-number",
+      element: <UpdateMobileNumber/>,
+    },
+    {
+      path: "/update-email-address",
+      element: <UpdateEmailAddress />,
     },
     {
       path: "/esign",
