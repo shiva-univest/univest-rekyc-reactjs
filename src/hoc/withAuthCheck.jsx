@@ -11,6 +11,7 @@ const getToken = () => {
 
 const getPageIdFromPath = (pathname) => {
   if (pathname === "/activatebank") return "5";
+  if (pathname === "/income-details") return "5";
   if (pathname === "/segment") return "3";
   if (pathname === "/bank") return "2";
   if (pathname === "/personalinfo") return "1";

@@ -24,8 +24,10 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import UpdateMobileNumber from "./pages/UpdateMobile/UpdateMobile";
 import UpdateEmailAddress from "./pages/UpdateEmail/UpdateEmail";
+import IncomeDetails from "./pages/IncomeDetails";
 
 const ProtectedSegment = withAuthCheck(Segment);
+const ProtectedIncomeDetails = withAuthCheck(IncomeDetails);
 
 const App = () => {
   const router = createBrowserRouter([
@@ -44,6 +46,10 @@ const App = () => {
     {
       path: "/activatebank",
       element: <Activatebank />,
+    },
+    {
+      path: "/income-details",
+      element: <ProtectedIncomeDetails />,
     },
     {
       path: "/notfound",

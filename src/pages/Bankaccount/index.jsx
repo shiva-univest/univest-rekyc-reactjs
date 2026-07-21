@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "./style.css";
 import Cookies from "js-cookie";
 import { decryptData } from "../../decode";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import withAuthCheck from "../../hoc/withAuthCheck";
 import { BANKLIST } from "../../lib/utils";
 import api from "../../api/api";
@@ -19,6 +19,7 @@ const Bank = ({ encryptedData }) => {
   const navigate = useNavigate();
   const accountDetailsPopupRef = useRef(null);
   const deletePopupRef = useRef(null);
+  const initialDefaultSyncDoneRef = useRef(false);
   const [loading, setLoading] = useState(false);
 
   const [makePrimaryLoading, setMakePrimaryLoading] = useState(false);
@@ -163,26 +164,48 @@ const Bank = ({ encryptedData }) => {
     }
   };
 
+  const deleteBankAccountRequest = async (accountId) => {
+    const accessToken = Cookies.get("access_token");
+
+    const response = await fetch(
+      `https://rekyc.meon.co.in/v1/user/delete_bank_details/${accountId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to delete account");
+    }
+  };
+
+  const makePrimaryRequest = async (accountId) => {
+    const accessToken = Cookies.get("access_token");
+
+    const response = await fetch(
+      `https://rekyc.meon.co.in/v1/user/make_default_bank/${accountId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to set account as primary");
+    }
+  };
+
   const handleDeleteAccount = async (accountId) => {
     try {
       setIsLoading(true);
-      const accessToken = Cookies.get("access_token");
-
-      const response = await fetch(
-        `https://rekyc.meon.co.in/v1/user/delete_bank_details/${accountId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete account");
-      }
-
+      await deleteBankAccountRequest(accountId);
       await fetchBankAccounts();
       setdeleteDetailsPopup(false);
     } catch (error) {
@@ -196,23 +219,7 @@ const Bank = ({ encryptedData }) => {
   const handleMakePrimary = async (accountId) => {
     try {
       setIsLoading(true);
-      const accessToken = Cookies.get("access_token");
-
-      const response = await fetch(
-        `https://rekyc.meon.co.in/v1/user/make_default_bank/${accountId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to set account as primary");
-      }
-
+      await makePrimaryRequest(accountId);
       await fetchBankAccounts();
       setShowAccountDetailsPopup(false);
       setShowDropdown(false);
@@ -434,34 +441,36 @@ const Bank = ({ encryptedData }) => {
   }, [esignDataStatus]);
 
   useEffect(() => {
-    if (!isEsigned && Array.isArray(bankAccounts)) {
-      console.log("bankAccounts", bankAccounts);
-
-      const processAccounts = async () => {
-        for (const account of bankAccounts) {
-          if (account.is_new && !account.isPrimary) {
-            await handleDeleteAccount(account.id);
-          } else if (account.is_new && account.isPrimary) {
-            const oldAccount = bankAccounts.find((acc) => !acc.is_new);
-
-            if (oldAccount) {
-              try {
-                await handleMakePrimary(oldAccount.id);
-                await handleDeleteAccount(account.id);
-              } catch (error) {
-                console.error(`Error processing account ${account.id}`, error);
-              }
-            } else {
-              console.warn(
-                "No old account found to make primary before deleting new one"
-              );
-            }
-          }
-        }
-      };
-
-      processAccounts();
+    if (
+      initialDefaultSyncDoneRef.current ||
+      isEsigned ||
+      !Array.isArray(bankAccounts) ||
+      bankAccounts.length === 0
+    ) {
+      return;
     }
+
+    initialDefaultSyncDoneRef.current = true;
+
+    const syncOldBankAsDefault = async () => {
+      const newPrimaryAccount = bankAccounts.find(
+        (account) => account.is_new && account.isPrimary
+      );
+      const oldAccount = bankAccounts.find((account) => !account.is_new);
+
+      if (!newPrimaryAccount || !oldAccount) {
+        return;
+      }
+
+      try {
+        await makePrimaryRequest(oldAccount.id);
+        await fetchBankAccounts();
+      } catch (error) {
+        console.error("Error making old bank default on initial load:", error);
+      }
+    };
+
+    syncOldBankAsDefault();
   }, [isEsigned, bankAccounts]);
 
   const fetchEsignStatus = async () => {
@@ -533,7 +542,7 @@ const Bank = ({ encryptedData }) => {
                     page: "rekyc_managebank_home",
                     cta_text: account.bankName,
                     tile: account.accountNumber,
-                    is_primary: account.isPrimary ? "true" : "false",
+                    is_primary: account.isPrimary,
                   });
                   handleShowAccountDetails(account);
                 }}
@@ -573,7 +582,7 @@ const Bank = ({ encryptedData }) => {
                       page: "rekyc_managebank_home",
                       cta_text: "3dot",
                       tile: account.accountNumber,
-                      is_primary: account.isPrimary ? "true" : "false",
+                      is_primary: account.isPrimary,
                     });
 
                     const rect = e.currentTarget.getBoundingClientRect();
