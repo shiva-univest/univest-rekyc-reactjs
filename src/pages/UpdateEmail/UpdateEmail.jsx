@@ -10,6 +10,11 @@ import { decryptData } from "../../decode";
 import "./updateemail.css";
 
 const RELATION_OPTIONS = ["Self", "Father", "Mother", "Spouse"];
+const API_BASE_URL = "https://rekyc.meon.co.in/v1/user";
+const PUBLIC_API_BASE_URL = "https://api.univest.in/api/broker/public";
+
+const normalizeClientCode = (clientCode = "") =>
+  clientCode.length > 3 ? clientCode.slice(3) : "";
 
 const maskEmail = (email) => {
   const [username = "", domain = "gmail.com"] = email.split("@");
@@ -194,20 +199,221 @@ const UpdateEmailAddress = () => {
   const [loading, setLoading] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const [showDigilockerModal, setShowDigilockerModal] = useState(false);
+  const [digilockerLoading, setDigilockerLoading] = useState(false);
+  const [digilockerCardOpen, setDigilockerCardOpen] = useState(false);
+  const [digilockerCardLoading, setDigilockerCardLoading] = useState(false);
+  const [digilockerCardError, setDigilockerCardError] = useState("");
+  const [digilockerVerifyLoading, setDigilockerVerifyLoading] = useState(false);
+  const [digilockerCardData, setDigilockerCardData] = useState(null);
+  const [digilockerVerifyMessage, setDigilockerVerifyMessage] = useState("");
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const hasStateInUrl = Boolean(
+    new URL(window.location.href).searchParams.get("state")
+  );
+
+  const removeStateFromUrlAndReload = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("state");
+    window.location.href = url.toString();
+  };
+
+  const buildDigilockerPayload = (stateFromUrl = "") => ({
+    address_change: sessionStorage.getItem("address_change") || "no",
+    state: stateFromUrl || sessionStorage.getItem("state") || "",
+    client_token: sessionStorage.getItem("client_token") || "",
+  });
+
+  const refreshAccessToken = async () => {
+    const refreshToken = Cookies.get("refresh_token");
+
+    if (!refreshToken) {
+      throw new Error("Refresh token not found");
+    }
+
+    const refreshResponse = await fetch(`${API_BASE_URL}/token/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${refreshToken}`,
+      },
+      body: JSON.stringify({}),
+    });
+
+    if (!refreshResponse.ok) {
+      throw new Error("Failed to refresh access token");
+    }
+
+    const refreshData = await refreshResponse.json();
+    const newAccessToken = refreshData?.data?.access_token;
+
+    if (!newAccessToken) {
+      throw new Error("Refresh succeeded, but no access token returned");
+    }
+
+    Cookies.set("access_token", newAccessToken);
+    return newAccessToken;
+  };
+
+  const fetchWithAuth = async (url, options = {}, retry = true) => {
+    let token = Cookies.get("access_token");
+    let response = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.status === 401 && retry) {
+      token = await refreshAccessToken();
+      response = await fetch(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+
+    return response;
+  };
+
+  const connectDigilocker = async () => {
+    try {
+      setDigilockerLoading(true);
+      const response = await fetchWithAuth(`${API_BASE_URL}/get_digilocker_url`, {
+        method: "POST",
+        body: JSON.stringify({
+          redirect_url: `${window.location.origin}${window.location.pathname}`,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.msg || "Unable to connect to Digilocker");
+      }
+
+      const digiData = result?.data
+        ? JSON.parse(decryptData(result.data))
+        : null;
+
+      if (!digiData?.url) {
+        throw new Error("Digilocker URL missing in response");
+      }
+
+      if (digiData?.state) {
+        sessionStorage.setItem("state", digiData.state);
+      }
+
+      if (digiData?.client_token) {
+        sessionStorage.setItem("client_token", digiData.client_token);
+      }
+
+      window.location.href = digiData.url;
+    } catch (digilockerErr) {
+      console.error("Digilocker connect failed:", digilockerErr);
+      toast.error(
+        digilockerErr?.message || "Unable to connect to Digilocker."
+      );
+    } finally {
+      setDigilockerLoading(false);
+    }
+  };
+
+  const getaadhardata = async (stateFromUrl = "") => {
+    const payload = buildDigilockerPayload(stateFromUrl);
+
+    if (!payload.state) {
+      setDigilockerCardError("Digilocker state was not found in the URL.");
+      return;
+    }
+
+    try {
+      setDigilockerCardLoading(true);
+      setDigilockerCardError("");
+      setDigilockerVerifyMessage("");
+      setDigilockerCardOpen(true);
+
+      const response = await fetchWithAuth(`${API_BASE_URL}/verify_digilocker`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      console.log("getaadhardata response:", result);
+
+      if (!response.ok || result?.status === false) {
+        throw new Error(result?.message || "Failed to fetch Aadhaar details.");
+      }
+
+      setDigilockerCardData(result?.data || null);
+    } catch (digilockerErr) {
+      console.error("getaadhardata failed:", digilockerErr);
+      setDigilockerCardError(
+        digilockerErr?.message ||
+          "Unable to fetch Aadhaar details from Digilocker."
+      );
+    } finally {
+      setDigilockerCardLoading(false);
+    }
+  };
+
+  const verifyDigilockerCard = async () => {
+    const payload = buildDigilockerPayload();
+
+    if (!payload.state) {
+      setDigilockerCardError("Digilocker state was not found in the URL.");
+      return;
+    }
+
+    try {
+      setDigilockerVerifyLoading(true);
+      setDigilockerCardError("");
+      setDigilockerVerifyMessage("");
+
+      const response = await fetchWithAuth(`${API_BASE_URL}/getaadhardata`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      console.log("verifyDigilockerCard response:", result);
+
+      if (!response.ok || result?.status !== true) {
+        throw new Error(result?.message || "Aadhaar verification failed.");
+      }
+
+      setDigilockerVerifyMessage(
+        result?.message || "Aadhaar details verified successfully."
+      );
+      sessionStorage.setItem("digiloker", "yes");
+      setShowDigilockerModal(false);
+
+      setTimeout(() => {
+        removeStateFromUrlAndReload();
+      }, 800);
+    } catch (digilockerErr) {
+      console.error("verifyDigilockerCard failed:", digilockerErr);
+      setDigilockerCardError(
+        digilockerErr?.message || "Unable to verify Aadhaar details."
+      );
+    } finally {
+      setDigilockerVerifyLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchModuleData = async () => {
       try {
-        const moduleDataResponse = await fetch(
-          "https://rekyc.meon.co.in/v1/user/get_module_data",
+        const moduleDataResponse = await fetchWithAuth(
+          `${API_BASE_URL}/get_module_data`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${Cookies.get("access_token")}`,
-            },
             body: JSON.stringify({ page_id: "1" }),
           }
         );
@@ -218,33 +424,73 @@ const UpdateEmailAddress = () => {
 
         const moduleData = await moduleDataResponse.json();
         console.log("Module Data Response:", moduleData);
-        if (!moduleData?.data) return;
+        if (!moduleData?.data) {
+          return;
+        }
 
         const decryptedData = JSON.parse(decryptData(moduleData.data));
         console.log("Decrypted module data:", decryptedData);
         setModuleSharedData(decryptedData?.shared_data || null);
 
         const currentEmail =
-          decryptedData?.["3"]?.contact_detail_data?.find((contact) => contact.is_new === false)
-            ?.email ||
+          decryptedData?.["3"]?.contact_detail_data?.find(
+            (contact) => contact.is_new === false
+          )?.email ||
           decryptedData?.["3"]?.contact_detail_data?.[0]?.email ||
           "";
         const updatedEmailContact =
-          decryptedData?.["3"]?.contact_detail_data?.find((contact) => contact.is_new === true) ||
-          null;
+          decryptedData?.["3"]?.contact_detail_data?.find(
+            (contact) => contact.is_new === true
+          ) || null;
         const updatedEmail = updatedEmailContact?.email || "";
-        const emailRelation =
-          updatedEmailContact?.email_dependency || "Self";
-        const updatedEmailStatus = getEmailVerificationStatus(updatedEmailContact || {});
-        console.log("Current Email:", currentEmail);
-        console.log("Pending Email:", updatedEmail);
-        console.log("Email Relation:", emailRelation);
-        console.log("Pending Email Status:", updatedEmailStatus);
+        const emailRelation = updatedEmailContact?.email_dependency || "Self";
+        const updatedEmailStatus = getEmailVerificationStatus(
+          updatedEmailContact || {}
+        );
 
         setExistingEmail(currentEmail);
         setPendingEmail(updatedEmail);
         setPendingEmailStatus(updatedEmailStatus);
         setRelation(emailRelation || "Self");
+
+        const sharedData = decryptedData?.shared_data || {};
+        const clientCode =
+          sharedData?.clientcode ||
+          sharedData?.client_code ||
+          sharedData?.clientCode;
+        const normalizedClientCode = normalizeClientCode(clientCode);
+        const isDigilockerLinked =
+          decryptedData?.["5"]?.is_digilocker === true;
+
+        if (!normalizedClientCode) {
+          console.warn(
+            "Client code not found in shared_data, skipping KRA type check"
+          );
+          return;
+        }
+
+        const kraResponse = await fetch(
+          `${PUBLIC_API_BASE_URL}/kra-type?userId=${encodeURIComponent(
+            normalizedClientCode
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!kraResponse.ok) {
+          throw new Error("Failed to fetch KRA type");
+        }
+
+        const kraResult = await kraResponse.json();
+        const isCvlKra = kraResult?.isCvlKra === true;
+
+        if (!isCvlKra && !isDigilockerLinked) {
+          setShowDigilockerModal(true);
+        }
       } catch (moduleErr) {
         console.error("Failed to fetch or process module data:", moduleErr);
       } finally {
@@ -256,7 +502,22 @@ const UpdateEmailAddress = () => {
   }, []);
 
   useEffect(() => {
-    if (!showOtpModal || timer <= 0) return;
+    const url = new URL(window.location.href);
+    const stateFromUrl = url.searchParams.get("state");
+
+    if (!stateFromUrl) {
+      return;
+    }
+
+    sessionStorage.setItem("state", stateFromUrl);
+    getaadhardata(stateFromUrl);
+  }, []);
+
+  useEffect(() => {
+    if (!showOtpModal || timer <= 0) {
+      return;
+    }
+
     const interval = setInterval(() => setTimer((current) => current - 1), 1000);
     return () => clearInterval(interval);
   }, [showOtpModal, timer]);
@@ -304,8 +565,8 @@ const UpdateEmailAddress = () => {
       try {
         parsed = JSON.parse(decryptData(moduleData.data));
         console.log("Decrypted eSign module data:", parsed);
-      } catch (err) {
-        console.error("Failed to parse decrypted data:", err);
+      } catch (esignErr) {
+        console.error("Failed to parse decrypted data:", esignErr);
       }
 
       let links = parsed?.["12"]?.links || [];
@@ -317,11 +578,9 @@ const UpdateEmailAddress = () => {
       } else {
         window.open(`https://rekyc.meon.co.in${links[0].url}`, "_self");
       }
-    } catch (err) {
-      console.error("Error fetching eSign data:", err);
+    } catch (esignErr) {
+      console.error("Error fetching eSign data:", esignErr);
       toast.error("Failed to get eSign link. Please try again.");
-    } finally {
-      // setLoading(false);
     }
   };
 
@@ -373,13 +632,13 @@ const UpdateEmailAddress = () => {
         console.log("Form generation successful, navigating to esign");
         await fetchAndRedirectToEsignLink(token);
       } else {
-        toast.error(formData?.message || "Failed to generate user form. Please try again.");
+        toast.error(
+          formData?.message || "Failed to generate user form. Please try again."
+        );
       }
-    } catch (error) {
-      console.error("User form generation error:", error);
+    } catch (formErr) {
+      console.error("User form generation error:", formErr);
       toast.error("Failed to generate user form. Please try again.");
-    } finally {
-      // setLoading(false);
     }
   };
 
@@ -411,14 +670,13 @@ const UpdateEmailAddress = () => {
       const decryptedData = JSON.parse(decryptData(moduleData.data));
       console.log("Decrypted module data:", decryptedData);
       const contactDetailData = decryptedData["3"]?.contact_detail_data || [];
-      console.log("Contact detail data:", contactDetailData);
-      const newContacts = contactDetailData.filter((contact) => contact.is_new === true);
-      console.log("New contacts (is_new: true):", newContacts);
-      const matchingContact = newContacts.find(
-        (contact) => contact.email?.toLowerCase() === enteredEmail.toLowerCase()
+      const newContacts = contactDetailData.filter(
+        (contact) => contact.is_new === true
       );
-      console.log("Entered email:", enteredEmail);
-      console.log("Matching contact:", matchingContact);
+      const matchingContact = newContacts.find(
+        (contact) =>
+          contact.email?.toLowerCase() === enteredEmail.toLowerCase()
+      );
 
       if (matchingContact) {
         return { success: true, isValidEmail: true, shouldRedirectToEsign: true };
@@ -435,8 +693,6 @@ const UpdateEmailAddress = () => {
         success: false,
         error: "Failed to verify email details",
       };
-    } finally {
-      // setLoading(false);
     }
   };
 
@@ -447,7 +703,7 @@ const UpdateEmailAddress = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ email: newEmail,email_dependency: relation }),
+      body: JSON.stringify({ email: newEmail, email_dependency: relation }),
     });
 
   const callVerifyOtpAPI = async (otpValue, token) =>
@@ -457,7 +713,11 @@ const UpdateEmailAddress = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ otp: otpValue, email: newEmail, email_dependency: relation }),
+      body: JSON.stringify({
+        otp: otpValue,
+        email: newEmail,
+        email_dependency: relation,
+      }),
     });
 
   const handleInputChange = (event) => {
@@ -540,8 +800,8 @@ const UpdateEmailAddress = () => {
       } else {
         setError("This email address is already registered with another account.");
       }
-    } catch (err) {
-      console.error("Error in handleVerifyEmail:", err);
+    } catch (verifyErr) {
+      console.error("Error in handleVerifyEmail:", verifyErr);
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -551,13 +811,11 @@ const UpdateEmailAddress = () => {
   const handleVerifyOtpSubmit = async () => {
     if (otp.length !== 6) {
       setOtpError("Enter 6 digit OTP");
-      console.log("otp value:", otp);
       return;
     }
 
     setVerifyingOtp(true);
     setOtpError("");
-    console.log("Submitting OTP value:", otp);
 
     try {
       const token = await getValidToken();
@@ -600,8 +858,8 @@ const UpdateEmailAddress = () => {
       } else {
         setOtpError(data?.message || "Enter correct OTP");
       }
-    } catch (err) {
-      console.error("Error verifying OTP:", err);
+    } catch (otpVerifyErr) {
+      console.error("Error verifying OTP:", otpVerifyErr);
       setOtpError("Network error");
     } finally {
       setVerifyingOtp(false);
@@ -619,13 +877,25 @@ const UpdateEmailAddress = () => {
       } else {
         setOtpError("Failed to resend OTP");
       }
-    } catch (err) {
-      console.error("Error resending OTP:", err);
+    } catch (resendErr) {
+      console.error("Error resending OTP:", resendErr);
       setOtpError("Network error");
     }
   };
 
   const isEmailValid = emailRegex.test(newEmail) && !error;
+  const digilockerPreview = digilockerCardData?.data || {};
+  const digilockerImage = digilockerCardData?.adharimg || "";
+  const digilockerName =
+    digilockerPreview?.name || digilockerCardData?.name || "Not Available";
+  const digilockerFatherName =
+    digilockerPreview?.fathername || "Not Available";
+  const digilockerDob = digilockerPreview?.dob || "Not Available";
+  const digilockerGender = digilockerPreview?.gender || "Not Available";
+  const digilockerAddress =
+    digilockerPreview?.aadhar_address ||
+    digilockerCardData?.aadhar_address ||
+    "Not Available";
 
   return (
     <div className="update-email-page">
@@ -772,6 +1042,142 @@ const UpdateEmailAddress = () => {
           onResend={handleResendOtp}
           verifyingOtp={verifyingOtp}
         />
+      )}
+
+      {showDigilockerModal && !hasStateInUrl && (
+        <div
+          className="digilocker-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="update_email_digilocker_title"
+          onClick={() => setShowDigilockerModal(false)}
+        >
+          <div
+            className="digilocker-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="update_email_digilocker_title">
+              Share Aadhaar details from Digilocker
+            </h2>
+            <div className="divider_blue" />
+            <p>
+              Do not worry if you have never registered with Digilocker. Click
+              on the button &quot;Connect To Digilocker&quot;. Digilocker will
+              open as a pop-up on your screen where provide your Aadhaar number
+              and authenticate with OTP. You will then be required to set your
+              PIN and give your consent to provide your Aadhaar document to us
+              for KYC. Your 12 digit Aadhaar number is never fetched, stored,
+              revealed or collected. The Aadhaar and the PAN should belong to
+              you.
+            </p>
+            <button
+              className="digilocker-connect-btn"
+              onClick={connectDigilocker}
+              disabled={digilockerLoading}
+              type="button"
+            >
+              {digilockerLoading ? "Connecting..." : "Connect to Digilocker"}
+            </button>
+            <p className="digi_text">
+              By clicking the above button, I agree that I have read the
+              Aadhaar user consent document and voluntarily consent to share my
+              Aadhaar information with{" "}
+              <span className="CompanyName">Meon Technologies Pvt. Ltd.</span>{" "}
+              for conducting KYC for opening a trading and Demat account
+              adhering to KRA regulations (2011) and PMLA guidelines (2002).
+            </p>
+          </div>
+        </div>
+      )}
+
+      {digilockerCardOpen && (
+        <div
+          className="digilocker-preview-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="digilocker_preview_title"
+        >
+          <div
+            className="digilocker-preview-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="digilocker_preview_title">Aadhaar Preview</h2>
+
+            {digilockerCardLoading ? (
+              <p className="digilocker-preview-status">
+                Fetching Aadhaar details...
+              </p>
+            ) : (
+              <>
+                {digilockerImage ? (
+                  <img
+                    className="digilocker-preview-image"
+                    src={digilockerImage}
+                    alt="Aadhaar preview"
+                  />
+                ) : null}
+
+                <div className="digilocker-preview-details">
+                  <div className="digilocker-preview-row">
+                    <span>Name</span>
+                    <strong>{digilockerName}</strong>
+                  </div>
+                  <div className="digilocker-preview-row">
+                    <span>Father&apos;s Name</span>
+                    <strong>{digilockerFatherName}</strong>
+                  </div>
+                  <div className="digilocker-preview-row">
+                    <span>Date of Birth</span>
+                    <strong>{digilockerDob}</strong>
+                  </div>
+                  <div className="digilocker-preview-row">
+                    <span>Gender</span>
+                    <strong>{digilockerGender}</strong>
+                  </div>
+                  <div className="digilocker-preview-row digilocker-preview-row-address">
+                    <span>Address</span>
+                    <strong>{digilockerAddress}</strong>
+                  </div>
+                </div>
+
+                {digilockerCardData?.message ? (
+                  <p className="digilocker-preview-status">
+                    {digilockerCardData.message}
+                  </p>
+                ) : null}
+              </>
+            )}
+
+            {digilockerCardError ? (
+              <p className="digilocker-preview-error">{digilockerCardError}</p>
+            ) : null}
+
+            {digilockerVerifyMessage ? (
+              <p className="digilocker-preview-success">
+                {digilockerVerifyMessage}
+              </p>
+            ) : null}
+
+            <div className="digilocker-preview-actions">
+              <button
+                className="digilocker-preview-btn digilocker-preview-btn-primary"
+                onClick={verifyDigilockerCard}
+                disabled={digilockerCardLoading || digilockerVerifyLoading}
+                type="button"
+              >
+                {digilockerVerifyLoading ? "Verifying..." : "Verify"}
+              </button>
+              <button
+                className="digilocker-preview-btn digilocker-preview-btn-secondary"
+                onClick={removeStateFromUrlAndReload}
+                disabled={digilockerVerifyLoading}
+                type="button"
+              >
+                {digilockerVerifyMessage ? "Close" : "Cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
