@@ -113,7 +113,6 @@ const Home = () => {
     page: "rekyc_activate_fno_info",
     cta_text: "proceed",
   });
-    // navigate("/activatebank");
     navigate("/activatebank", { state: { segmentData } });
   };
 
