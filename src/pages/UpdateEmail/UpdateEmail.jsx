@@ -850,7 +850,7 @@ const UpdateEmailAddress = () => {
         } catch (formErr) {
           console.error("user_form_generation API failed:", formErr);
         } finally {
-          setLoading(false);
+          // setLoading(false);
         }
 
         toast.success(data.message || "Email verified successfully!");
