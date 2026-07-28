@@ -86,6 +86,7 @@ const Activatebank = ({ encryptedData }) => {
   const [selectedDoc, setSelectedDoc] = useState("");
   const [userModuleData, setUserModuleData] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [isUploadSuccessful, setIsUploadSuccessful] = useState(false);
   const [pdfPassword, setPdfPassword] = useState("");
   const [isPasswordRequired, setIsPasswordRequired] = useState(false);
   const [allowedTypes, setAllowedTypes] = useState([]);
@@ -535,6 +536,7 @@ const Activatebank = ({ encryptedData }) => {
 
     for (const file of files) {
       setUploadedFile(file); // optional, keeps track of last uploaded file
+      setIsUploadSuccessful(false);
 
       const extension = file.name.split(".").pop().toLowerCase();
 
@@ -550,6 +552,7 @@ const Activatebank = ({ encryptedData }) => {
           } else {
             toast.error("Invalid PDF file.");
             setUploadedFile(null);
+            setIsUploadSuccessful(false);
           }
         }
       } else {
@@ -601,9 +604,11 @@ const Activatebank = ({ encryptedData }) => {
 
       if (result.status) {
         toast.success("File uploaded successfully.");
+        setIsUploadSuccessful(true);
         setIsPasswordRequired(false);
         setPdfPassword("");
       } else {
+        setIsUploadSuccessful(false);
         toast.error(getUploadErrorMessage(result));
       }
     } catch (error) {
@@ -645,9 +650,11 @@ const Activatebank = ({ encryptedData }) => {
 
             if (retryResult.status) {
               toast.success("File uploaded successfully.");
+              setIsUploadSuccessful(true);
               setIsPasswordRequired(false);
               setPdfPassword("");
             } else {
+              setIsUploadSuccessful(false);
               toast.error(getUploadErrorMessage(retryResult));
             }
           } else {
@@ -660,6 +667,7 @@ const Activatebank = ({ encryptedData }) => {
         }
       } else {
         console.error("❌ Upload failed (not token related):", error);
+        setIsUploadSuccessful(false);
         toast.error(getUploadErrorMessage(error?.data || error));
       }
     } finally {
@@ -670,6 +678,8 @@ const Activatebank = ({ encryptedData }) => {
   // const handleDocSelect = (docType) => setSelectedDoc(docType);
   const handleDocSelect = (docType) => {
     setSelectedDoc(docType);
+    setIsUploadSuccessful(false);
+    setUploadedFile(null);
 
     // ✅ Send event when user selects doc
     sendDataToMixpanel("page_viewed", {
@@ -1083,6 +1093,7 @@ const Activatebank = ({ encryptedData }) => {
 
                       for (const file of files) {
                         setUploadedFile(file); // optional, keeps track of last uploaded file
+                        setIsUploadSuccessful(false);
                         e.target
                           .closest("label")
                           .classList.add("file-selected");
@@ -1105,11 +1116,14 @@ const Activatebank = ({ encryptedData }) => {
 
                           if (result?.status) {
                             toast.success("File uploaded successfully.");
+                            setIsUploadSuccessful(true);
                           } else {
+                            setIsUploadSuccessful(false);
                             toast.error(getUploadErrorMessage(result));
                           }
                         } catch (err) {
                           console.error("❌ Upload error:", err);
+                          setIsUploadSuccessful(false);
                           toast.error(getUploadErrorMessage(err?.data || err));
                         }
                       }
@@ -1178,7 +1192,11 @@ const Activatebank = ({ encryptedData }) => {
                   Skip for now
                 </button> */}
 
-                <button className="proceed-btn1" onClick={handleProceed}>
+                <button
+                  className="proceed-btn1"
+                  onClick={handleProceed}
+                  disabled={!isUploadSuccessful}
+                >
                   Proceed
                 </button>
               </div>
