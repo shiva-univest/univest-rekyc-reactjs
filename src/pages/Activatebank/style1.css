@@ -199,6 +199,10 @@ h2 {
   cursor: pointer;
   /* width: 100%; */
 }
+.proceed-btn1:disabled {
+  background-color: #A9A9A9;
+  cursor: not-allowed;
+}
 .name1{
   width: 44%;
 }
