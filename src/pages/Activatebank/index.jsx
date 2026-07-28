@@ -66,6 +66,21 @@ const fetchWithAuth = async (url, options, retry = true) => {
   return response;
 };
 
+const getUploadErrorMessage = (payload) => {
+  if (!payload) return "Upload failed.";
+
+  if (typeof payload === "string") {
+    try {
+      const parsed = JSON.parse(payload);
+      return parsed?.message || parsed?.msg || "Upload failed.";
+    } catch {
+      return payload;
+    }
+  }
+
+  return payload?.message || payload?.msg || "Upload failed.";
+};
+
 const Activatebank = ({ encryptedData }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState("");
@@ -589,7 +604,7 @@ const Activatebank = ({ encryptedData }) => {
         setIsPasswordRequired(false);
         setPdfPassword("");
       } else {
-        toast.error("Upload failed.");
+        toast.error(getUploadErrorMessage(result));
       }
     } catch (error) {
       console.warn("Upload failed. Checking for 401...", error);
@@ -633,7 +648,7 @@ const Activatebank = ({ encryptedData }) => {
               setIsPasswordRequired(false);
               setPdfPassword("");
             } else {
-              toast.error("Upload failed.");
+              toast.error(getUploadErrorMessage(retryResult));
             }
           } else {
             console.error("Refresh succeeded but no access_token returned.");
@@ -645,7 +660,7 @@ const Activatebank = ({ encryptedData }) => {
         }
       } else {
         console.error("❌ Upload failed (not token related):", error);
-        toast.error("Upload failed.");
+        toast.error(getUploadErrorMessage(error?.data || error));
       }
     } finally {
       setLoading(false);
@@ -1087,8 +1102,15 @@ const Activatebank = ({ encryptedData }) => {
                           );
                           const result = await res.json();
                           console.log("✅ Upload result:", result);
+
+                          if (result?.status) {
+                            toast.success("File uploaded successfully.");
+                          } else {
+                            toast.error(getUploadErrorMessage(result));
+                          }
                         } catch (err) {
                           console.error("❌ Upload error:", err);
+                          toast.error(getUploadErrorMessage(err?.data || err));
                         }
                       }
                     }}
