@@ -290,6 +290,15 @@ const FloatingSelect = ({
 const Nominee = () => {
   const [nominees, setNominees] = useState([]);
   const [sharedData, setSharedData] = useState({});
+
+  const effectiveMaritalStatus = useMemo(() => {
+    const maritalStatusNew = sharedData?.marital_status_new?.trim();
+    const maritalStatusOld = sharedData?.marital_status_old?.trim();
+
+    return maritalStatusNew || maritalStatusOld || "";
+  }, [sharedData]);
+
+  const shouldHideSpouseRelation = effectiveMaritalStatus === "Single";
   const [isChanged, setIsChanged] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -1015,8 +1024,7 @@ const Nominee = () => {
             <option value="">Select relation</option>
             <option value="Father">Father</option>
             <option value="Mother">Mother</option>
-            <option value="Spouse">Spouse</option>
-            <option value="Child">Child</option>
+            {!shouldHideSpouseRelation && <option value="Spouse">Spouse</option>}
             <option value="Son">Son</option>
             <option value="Daughter">Daughter</option>
             <option value="Sibling">Sibling</option>
