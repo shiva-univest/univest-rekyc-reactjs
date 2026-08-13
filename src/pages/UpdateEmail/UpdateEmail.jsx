@@ -1050,7 +1050,6 @@ const UpdateEmailAddress = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="update_email_digilocker_title"
-          onClick={() => setShowDigilockerModal(false)}
         >
           <div
             className="digilocker-modal-content"

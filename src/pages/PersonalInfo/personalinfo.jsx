@@ -527,7 +527,6 @@ const UserInfoCard = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="aadhar_inactive_title"
-          onClick={() => setShowDigilockerModal(false)}
         >
           <div
             id="edit"

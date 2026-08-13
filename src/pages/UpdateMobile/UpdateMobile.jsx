@@ -1063,7 +1063,6 @@ const UpdateMobileNumber = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="update_mobile_digilocker_title"
-          onClick={() => setShowDigilockerModal(false)}
         >
           <div
             className="digilocker-modal-content"
