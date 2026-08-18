@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "./pages/Home";
 import Congratulation from "./pages/Congratulation";
 import Segment from "./pages/Segment";
+import Segment2 from "./pages/Segment2";
 import Activatebank from "./pages/Activatebank";
 import NotFound from "./pages/RequestFailed";
 import withAuthCheck from "./hoc/withAuthCheck";
@@ -27,6 +28,7 @@ import UpdateEmailAddress from "./pages/UpdateEmail/UpdateEmail";
 import IncomeDetails from "./pages/IncomeDetails";
 
 const ProtectedSegment = withAuthCheck(Segment);
+const ProtectedSegment2 = withAuthCheck(Segment2);
 const ProtectedIncomeDetails = withAuthCheck(IncomeDetails);
 
 const App = () => {
@@ -42,6 +44,10 @@ const App = () => {
     {
       path: "/segment",
       element: <ProtectedSegment />,
+    },
+    {
+      path: "/segment2",
+      element: <ProtectedSegment2 />,
     },
     {
       path: "/activatebank",

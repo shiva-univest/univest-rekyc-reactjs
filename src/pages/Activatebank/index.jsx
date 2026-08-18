@@ -10,6 +10,10 @@ import Loader from "../Loader/Loader";
 import { toast } from "react-toastify";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 import { sendDataToMixpanel } from "../../lib/utils";
+import {
+  getSegmentJourneyRoute,
+  setSegmentJourneyRoute,
+} from "../../lib/segmentJourney";
 
 import "./style1.css";
 
@@ -95,6 +99,12 @@ const Activatebank = ({ encryptedData }) => {
   const location = useLocation();
 
   const segmentData = location.state?.segmentData;
+  const segmentRoute =
+    location.state?.segmentRoute || getSegmentJourneyRoute("/segment");
+
+  useEffect(() => {
+    setSegmentJourneyRoute(segmentRoute);
+  }, [segmentRoute]);
 
   useEffect(() => {
     const fetchPageModuleMapping = async () => {
@@ -438,6 +448,11 @@ const Activatebank = ({ encryptedData }) => {
           "https://rekyc.meon.co.in/v1/user/get_module_data",
           { page_id: "6" }
         );
+
+        if (segmentRoute === "/segment2") {
+          navigate("/congratulations");
+          return;
+        }
 
         if (moduleResponse?.data) {
           const decrypted = decryptData(moduleResponse.data);
@@ -995,7 +1010,7 @@ const Activatebank = ({ encryptedData }) => {
     } catch (err) {
       console.error("❌ Error updating segments on skip:", err);
     } finally {
-      navigate("/segment");
+      navigate(segmentRoute);
     }
   };
 
