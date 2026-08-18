@@ -5,6 +5,10 @@ import Cookies from "js-cookie";
 import axios from "axios";
 import "./style.css";
 import { sendDataToMixpanel } from "../../lib/utils";
+import {
+  getSegmentJourneyRoute,
+  setSegmentJourneyRoute,
+} from "../../lib/segmentJourney";
 
 const REFRESH_URL = "https://rekyc.meon.co.in/v1/user/token/refresh";
 const UPDATE_SEGMENTS_URL =
@@ -14,6 +18,12 @@ const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const segmentData = location.state?.segmentData;
+  const segmentRoute =
+    location.state?.segmentRoute || getSegmentJourneyRoute("/segment");
+
+  React.useEffect(() => {
+    setSegmentJourneyRoute(segmentRoute);
+  }, [segmentRoute]);
 
   // helper: refresh token
   const refreshAccessToken = async () => {
@@ -100,11 +110,11 @@ const Home = () => {
       }
 
       // after all this, navigate
-      navigate("/segment");
+      navigate(segmentRoute);
     } catch (err) {
       console.error("Error in handleGoBack flow:", err);
       // fallback navigate
-      navigate("/segment");
+      navigate(segmentRoute);
     }
   };
 
@@ -113,7 +123,7 @@ const Home = () => {
     page: "rekyc_activate_fno_info",
     cta_text: "proceed",
   });
-    navigate("/activatebank", { state: { segmentData } });
+    navigate("/activatebank", { state: { segmentData, segmentRoute } });
   };
 
   return (

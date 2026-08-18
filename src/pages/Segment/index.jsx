@@ -12,8 +12,9 @@ import api from "../../api/api";
 import VerificationLoader from "../../Components/VerificationLoader/VerificationLoader";
 import { triggerWebhook } from "../../helper/usewebhook";
 import { sendDataToMixpanel } from "../../lib/utils";
+import { setSegmentJourneyRoute } from "../../lib/segmentJourney";
 
-const Segment = ({ encryptedData }) => {
+const Segment = ({ encryptedData, segmentRoute = "/segment" }) => {
   const { segmentData, setSegmentData } = useContext(SegmentContext);
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -67,6 +68,10 @@ const Segment = ({ encryptedData }) => {
 
     fetchModuleData();
   }, [Cookies.get("access_token")]);
+
+  useEffect(() => {
+    setSegmentJourneyRoute(segmentRoute);
+  }, [segmentRoute]);
 
   useEffect(() => {
     const parsed = JSON.parse(decryptData(encryptedData))[13][
@@ -247,7 +252,12 @@ const Segment = ({ encryptedData }) => {
         ...(prev || []),
         { exchange: "NSE", segment: "FNO", ticked: true, is_new: true },
       ]);
-      navigate("/", { state: { segmentData: segmentData } });
+      navigate("/", {
+        state: {
+          segmentData,
+          segmentRoute,
+        },
+      });
     } catch (error) {
       if (error.response?.status === 401) {
         console.warn("Access token expired. Attempting to refresh...");
@@ -285,7 +295,12 @@ const Segment = ({ encryptedData }) => {
             ...(prev || []),
             { ...payload[0], ticked: true, is_new: true },
           ]);
-          navigate("/");
+          navigate("/", {
+            state: {
+              segmentData,
+              segmentRoute,
+            },
+          });
         } catch (refreshErr) {
           console.error("Failed to refresh token:", refreshErr);
         }
